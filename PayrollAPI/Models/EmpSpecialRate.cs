@@ -1,0 +1,37 @@
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace PayrollAPI.Models
+{
+    public class EmpSpecialRate
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int id { get; set; }
+
+        public int companyCode { get; set; }
+        public int epf { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
+        public string? costcenter { get; set; }
+
+        public int payCode { get; set; }
+
+        [Column(TypeName = "varchar(5)")]
+        public string? calCode { get; set; }
+
+        [Column(TypeName = "decimal(3, 2)")]
+        public decimal rate { get; set; }
+
+        [Column(TypeName = "bool")]
+        public bool status { get; set; }
+
+        [Column(TypeName = "varchar(10)")]
+        public string? createdBy { get; set; }
+        public DateTime createdDate { get; set; }
+
+        [Column(TypeName = "varchar(10)")]
+        public string? lastUpdateBy { get; set; }
+        public DateTime lastUpdateDate { get; set; }
+    }
+}
