@@ -18,7 +18,7 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(500)")]
         public string? calFormula { get; set; }
 
-        [Column(TypeName = "bool")]
+        [Column(TypeName = "boolean")]
         public bool status { get; set; }
 
         [Column(TypeName = "varchar(10)")]

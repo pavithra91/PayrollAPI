@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿ using Microsoft.EntityFrameworkCore;
+using PayrollAPI.Models;
 
 namespace PayrollAPI.Data
 {
@@ -8,5 +9,19 @@ namespace PayrollAPI.Data
         {
 
         }
+
+        public DbSet<Calculation> Calculation { get; set; }
+        public DbSet<Employee_Data> Employee_Data { get; set; }  
+        public DbSet<EmpSpecialRate> EmpSpecialRate { get; set; }
+        public DbSet<EPF_ETF> EPF_ETF { get; set; }
+        public DbSet<PayCode> PayCode { get; set; }
+        public DbSet<Payroll_Data> Payroll_Data { get; set; }
+        public DbSet<Payrun> Payrun { get; set; }
+        public DbSet<Special_Tax_Emp> Special_Tax_Emp { get; set; }
+        public DbSet<Tax_Calculation> Tax_Calculation { get; set; }
+        public DbSet<Temp_Employee> Temp_Employee { get; set; }
+        public DbSet<Temp_Payroll> Temp_Payroll { get; set; }
+        public DbSet<TotPayCode> TotPayCode { get; set; }
+        public DbSet<User> User { get; set; }
     }
 }

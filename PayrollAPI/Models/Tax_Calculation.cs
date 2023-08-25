@@ -3,25 +3,20 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PayrollAPI.Models
 {
-    public class EmpSpecialRate
+    public class Tax_Calculation
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
-        public int companyCode { get; set; }
-        public int epf { get; set; }
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal range { get; set; }
 
-        [Column(TypeName = "varchar(50)")]
-        public string? costcenter { get; set; }
+        [Column(TypeName = "varchar(500)")]
+        public string? calFormula { get; set; }
 
-        public int payCode { get; set; }
-
-        [Column(TypeName = "varchar(5)")]
-        public string? calCode { get; set; }
-
-        [Column(TypeName = "decimal(3, 2)")]
-        public decimal rate { get; set; }
+        [Column(TypeName = "varchar(500)")]
+        public string? description { get; set; }
 
         [Column(TypeName = "boolean")]
         public bool status { get; set; }
