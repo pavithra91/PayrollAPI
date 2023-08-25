@@ -17,12 +17,12 @@ namespace PayrollAPI.Models
         public string? calCode { get; set; }
 
         [Column(TypeName = "varchar(2)")]
-        public string? type { get; set; }
+        public string? payCategory { get; set; }
 
         [Column(TypeName = "varchar(100)")]
         public string? description { get; set; }
 
-        [Column(TypeName = "bool")]
+        [Column(TypeName = "boolean")]
         public bool isTaxableGross { get; set; }
 
         [Column(TypeName = "decimal(3, 2)")]

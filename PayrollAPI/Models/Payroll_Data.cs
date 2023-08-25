@@ -14,15 +14,15 @@ namespace PayrollAPI.Models
         public float othours { get; set; }
 
         [Column(TypeName = "varchar(2)")]
-        public string? type { get; set; }
+        public string? payCategory { get; set; }
 
         public int payCode { get; set; }
 
         [Column(TypeName = "varchar(5)")]
         public string? calCode { get; set; }
 
-        [Column(TypeName = "bool")]
-        public bool paytype { get; set; }
+        [Column(TypeName = "bit")]
+        public int paytype { get; set; }
 
         [Column(TypeName = "varchar(6)")]
         public string? costcenter { get; set; }
@@ -36,7 +36,7 @@ namespace PayrollAPI.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal balanceamount { get; set; }
 
-        [Column(TypeName = "bool")]
+        [Column(TypeName = "boolean")]
         public bool displayOnPaySheet { get; set; }
     }
 }

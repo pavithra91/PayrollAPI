@@ -29,10 +29,10 @@ namespace PayrollAPI.Models
         public int branchCode { get; set; }
         public int accountNo { get; set; }
 
-        [Column(TypeName = "bool")]
+        [Column(TypeName = "boolean")]
         public bool status { get; set; }
 
-        [Column(TypeName = "bool")]
+        [Column(TypeName = "boolean")]
         public bool isPaysheetGenerated { get; set; }
 
         [Column(TypeName = "varchar(10)")]
