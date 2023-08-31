@@ -7,7 +7,9 @@ namespace PayrollAPI.Interfaces
 {
     public interface IUsers
     {
-        public string AuthenticateUser(Users usr);
+        public TokenResponse AuthenticateUser(Users usr);
+
+        public TokenResponse RefreshToken(TokenResponse tokenResponse);
 
         public User GetUser(string username);
         public bool CreateUser(UserDto user);

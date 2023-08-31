@@ -23,5 +23,7 @@ namespace PayrollAPI.Data
         public DbSet<Temp_Payroll> Temp_Payroll { get; set; }
         public DbSet<TotPayCode> TotPayCode { get; set; }
         public DbSet<User> User { get; set; }
+
+        public DbSet<LoginInfo> LoginInfo { get; set; }
     }
 }

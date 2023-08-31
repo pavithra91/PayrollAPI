@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Options;
@@ -14,6 +15,7 @@ using System.Text;
 
 namespace PayrollAPI.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -24,12 +26,36 @@ namespace PayrollAPI.Controllers
              _usr = users;
         }
 
+        [AllowAnonymous]
         [Route("Authenticate")]
         [HttpPost]
         public IActionResult Authenticate([FromBody] Users usr)
         {
             var _user = _usr.AuthenticateUser(usr);
-            return Ok(_user);
+            if (_user != null)
+            {
+                return Ok(_user); 
+            }
+            else
+            {
+                return Unauthorized();
+            }
+            
+        }
+
+        [Route("Refresh")]
+        [HttpPost]
+        public IActionResult Refresh([FromBody] TokenResponse token)
+        {
+            var _refreshToken = _usr.RefreshToken(token);
+            if(_refreshToken == null)
+            {
+                return Unauthorized();
+            }
+            else
+            {
+                return Ok(_refreshToken);
+            }
         }
 
         [Route("CreateUser")]
@@ -42,6 +68,14 @@ namespace PayrollAPI.Controllers
                 return Ok(_user);
             else 
                 return BadRequest();
+        }
+
+        
+        [Route("GetUser")]
+        [HttpGet]
+        public IActionResult GetUser()
+        {
+            return Ok("Its Working");
         }
     }
 }

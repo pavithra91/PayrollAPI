@@ -18,11 +18,13 @@ namespace PayrollAPI.Repository
         private readonly DBConnect _dbConnect;
         private readonly JWTSetting setting;
         private readonly PasswordHasher passwordHasher;
-        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options) 
+        private readonly IRefreshTokenGenerator tokenGenerator;
+        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken) 
         {
             _dbConnect = dB;
             this.setting = options.Value;
             passwordHasher = new PasswordHasher();
+            tokenGenerator = _refreshToken;
         }
 
         public User GetUser(string username)
@@ -51,9 +53,13 @@ namespace PayrollAPI.Repository
             return Save();
         }
 
-        public string AuthenticateUser(Users usr)
+        public TokenResponse AuthenticateUser(Users usr)
         {
-            var _user = _dbConnect.User.FirstOrDefault(o => o.userID == usr.Name && o.pwdHash == usr.Password);
+            TokenResponse tokenResponse = new TokenResponse();
+
+            var _user = _dbConnect.User.FirstOrDefault(o => o.userID == usr.UserId);
+
+            bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString(), _user.costCenter);
 
             // if (_user == null)
             // return Unauthorized();
@@ -75,8 +81,59 @@ namespace PayrollAPI.Repository
             var token = tokenhandler.CreateToken(tokenDescriptor);
             string finaltoken = tokenhandler.WriteToken(token);
 
-            return finaltoken;
+            tokenResponse.JWTToken = finaltoken;
+            tokenResponse.RefreshToken = tokenGenerator.GenerateToken(_user.userID);
+
+            return tokenResponse;
         }
+
+        public TokenResponse RefreshToken(TokenResponse token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken securityToken;
+            var principle = tokenHandler.ValidateToken(token.JWTToken, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(setting.securitykey)),
+                ValidateIssuer = false,
+                ValidateAudience = false
+            }, out securityToken);
+
+            var _token = securityToken as JwtSecurityToken;
+            if (_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
+            {
+                return null;
+            }
+
+            var username = principle.Identity.Name;
+            var _reftable = _dbConnect.LoginInfo.FirstOrDefault(o => o.userID == username && o.refreshToken == token.RefreshToken);
+            if(_reftable==null) 
+            {
+                return null;
+            }
+
+            TokenResponse _result = Authenticate(username, principle.Claims.ToArray());
+
+
+            return _result;
+        }
+
+        public TokenResponse Authenticate(string username, Claim[] claims)
+        {
+            TokenResponse tokenResponse = new TokenResponse();
+            var tokenkey = Encoding.UTF8.GetBytes(setting.securitykey);
+            var tokenhandler = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(15),
+                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
+
+                );
+            tokenResponse.JWTToken = new JwtSecurityTokenHandler().WriteToken(tokenhandler);
+            tokenResponse.RefreshToken = tokenGenerator.GenerateToken(username);
+
+            return tokenResponse;
+        }
+
 
         public bool Save()
         {

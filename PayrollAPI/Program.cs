@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Repository;
 using System.Configuration;
@@ -13,6 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<PayrollAPI.Data.DBConnect>(options =>
 options.UseMySQL(builder.Configuration.GetConnectionString("DevConnection")));
+
+var _dbContext = builder.Services.BuildServiceProvider().GetService<DBConnect>();
+
+builder.Services.AddSingleton<IRefreshTokenGenerator>(provider => new RefreshTokenGenerator(_dbContext));
 
 var _jwtsetting = builder.Configuration.GetSection("JWTSetting");
 builder.Services.Configure<JWTSetting>((IConfiguration)_jwtsetting);
