@@ -124,7 +124,7 @@ namespace PayrollAPI.Repository
             var tokenkey = Encoding.UTF8.GetBytes(setting.securitykey);
             var tokenhandler = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(15),
+                expires: DateTime.Now.AddMinutes(5),
                  signingCredentials: new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
 
                 );
@@ -132,6 +132,19 @@ namespace PayrollAPI.Repository
             tokenResponse.RefreshToken = tokenGenerator.GenerateToken(username);
 
             return tokenResponse;
+        }
+
+        public bool ResetPassword(string username, string password)
+        {
+            var _user = _dbConnect.User.FirstOrDefault(o => o.userID == username);
+
+            string pwdHash = passwordHasher.Hash(password, _user.epf.ToString(), _user.costCenter);
+
+            _user.pwdHash = pwdHash;
+
+
+            _dbConnect.Update(_user);
+            return Save();
         }
 
 

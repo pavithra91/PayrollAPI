@@ -13,5 +13,7 @@ namespace PayrollAPI.Interfaces
 
         public User GetUser(string username);
         public bool CreateUser(UserDto user);
+
+        public bool ResetPassword(string username, string password);
     }
 }

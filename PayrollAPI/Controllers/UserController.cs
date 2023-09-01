@@ -60,9 +60,9 @@ namespace PayrollAPI.Controllers
 
         [Route("CreateUser")]
         [HttpPost]
-        public IActionResult CreateUser([FromBody] UserDto usr)
+        public IActionResult CreateUser([FromBody] UserDto usrDto)
         {
-            bool _user = _usr.CreateUser(usr);
+            bool _user = _usr.CreateUser(usrDto);
 
             if(_user)
                 return Ok(_user);
@@ -70,7 +70,19 @@ namespace PayrollAPI.Controllers
                 return BadRequest();
         }
 
-        
+        [Route("ResetPassword")]
+        [HttpPost]
+        public IActionResult ResetPassword([FromBody] UserDto usrDto)
+        {
+            bool _user = _usr.ResetPassword(usrDto.userID, usrDto.password);
+
+            if (_user)
+                return Ok(_user);
+            else
+                return BadRequest();
+        }
+
+
         [Route("GetUser")]
         [HttpGet]
         public IActionResult GetUser()
