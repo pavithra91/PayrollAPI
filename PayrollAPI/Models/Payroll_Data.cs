@@ -36,6 +36,16 @@ namespace PayrollAPI.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal balanceamount { get; set; }
 
+        public float epfConRate { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal epfContribution { get; set; }
+
+        public float taxConRate { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal taxContribution { get; set; }
+
         [Column(TypeName = "boolean")]
         public bool displayOnPaySheet { get; set; }
     }

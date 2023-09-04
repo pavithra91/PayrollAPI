@@ -35,5 +35,8 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal balanceamount { get; set; }
+
+        public float epfConRate { get; set; }
+        public float taxConRate { get; set; }
     }
 }
