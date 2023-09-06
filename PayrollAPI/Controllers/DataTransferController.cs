@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 
 namespace PayrollAPI.Controllers
@@ -19,14 +20,16 @@ namespace PayrollAPI.Controllers
         [HttpPost]
         public IActionResult ConfirmDataTransfer()
         {
-            
-            if (_data.ConfirmDataTransfer())
+            MsgDto _msg = _data.ConfirmDataTransfer(02);
+
+
+            if (_msg.MsgCode == 'S')
             {
-                return Ok();
+                return Ok(_msg);
             }
             else
             {
-                return BadRequest();
+                return BadRequest(_msg);
             }
         }
     }

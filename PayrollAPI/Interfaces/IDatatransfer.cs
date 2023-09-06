@@ -1,7 +1,9 @@
-﻿namespace PayrollAPI.Interfaces
+﻿using PayrollAPI.DataModel;
+
+namespace PayrollAPI.Interfaces
 {
     public interface IDatatransfer
     {
-        public bool ConfirmDataTransfer();
+        public MsgDto ConfirmDataTransfer(int period);
     }
 }

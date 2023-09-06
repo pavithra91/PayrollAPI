@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
 using PayrollAPI.Data;
+using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
 
@@ -13,9 +14,9 @@ namespace PayrollAPI.Repository
             _context = db;
         }
 
-        public bool ConfirmDataTransfer()
+        public MsgDto ConfirmDataTransfer(int period)
         {
-            ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.OrderBy(o=>o.epf).ToList();
+            ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.Where(o=>o.period == period).ToList();
             
             IList<Employee_Data> _newEmpList = new List<Employee_Data>();
 
@@ -38,7 +39,45 @@ namespace PayrollAPI.Repository
             }
             _context.BulkInsert(_newEmpList);
 
-            return true;
+            ICollection<Temp_Payroll> _payItemList = _context.Temp_Payroll.Where(o => o.period == period).ToList();
+            ICollection<PayCode> _payCode = _context.PayCode.ToList();
+
+            IList<Payroll_Data> _newPayrollData = new List<Payroll_Data>();
+
+            foreach (PayCode payCode in _payCode)
+            {
+                ICollection<Temp_Payroll> _tempList = _payItemList.Where(w => w.payCode == payCode.payCode).ToList();
+
+                foreach (Temp_Payroll payItem in _tempList)
+                {
+                    _newPayrollData.Add(new Payroll_Data()
+                    {
+                        epf = payItem.epf,
+                        period = payItem.period,
+                        othours = payItem.othours,
+                        payCategory = payItem.payCategory,
+                        payCode = payItem.payCode,
+                        calCode = payCode.calCode,
+                        paytype = payItem.paytype,
+                        costcenter = payItem.costcenter,
+                        payCodeType = payItem.payCodeType,
+                        amount = payItem.amount,
+                        balanceamount = payItem.balanceamount,
+                        epfConRate = payItem.epfConRate,
+                        epfContribution = (payItem.amount * (decimal) payItem.epfConRate),
+                        taxConRate = payItem.taxConRate,
+                        taxContribution = (payItem.amount * (decimal)payItem.taxConRate),
+                    });
+                }
+            }
+
+            _context.BulkInsert(_newPayrollData);
+
+            MsgDto _msg = new MsgDto();
+            _msg.MsgCode = 'S';
+            _msg.Message = "";
+
+            return _msg;
         }
     }
 }
