@@ -4,6 +4,6 @@ namespace PayrollAPI.Interfaces
 {
     public interface IDatatransfer
     {
-        public MsgDto ConfirmDataTransfer(int period);
+        public Task<MsgDto> ConfirmDataTransfer(ApprovalDto approvalDto);
     }
 }

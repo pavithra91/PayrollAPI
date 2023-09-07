@@ -18,9 +18,9 @@ namespace PayrollAPI.Controllers
 
         [Route("ConfirmDataTransfer")]
         [HttpPost]
-        public IActionResult ConfirmDataTransfer()
+        public async Task<IActionResult> ConfirmDataTransfer([FromBody] ApprovalDto approvalDto)
         {
-            MsgDto _msg = _data.ConfirmDataTransfer(02);
+            MsgDto _msg = await _data.ConfirmDataTransfer(approvalDto);
 
 
             if (_msg.MsgCode == 'S')

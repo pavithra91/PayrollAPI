@@ -14,13 +14,13 @@ namespace PayrollAPI.Repository
             _context = db;
         }
 
-        public MsgDto ConfirmDataTransfer(int period)
+        public async Task<MsgDto> ConfirmDataTransfer(ApprovalDto approvalDto)
         {
-            ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.Where(o=>o.period == period).ToList();
+            ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.Where(o=>o.period == approvalDto.period).ToList();
             
             IList<Employee_Data> _newEmpList = new List<Employee_Data>();
 
-            foreach(Temp_Employee emp in _employeeList) 
+            Parallel.ForEach(_employeeList, emp =>
             {
                 _newEmpList.Add(new Employee_Data()
                 {
@@ -36,10 +36,11 @@ namespace PayrollAPI.Repository
                     accountNo = emp.branchCode,
                     status = true
                 });
-            }
-            _context.BulkInsert(_newEmpList);
+            });
 
-            ICollection<Temp_Payroll> _payItemList = _context.Temp_Payroll.Where(o => o.period == period).ToList();
+            await _context.BulkInsertAsync(_newEmpList);
+
+            ICollection<Temp_Payroll> _payItemList = _context.Temp_Payroll.Where(o => o.period == approvalDto.period).ToList();
             ICollection<PayCode> _payCode = _context.PayCode.ToList();
 
             IList<Payroll_Data> _newPayrollData = new List<Payroll_Data>();
@@ -48,8 +49,7 @@ namespace PayrollAPI.Repository
             {
                 ICollection<Temp_Payroll> _tempList = _payItemList.Where(w => w.payCode == payCode.payCode).ToList();
 
-                foreach (Temp_Payroll payItem in _tempList)
-                {
+                Parallel.ForEach(_tempList, payItem => {
                     _newPayrollData.Add(new Payroll_Data()
                     {
                         epf = payItem.epf,
@@ -64,20 +64,45 @@ namespace PayrollAPI.Repository
                         amount = payItem.amount,
                         balanceamount = payItem.balanceamount,
                         epfConRate = payItem.epfConRate,
-                        epfContribution = (payItem.amount * (decimal) payItem.epfConRate),
+                        epfContribution = (payItem.amount * (decimal)payItem.epfConRate),
                         taxConRate = payItem.taxConRate,
                         taxContribution = (payItem.amount * (decimal)payItem.taxConRate),
                     });
-                }
+                });
             }
 
-            _context.BulkInsert(_newPayrollData);
+            await _context.BulkInsertAsync(_newPayrollData);
+
+            Payrun _objPay = new Payrun();
+            _objPay.period = approvalDto.period;
+            _objPay.approvedBy = approvalDto.approvedBy;
+            _objPay.approvedDate = DateTime.Now;
+            _objPay.noOfEmployees = _newEmpList.Count;
+            _objPay.noOfRecords = _newPayrollData.Count;
+            _objPay.payrunStatus = "Approved";
+
+            _context.Add(_objPay);
 
             MsgDto _msg = new MsgDto();
-            _msg.MsgCode = 'S';
-            _msg.Message = "";
 
-            return _msg;
+            if (Save())
+            {
+                _msg.MsgCode = 'S';
+                _msg.Message = "Data Transered Successfully";
+                return _msg;
+            }
+            else
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "";
+                return _msg;
+            }       
+        }
+
+        public bool Save()
+        {
+            var saved = _context.SaveChanges();
+            return saved > 0 ? true : false;
         }
     }
 }
