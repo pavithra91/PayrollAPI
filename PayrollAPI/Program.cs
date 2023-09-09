@@ -55,6 +55,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<IUsers, UsersRepository>();
+builder.Services.AddScoped<IDatatransfer, DataRepository>();
+builder.Services.AddScoped<IPayroll, PayrollReporsitory>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
