@@ -127,9 +127,67 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
         }
-        public MsgDto ManageCalculations()
+        public MsgDto ManageCalculations(CalDto calDto)
         {
-            throw new NotImplementedException();
+            MsgDto _msg = new MsgDto();
+
+            if (calDto.flag == 'N')
+            {
+                var _cal = new Calculation
+                {
+                    calCode = calDto.calCode,
+                    companyCode = calDto.companyCode,
+                    calDescription = calDto.calDescription,
+                    payCode = calDto.payCode,
+                    payCategory = calDto.payCategory,
+                    calFormula = calDto.calFormula,
+                    sequence = calDto.sequence,
+                    status = true,
+                    createdBy = calDto.createdBy,
+                    createdDate = DateTime.Now
+                };
+
+                _context.Add(_cal);
+                _context.SaveChanges();
+
+                return _msg;
+            }
+            else if (calDto.flag == 'U')
+            {
+                var _cal = _context.Calculation.FirstOrDefault(o => o.id == calDto.id);
+                if (_cal != null)
+                {
+                    _cal.calCode = calDto.calCode;
+                    _cal.calDescription = calDto.calDescription;
+                    _cal.payCategory = calDto.payCategory;
+                    _cal.payCode = calDto.payCode;
+                    _cal.calFormula = calDto.calFormula;
+                    _cal.status = calDto.status;
+                    _cal.sequence = calDto.sequence;
+                    _cal.lastUpdateBy = calDto.lastUpdateBy;
+                    _cal.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Calculation updated Successfully";
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Calculation Formula Found";
+                }
+
+                _context.SaveChanges();
+                return _msg;
+            }
+            else if (calDto.flag == 'D')
+            {
+                // Not Implemented
+                return _msg;
+            }
+            else
+            {
+                return _msg;
+            }
         }
         public MsgDto AddSpecialRateEmp()
         {
