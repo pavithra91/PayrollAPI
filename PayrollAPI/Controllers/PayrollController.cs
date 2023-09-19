@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.Interfaces;
 
 namespace PayrollAPI.Controllers
 {
@@ -7,6 +8,10 @@ namespace PayrollAPI.Controllers
     [ApiController]
     public class PayrollController : ControllerBase
     {
-        public PayrollController() { }
+        private readonly IPayroll _payroll;
+        public PayrollController(IPayroll payroll) 
+        { 
+            _payroll = payroll;
+        }
     }
 }

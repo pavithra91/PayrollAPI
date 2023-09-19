@@ -189,13 +189,159 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
         }
-        public MsgDto AddSpecialRateEmp()
+        public MsgDto AddSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto)
         {
-            throw new NotImplementedException();
+            MsgDto _msg = new MsgDto();
+
+            if (specialRateEmpDto.flag == 'N')
+            {
+                var _sRateEmp = new EmpSpecialRate
+                {
+                    epf = specialRateEmpDto.epf,
+                    companyCode = specialRateEmpDto.companyCode,
+                    costcenter = specialRateEmpDto.costcenter,
+                    payCode = specialRateEmpDto.payCode,
+                    calCode = specialRateEmpDto.calCode,
+                    rate = specialRateEmpDto.rate,
+                    status = true,
+                    createdBy = specialRateEmpDto.createdBy,
+                    createdDate = DateTime.Now
+                };
+
+                _context.Add(_sRateEmp);
+                _context.SaveChanges();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Special Rate apply to Paycode " + specialRateEmpDto.payCode + " for Employee : " + specialRateEmpDto.epf;
+
+                return _msg;
+            }
+            else if (specialRateEmpDto.flag == 'U')
+            {
+                var _sRateEmp = _context.EmpSpecialRate.FirstOrDefault(o => o.id == specialRateEmpDto.id);
+                if (_sRateEmp != null)
+                {
+                    _sRateEmp.companyCode = specialRateEmpDto.companyCode;
+                    _sRateEmp.costcenter = specialRateEmpDto.costcenter;
+                    _sRateEmp.payCode = specialRateEmpDto.payCode;
+                    _sRateEmp.calCode = specialRateEmpDto.calCode;
+                    _sRateEmp.rate = specialRateEmpDto.rate;
+                    _sRateEmp.status = specialRateEmpDto.status;
+                    _sRateEmp.lastUpdateBy = specialRateEmpDto.lastUpdateBy;
+                    _sRateEmp.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Employee : " + specialRateEmpDto.epf + " Updated";
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Employee Found";
+                }
+
+                _context.SaveChanges();
+                return _msg;
+            }
+            else if (specialRateEmpDto.flag == 'D')
+            {
+                var _sRateEmp = _context.EmpSpecialRate.FirstOrDefault(o => o.id == specialRateEmpDto.id);
+                if (_sRateEmp != null)
+                {
+                    _sRateEmp.status = false;
+                    _sRateEmp.lastUpdateBy = specialRateEmpDto.lastUpdateBy;
+                    _sRateEmp.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "1 Record Mark for Deletion";
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Employee Found";
+                }
+
+                _context.SaveChanges();
+                return _msg;
+            }
+            else
+            {
+                return _msg;
+            }
         }
-        public MsgDto AddSpecialTaxEmp()
+        public MsgDto AddSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto)
         {
-            throw new NotImplementedException();
+            MsgDto _msg = new MsgDto();
+
+            if (specialTaxEmpDto.flag == 'N')
+            {
+                var _sTaxEmp = new Special_Tax_Emp
+                {
+                    epf = specialTaxEmpDto.epf,
+                    companyCode = specialTaxEmpDto.companyCode,
+                    costcenter = specialTaxEmpDto.costcenter,
+                    calFormula = specialTaxEmpDto.calFormula,
+                    status = true,
+                    createdBy = specialTaxEmpDto.createdBy,
+                    createdDate = DateTime.Now
+                };
+
+                _context.Add(_sTaxEmp);
+                _context.SaveChanges();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Special Tax Rate apply to Employee : " + specialTaxEmpDto.epf;
+
+                return _msg;
+            }
+            else if (specialTaxEmpDto.flag == 'U')
+            {
+                var _sTaxEmp = _context.Special_Tax_Emp.FirstOrDefault(o => o.id == specialTaxEmpDto.id);
+                if (_sTaxEmp != null)
+                {
+                    _sTaxEmp.companyCode = specialTaxEmpDto.companyCode;
+                    _sTaxEmp.costcenter = specialTaxEmpDto.costcenter;
+                    _sTaxEmp.calFormula = specialTaxEmpDto.calFormula;
+                    _sTaxEmp.status = specialTaxEmpDto.status;
+                    _sTaxEmp.lastUpdateBy = specialTaxEmpDto.lastUpdateBy;
+                    _sTaxEmp.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Employee : " + specialTaxEmpDto.epf + " Updated";
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Employee Found";
+                }
+
+                _context.SaveChanges();
+                return _msg;
+            }
+            else if (specialTaxEmpDto.flag == 'D')
+            {
+                var _sTaxEmp = _context.Special_Tax_Emp.FirstOrDefault(o => o.id == specialTaxEmpDto.id);
+                if (_sTaxEmp != null)
+                {
+                    _sTaxEmp.status = false;
+                    _sTaxEmp.lastUpdateBy = specialTaxEmpDto.lastUpdateBy;
+                    _sTaxEmp.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "1 Record Mark for Deletion";
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Employee Found";
+                }
+
+                _context.SaveChanges();
+                return _msg;
+            }
+            else
+            {
+                return _msg;
+            }
         }
     }
 }
