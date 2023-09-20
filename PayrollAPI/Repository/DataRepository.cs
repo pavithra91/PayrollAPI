@@ -110,8 +110,50 @@ namespace PayrollAPI.Repository
 
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }              
+        }
+
+        public async Task<MsgDto> PreparePayrun(ApprovalDto approvalDto)
+        {
+            try
+            {
+                using var transaction = BeginTransaction();
+
+                MsgDto _msg = new MsgDto();
+                ICollection<EmpSpecialRate> _empSpecialRates = _context.EmpSpecialRate.Where(o => o.status == true).ToList();
+                ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period).ToList();
+
+                Parallel.ForEach(_empSpecialRates, payItem =>
+                {
+                    Payroll_Data _data = new Payroll_Data();
+
+                    _data = _payrollData.Where(o => o.epf == payItem.epf && o.payCode == payItem.payCode).FirstOrDefault();
+                    if (_data != null)
+                    {
+                        _data.amount = payItem.rate;
+                        _data.taxContribution = payItem.rate * (decimal)_data.taxConRate;
+                        _data.epfContribution = payItem.rate * (decimal)_data.epfConRate;
+                    }
+                    // _context.SaveChanges();
+                });
+
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Data Preparation Successfully Complete";
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                MsgDto _msg = new MsgDto();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
         }
     }
 }

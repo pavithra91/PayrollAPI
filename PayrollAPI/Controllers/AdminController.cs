@@ -17,9 +17,9 @@ namespace PayrollAPI.Controllers
 
         [Route("SpecialRateEmp")]
         [HttpPost]
-        public IActionResult SpecialRateEmp([FromBody] CalDto calDto)
+        public IActionResult SpecialRateEmp([FromBody] SpecialRateEmpDto specialRateEmpDto)
         {
-            MsgDto _msg = _admin.AddSpecialRateEmp();
+            MsgDto _msg = _admin.AddSpecialRateEmp(specialRateEmpDto);
 
             if (_msg.MsgCode == 'S')
             {

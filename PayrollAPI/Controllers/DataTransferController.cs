@@ -32,5 +32,22 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
+
+        [Route("PreparePayrun")]
+        [HttpPost]
+        public async Task<IActionResult> PreparePayrun([FromBody] ApprovalDto approvalDto)
+        {
+            MsgDto _msg = await _data.PreparePayrun(approvalDto);
+
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
     }
 }

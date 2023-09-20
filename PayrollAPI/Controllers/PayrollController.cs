@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 
 namespace PayrollAPI.Controllers
@@ -12,6 +13,23 @@ namespace PayrollAPI.Controllers
         public PayrollController(IPayroll payroll) 
         { 
             _payroll = payroll;
+        }
+
+        [Route("ProcessPayroll")]
+        [HttpPost]
+        public async Task<IActionResult> ProcessPayroll([FromBody] ApprovalDto approvalDto)
+        {
+            MsgDto _msg = await _payroll.ProcessPayroll(approvalDto);
+
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
         }
     }
 }
