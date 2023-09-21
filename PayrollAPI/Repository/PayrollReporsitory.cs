@@ -32,7 +32,7 @@ namespace PayrollAPI.Repository
 
             Parallel.ForEach(_emp, emp =>
             {
-                ICollection<Payroll_Data> _empPayrollData = _payrollData.Where(o => o.epf == emp.epf).ToList();
+                ICollection<Payroll_Data> _empPayrollData = _payrollData.Where(o => o.epf == emp.epf).OrderBy(o => o.payCode).ToList();
 
                 decimal _epfTot = _empPayrollData.Where(o => o.epfContribution > 0).Sum(w => w.epfContribution);
                 decimal _taxTot = _empPayrollData.Where(o => o.taxContribution > 0).Sum(w => w.taxContribution);
@@ -44,7 +44,7 @@ namespace PayrollAPI.Repository
                 _tempEPFTOT.payCategory = "";
                 _tempEPFTOT.payCode = 0;
                 _tempEPFTOT.calCode = "EPFTO";
-                _tempEPFTOT.paytype = 0;
+                _tempEPFTOT.paytype = null;
                 _tempEPFTOT.costcenter = emp.costCenter;
                 _tempEPFTOT.payCodeType = "T";
                 _tempEPFTOT.amount = _epfTot;
@@ -103,7 +103,7 @@ namespace PayrollAPI.Repository
                     _objEPFTOT.payCategory = "T";
                     _objEPFTOT.payCode = cal.payCode;
                     _objEPFTOT.calCode = cal.calCode;
-                    _objEPFTOT.paytype = 0;
+                    _objEPFTOT.paytype = null;
                     _objEPFTOT.costcenter = emp.costCenter;
                     _objEPFTOT.payCodeType = "S";
                     _objEPFTOT.amount = _result;
@@ -117,6 +117,25 @@ namespace PayrollAPI.Repository
                     _empPayrollData.Add(_objEPFTOT);
                     _context.Payroll_Data.Add(_objEPFTOT);
                 };
+
+                decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
+                decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1").Sum(w => w.amount);
+
+                if(_grossDed > _grossTot)
+                {
+                    ICollection<Payroll_Data> _empDeductions = _empPayrollData.Where(o=>o.payCategory == "1").OrderBy(o => o.payCode).ToList();
+                    
+                    foreach(Payroll_Data deductionItem in _empDeductions)
+                    {
+                        _grossTot -= deductionItem.amount;
+
+                        if(_grossTot < 0)
+                        {
+                            // Add to unrecovered List
+                        }
+                    }
+                }
+
             });
 
             transaction.Commit();

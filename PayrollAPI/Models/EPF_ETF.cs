@@ -11,7 +11,9 @@ namespace PayrollAPI.Models
         public int id { get; set; }
 
         public int period { get; set; }
-        public int epf { get; set; }
+
+        [Column(TypeName = "varchar(6)")]
+        public string epf { get; set; }
 
         [Column(TypeName = "varchar(200)")]
         public string? empName { get; set; }

@@ -1,4 +1,5 @@
 ﻿ using Microsoft.EntityFrameworkCore;
+using MySql.EntityFrameworkCore.Extensions;
 using PayrollAPI.Models;
 
 namespace PayrollAPI.Data
@@ -25,5 +26,12 @@ namespace PayrollAPI.Data
         public DbSet<User> User { get; set; }
 
         public DbSet<LoginInfo> LoginInfo { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Temp_Employee>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("CURDATE()");
+        }
     }
 }

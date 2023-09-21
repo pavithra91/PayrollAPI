@@ -10,7 +10,9 @@ namespace PayrollAPI.Models
         public int id { get; set; }
 
         public int period { get; set; }
-        public int epf { get; set; }
+
+        [Column(TypeName = "varchar(6)")]
+        public string epf { get; set; }
         public float othours { get; set; }
 
         [Column(TypeName = "varchar(2)")]
@@ -21,8 +23,7 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(5)")]
         public string? calCode { get; set; }
 
-        [Column(TypeName = "bit")]
-        public int paytype { get; set; }
+        public char? paytype { get; set; }
 
         [Column(TypeName = "varchar(6)")]
         public string? costcenter { get; set; }

@@ -5,7 +5,7 @@
         public int id { get; set; }
         public char flag { get; set; }
         public int companyCode { get; set; }
-        public int epf { get; set; }
+        public string epf { get; set; }
         public string? costcenter { get; set; }
         public int payCode { get; set; }
         public string? calCode { get; set; }

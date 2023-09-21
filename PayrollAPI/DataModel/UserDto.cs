@@ -5,7 +5,7 @@ namespace PayrollAPI.DataModel
     public class UserDto
     {
         public string? userID { get; set; }
-        public int epf { get; set; }
+        public string epf { get; set; }
         public string? empName { get; set; }
         public string? costCenter { get; set; }
         public string? password { get; set; }

@@ -10,7 +10,8 @@ namespace PayrollAPI.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
-        public int epf { get; set; }
+        [Column(TypeName = "varchar(6)")]
+        public string epf { get; set; }
         public int period { get; set; }
 
         [Column(TypeName = "varchar(500)")]

@@ -10,7 +10,9 @@ namespace PayrollAPI.Models
         public int id { get; set; }
 
         public int companyCode { get; set; }
-        public int epf { get; set; }
+
+        [Column(TypeName = "varchar(6)")]
+        public string epf { get; set; }
 
         [Column(TypeName = "varchar(50)")]
         public string? costcenter { get; set; }
