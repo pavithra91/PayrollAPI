@@ -16,6 +16,7 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(10)")]
         public string? approvedBy { get; set; }
         public DateTime approvedDate { get; set; }
+        public DateTime approvedTime { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public string? payrunStatus { get; set; }
@@ -23,5 +24,6 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(10)")]
         public string? payrunBy { get; set; }
         public DateTime payrunDate { get; set; }
+        public DateTime payrunTime { get; set; }
     }
 }

@@ -36,5 +36,8 @@ namespace PayrollAPI.Models
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime createdDate { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime createdTime { get; set; }
     }
 }

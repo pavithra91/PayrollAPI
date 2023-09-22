@@ -23,6 +23,10 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(10)")]
         public string? createdBy { get; set; }
 
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime createdDate { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime createdTime { get; set; }
     }
 }

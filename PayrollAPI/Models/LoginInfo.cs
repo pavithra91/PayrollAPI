@@ -20,6 +20,7 @@ namespace PayrollAPI.Models
         public string? refreshToken { get; set; }
 
         public DateTime loginDateTime { get; set; }
+        public DateTime loginTime { get; set; }
 
         [Column(TypeName = "boolean")]
         public bool isActive { get; set; }

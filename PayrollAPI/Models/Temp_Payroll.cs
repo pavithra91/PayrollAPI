@@ -42,5 +42,11 @@ namespace PayrollAPI.Models
 
         public float epfConRate { get; set; }
         public float taxConRate { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime createdDate { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime createdTime { get; set; }
     }
 }

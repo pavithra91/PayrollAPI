@@ -29,9 +29,85 @@ namespace PayrollAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Calculation>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Calculation>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<EmpSpecialRate>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<EmpSpecialRate>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<EPF_ETF>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<EPF_ETF>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<PayCode>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<PayCode>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Special_Tax_Emp>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Special_Tax_Emp>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Tax_Calculation>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Tax_Calculation>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
             modelBuilder.Entity<Temp_Employee>()
                     .Property(s => s.createdDate)
-                    .ForMySQLHasDefaultValueSql("CURDATE()");
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Temp_Employee>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Temp_Payroll>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Temp_Payroll>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<TotPayCode>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<TotPayCode>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<User>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<User>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
         }
     }
 }

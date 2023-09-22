@@ -11,8 +11,8 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations
 {
     [DbContext(typeof(DBConnect))]
-    [Migration("20230921105933_CPP-26-21-09-2023")]
-    partial class CPP2621092023
+    [Migration("20230922054729_CPP-36-22-09-2023")]
+    partial class CPP3622092023
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -471,7 +471,7 @@ namespace PayrollAPI.Migrations
                     b.Property<DateTime>("createdDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURDATE()");
+                        .HasDefaultValueSql("(CURDATE())");
 
                     b.Property<string>("empGrade")
                         .HasColumnType("varchar(5)");
