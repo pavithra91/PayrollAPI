@@ -133,6 +133,15 @@ namespace PayrollAPI.Repository
                         if(_grossTot < 0)
                         {
                             // Add to unrecovered List
+                            Unrecovered _unRecoveredObj = new Unrecovered();
+                            //_unRecoveredObj.companyCode = 2323;
+                            _unRecoveredObj.period = deductionItem.period;
+                            _unRecoveredObj.epf = deductionItem.epf;
+                            _unRecoveredObj.payCategory = deductionItem.payCategory;
+                            _unRecoveredObj.payCode = deductionItem.payCode;
+                            _unRecoveredObj.calCode = deductionItem.calCode;
+                            _unRecoveredObj.costcenter = deductionItem.costcenter;
+                            _unRecoveredObj.amount = deductionItem.amount;
                         }
                     }
                 }
