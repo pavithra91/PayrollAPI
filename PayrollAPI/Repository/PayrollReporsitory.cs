@@ -26,6 +26,7 @@ namespace PayrollAPI.Repository
             ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == approvalDto.period).OrderBy(o=>o.epf).ToList();
             ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period).ToList();          
             ICollection<Calculation> _calculation = _context.Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
+            ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == approvalDto.companyCode).ToList();
 
             // Calculate EPF and Tax
             using var transaction = BeginTransaction();

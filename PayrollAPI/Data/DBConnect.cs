@@ -23,6 +23,7 @@ namespace PayrollAPI.Data
         public DbSet<Temp_Employee> Temp_Employee { get; set; }
         public DbSet<Temp_Payroll> Temp_Payroll { get; set; }
         public DbSet<TotPayCode> TotPayCode { get; set; }
+        public DbSet<Unrecovered> Unrecovered { get; set; }
         public DbSet<User> User { get; set; }
 
         public DbSet<LoginInfo> LoginInfo { get; set; }
@@ -98,6 +99,14 @@ namespace PayrollAPI.Data
                     .ForMySQLHasDefaultValueSql("(CURDATE())");
 
             modelBuilder.Entity<TotPayCode>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Unrecovered>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Unrecovered>()
                     .Property(s => s.createdTime)
                     .ForMySQLHasDefaultValueSql("(CURTIME())");
 
