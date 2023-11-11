@@ -25,4 +25,13 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="sapnco">
+      <HintPath>..\..\..\..\Desktop\New folder (3)\sapnco.dll</HintPath>
+    </Reference>
+    <Reference Include="sapnco_utils">
+      <HintPath>..\..\..\..\Desktop\New folder (3)\sapnco_utils.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
