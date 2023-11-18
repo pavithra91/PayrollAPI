@@ -8,6 +8,9 @@ namespace PayrollAPI.Interfaces
         public Task<MsgDto> ConfirmDataTransfer(ApprovalDto approvalDto);
 
         public Task<MsgDto> PreparePayrun(ApprovalDto approvalDto);
+
+        public Task<MsgDto> DataTransfer(string json);
+
         IDbTransaction BeginTransaction();
     }
 }

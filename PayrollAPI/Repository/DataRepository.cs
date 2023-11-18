@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore.Storage;
+using Newtonsoft.Json;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -149,6 +150,27 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 MsgDto _msg = new MsgDto();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> DataTransfer(string json)
+        {
+            MsgDto _msg = new MsgDto();
+
+            try
+            {
+                using var transaction = BeginTransaction();
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+                _msg.MsgCode = 'S';
+                _msg.Message = "Data Transered Successfully";
+                return _msg;
+            }
+            catch (Exception ex)
+            {
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;

@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
-using SAP.Middleware.Connector;
 
 namespace PayrollAPI.Controllers
 {
@@ -18,43 +17,21 @@ namespace PayrollAPI.Controllers
             _data = data;
         }
 
-        [Route("TestRFC")]
+        [Route("DataTransfer")]
         [HttpPost]
-        public IActionResult TestRFC()
+        public async Task<IActionResult> DataTransfer([FromBody] object json)
         {
-            SAPConnect sap = new SAPConnect();
-            RfcDestinationManager.RegisterDestinationConfiguration(sap);
-            RfcDestination prd = RfcDestinationManager.GetDestination("ZRFC_TEST");
+            MsgDto _msg = await _data.DataTransfer(json.ToString());
 
-            try
-            {
-                RfcRepository repo = prd.Repository;
-                IRfcFunction companyBapi = repo.CreateFunction("BAPI_COMPANY_GETDETAIL");
-                companyBapi.SetValue("COMPANYID", "001000");
-                companyBapi.Invoke(prd);
-                IRfcStructure detail = companyBapi.GetStructure("COMPANY_DETAIL");
-                String companyName = detail.GetString("NAME1");
-                Console.WriteLine(companyName);
 
-                return Ok();
-            }
-            catch (RfcCommunicationException e)
+            if (_msg.MsgCode == 'S')
             {
-                return BadRequest(e);
+                return Ok(_msg);
             }
-            catch (RfcLogonException e)
+            else
             {
-                return BadRequest(e);
+                return BadRequest(_msg);
             }
-            catch (RfcAbapRuntimeException e)
-            {
-                return BadRequest(e);
-            }
-            catch (RfcAbapBaseException e)
-            {
-                return BadRequest(e);
-            }
-
         }
 
 
