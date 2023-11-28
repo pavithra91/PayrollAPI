@@ -9,6 +9,8 @@ namespace PayrollAPI.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
+        public int company { get; set; }
+        public int plant { get; set; }
         public int period { get; set; }
 
         [Column(TypeName = "varchar(6)")]

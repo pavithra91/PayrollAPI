@@ -6,6 +6,7 @@ using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
 using System.Data;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace PayrollAPI.Repository
 {
@@ -38,6 +39,8 @@ namespace PayrollAPI.Repository
                 {
                     _newEmpList.Add(new Employee_Data()
                     {
+                        company = emp.company,
+                        plant = emp.plant,
                         epf = emp.epf,
                         period = emp.period,
                         empName = emp.empName,
@@ -47,7 +50,7 @@ namespace PayrollAPI.Repository
                         paymentType = emp.paymentType,
                         bankCode = emp.bankCode,
                         branchCode = emp.branchCode,
-                        accountNo = emp.branchCode,
+                        accountNo = emp.accountNo,
                         status = true
                     });
                 });
@@ -66,6 +69,8 @@ namespace PayrollAPI.Repository
                     Parallel.ForEach(_tempList, payItem => {
                         _newPayrollData.Add(new Payroll_Data()
                         {
+                            company = payItem.company,
+                            plant = payItem.plant,
                             epf = payItem.epf,
                             period = payItem.period,
                             othours = payItem.othours,
@@ -164,7 +169,30 @@ namespace PayrollAPI.Repository
             {
                 using var transaction = BeginTransaction();
 
-                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+                IList<Temp_Employee> _tempEmpList = new List<Temp_Employee>();
+                DataTable _masterDataTable = JsonConvert.DeserializeObject<DataTable>(json);
+
+                Parallel.ForEach(_masterDataTable.AsEnumerable(), _dataRow => {
+                    _tempEmpList.Add(new Temp_Employee()
+                    {
+                        company = Convert.ToInt32(_dataRow["company"]),
+                        plant = Convert.ToInt32(_dataRow["plant"]),
+                        epf = _dataRow["epf"].ToString(),
+                        period = Convert.ToInt32(_dataRow["period"]),
+                        empName = _dataRow["empName"].ToString(),
+                        costCenter = _dataRow["costCenter"].ToString(),
+                        empGrade = _dataRow["empGrade"].ToString(),
+                        gradeCode = Convert.ToInt32(_dataRow["gradeCode"]),
+                        paymentType = Convert.ToInt32(_dataRow["paymentType"]),
+                        bankCode = Convert.ToInt32(_dataRow["bankCode"]),
+                        branchCode = Convert.ToInt32(_dataRow["branchCode"]),
+                        accountNo = _dataRow["accountNo"].ToString(),
+                    });
+                });
+
+                await _context.BulkInsertAsync(_tempEmpList);
+                transaction.Commit();
+
                 _msg.MsgCode = 'S';
                 _msg.Message = "Data Transered Successfully";
                 return _msg;

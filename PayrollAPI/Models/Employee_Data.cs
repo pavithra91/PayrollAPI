@@ -10,6 +10,9 @@ namespace PayrollAPI.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
+        public int company { get; set; }
+        public int plant { get; set; }
+
         [Column(TypeName = "varchar(6)")]
         public string epf { get; set; }
         public int period { get; set; }
@@ -28,7 +31,9 @@ namespace PayrollAPI.Models
         public int paymentType { get; set; }
         public int bankCode { get; set; }
         public int branchCode { get; set; }
-        public int accountNo { get; set; }
+
+        [Column(TypeName = "varchar(15)")]
+        public string? accountNo { get; set; }
 
         [Column(TypeName = "boolean")]
         public bool status { get; set; }
