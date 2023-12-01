@@ -15,6 +15,22 @@ namespace PayrollAPI.Controllers
             _admin = admin;
         }
 
+        [Route("ManageSpecialTaxEmp")]
+        [HttpPost]
+        public IActionResult ManageSpecialTaxEmp([FromBody] SpecialTaxEmpDto specialTaxEmpDto)
+        {
+            MsgDto _msg = _admin.ManageSpecialTaxEmp(specialTaxEmpDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         [Route("SpecialRateEmp")]
         [HttpPost]
         public IActionResult SpecialRateEmp([FromBody] SpecialRateEmpDto specialRateEmpDto)

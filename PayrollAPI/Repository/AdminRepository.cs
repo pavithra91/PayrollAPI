@@ -268,7 +268,7 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
         }
-        public MsgDto AddSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto)
+        public MsgDto ManageSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto)
         {
             MsgDto _msg = new MsgDto();
 
@@ -285,8 +285,8 @@ namespace PayrollAPI.Repository
                     createdDate = DateTime.Now
                 };
 
-                _context.Add(_sTaxEmp);
-                _context.SaveChanges();
+               // _context.Add(_sTaxEmp);
+              //  _context.SaveChanges();
 
                 _msg.MsgCode = 'S';
                 _msg.Message = "Special Tax Rate apply to Employee : " + specialTaxEmpDto.epf;
