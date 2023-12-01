@@ -31,11 +31,59 @@ namespace PayrollAPI.Controllers
             }
         }
 
-        [Route("SpecialRateEmp")]
+        [Route("ManageSpecialRateEmp")]
         [HttpPost]
-        public IActionResult SpecialRateEmp([FromBody] SpecialRateEmpDto specialRateEmpDto)
+        public IActionResult ManageSpecialRateEmp([FromBody] SpecialRateEmpDto specialRateEmpDto)
         {
-            MsgDto _msg = _admin.AddSpecialRateEmp(specialRateEmpDto);
+            MsgDto _msg = _admin.ManageSpecialRateEmp(specialRateEmpDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("ManageTax")]
+        [HttpPost]
+        public IActionResult ManageTax([FromBody] TaxCalDto taxCalDto)
+        {
+            MsgDto _msg = _admin.ManageTax(taxCalDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("ManagePayCode")]
+        [HttpPost]
+        public IActionResult ManagePayCode([FromBody] PayCodeDto payCodeDto)
+        {
+            MsgDto _msg = _admin.ManagePayCode(payCodeDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("ManageCalculations")]
+        [HttpPost]
+        public IActionResult ManageCalculations([FromBody] CalDto calDto)
+        {
+            MsgDto _msg = _admin.ManageCalculations(calDto);
 
             if (_msg.MsgCode == 'S')
             {

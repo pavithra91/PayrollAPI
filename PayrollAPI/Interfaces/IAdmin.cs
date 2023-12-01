@@ -7,7 +7,7 @@ namespace PayrollAPI.Interfaces
         public MsgDto ManageTax(TaxCalDto taxCalDto);
         public MsgDto ManageCalculations(CalDto calDto);
         public MsgDto ManagePayCode(PayCodeDto payCodeDto);
-        public MsgDto AddSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto);
+        public MsgDto ManageSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto);
         public MsgDto ManageSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto);
     }
 }

@@ -189,7 +189,7 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
         }
-        public MsgDto AddSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto)
+        public MsgDto ManageSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto)
         {
             MsgDto _msg = new MsgDto();
 
