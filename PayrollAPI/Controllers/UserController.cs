@@ -26,12 +26,17 @@ namespace PayrollAPI.Controllers
              _usr = users;
         }
 
+        /// <summary>
+        /// Method used to authenticate API requet User
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         [AllowAnonymous]
         [Route("Authenticate")]
         [HttpPost]
-        public IActionResult Authenticate([FromBody] Users usr)
+        public IActionResult Authenticate([FromBody] Users user)
         {
-            var _user = _usr.AuthenticateUser(usr);
+            var _user = _usr.AuthenticateUser(user);
             if (_user != null)
             {
                 return Ok(_user); 
@@ -42,7 +47,11 @@ namespace PayrollAPI.Controllers
             }
             
         }
-
+        /// <summary>
+        /// Method used to refresh the JWT token
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         [Route("Refresh")]
         [HttpPost]
         public IActionResult Refresh([FromBody] TokenResponse token)
@@ -57,7 +66,11 @@ namespace PayrollAPI.Controllers
                 return Ok(_refreshToken);
             }
         }
-
+        /// <summary>
+        /// Method used to Create new User
+        /// </summary>
+        /// <param name="usrDto"></param>
+        /// <returns></returns>
         [Route("CreateUser")]
         [HttpPost]
         public IActionResult CreateUser([FromBody] UserDto usrDto)
@@ -69,11 +82,17 @@ namespace PayrollAPI.Controllers
             else 
                 return BadRequest();
         }
-
+        
+        /// <summary>
+        /// Method used to Reset existing User's Password
+        /// </summary>
+        /// <param name="usrDto"></param>
+        /// <returns></returns>
         [Route("ResetPassword")]
         [HttpPost]
         public IActionResult ResetPassword([FromBody] UserDto usrDto)
         {
+
             bool _user = _usr.ResetPassword(usrDto.userID, usrDto.password);
 
             if (_user)
@@ -82,7 +101,10 @@ namespace PayrollAPI.Controllers
                 return BadRequest();
         }
 
-
+        /// <summary>
+        /// Used to get all users in the system
+        /// </summary>
+        /// <returns></returns>
         [Route("GetUser")]
         [HttpGet]
         public IActionResult GetUser()

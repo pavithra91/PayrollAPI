@@ -16,7 +16,11 @@ namespace PayrollAPI.Controllers
         {
             _data = data;
         }
-
+        /// <summary>
+        /// Method used to get data from SAP Payroll Data Extractor
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
         [Route("DataTransfer")]
         [HttpPost]
         public async Task<IActionResult> DataTransfer([FromBody] object json)
@@ -34,7 +38,11 @@ namespace PayrollAPI.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Method used to Confirm the data transfer is Complete
+        /// </summary>
+        /// <param name="approvalDto"></param>
+        /// <returns></returns>
         [Route("ConfirmDataTransfer")]
         [HttpPost]
         public async Task<IActionResult> ConfirmDataTransfer([FromBody] ApprovalDto approvalDto)
@@ -51,7 +59,11 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-
+        /// <summary>
+        /// Method used to approve payroll data. (Copy data to transaction tables)
+        /// </summary>
+        /// <param name="approvalDto"></param>
+        /// <returns></returns>
         [Route("PreparePayrun")]
         [HttpPost]
         public async Task<IActionResult> PreparePayrun([FromBody] ApprovalDto approvalDto)

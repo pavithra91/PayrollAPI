@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Repository;
 using System.Configuration;
+using System.Reflection;
 using System.Text;
 
 // Disable Cors
@@ -78,7 +80,23 @@ builder.Services.AddScoped<IAdmin, AdminRepository>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { 
+        Title = "CPSTL Payroll API", 
+        Version = "v1",
+        Description = "An API to perform Employee operations",
+        Contact = new OpenApiContact
+        {
+            Name = "R.A.P.B.M Jayasundara",
+            Email = "pavi.dsscst@gmail.com",
+            Url = new Uri("https://www.linkedin.com/in/pavithra-jayasundara/"),
+        }
+    });
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
 
 var app = builder.Build();
 
@@ -86,7 +104,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(
+        c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "CPSTL Payroll API V1");
+        });
 }
 
 app.UseHttpsRedirection();

@@ -14,7 +14,11 @@ namespace PayrollAPI.Controllers
         { 
             _payroll = payroll;
         }
-
+        /// <summary>
+        /// Method used to start the payroll process
+        /// </summary>
+        /// <param name="approvalDto"></param>
+        /// <returns></returns>
         [Route("ProcessPayroll")]
         [HttpPost]
         public async Task<IActionResult> ProcessPayroll([FromBody] ApprovalDto approvalDto)

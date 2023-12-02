@@ -15,6 +15,11 @@ namespace PayrollAPI.Controllers
             _admin = admin;
         }
 
+        /// <summary>
+        /// Method used to manage (assign, update and delete) special tax to employees
+        /// </summary>
+        /// <param name="specialTaxEmpDto"></param>
+        /// <returns></returns>
         [Route("ManageSpecialTaxEmp")]
         [HttpPost]
         public IActionResult ManageSpecialTaxEmp([FromBody] SpecialTaxEmpDto specialTaxEmpDto)
@@ -30,7 +35,11 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-
+        /// <summary>
+        /// Method used to manage (assign, update and delete) special rate to specific paycodes
+        /// </summary>
+        /// <param name="specialRateEmpDto"></param>
+        /// <returns></returns>
         [Route("SpecialRateEmp")]
         [HttpPost]
         public IActionResult SpecialRateEmp([FromBody] SpecialRateEmpDto specialRateEmpDto)
