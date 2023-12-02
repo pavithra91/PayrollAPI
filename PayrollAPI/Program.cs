@@ -85,7 +85,7 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { 
         Title = "CPSTL Payroll API", 
         Version = "v1",
-        Description = "An API to perform Employee operations",
+        Description = "CPSTL Payroll API is a robust tool designed to efficiently handle and process company's payroll data.",
         Contact = new OpenApiContact
         {
             Name = "R.A.P.B.M Jayasundara",

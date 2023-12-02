@@ -57,7 +57,11 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-
+        /// <summary>
+        /// Method used to manage (insert, update and delete) tax details
+        /// </summary>
+        /// <param name="taxCalDto"></param>
+        /// <returns></returns>
         [Route("ManageTax")]
         [HttpPost]
         public IActionResult ManageTax([FromBody] TaxCalDto taxCalDto)
@@ -73,7 +77,11 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-
+        /// <summary>
+        /// Method used to map SAP pay code with Calculation codes
+        /// </summary>
+        /// <param name="payCodeDto"></param>
+        /// <returns></returns>
         [Route("ManagePayCode")]
         [HttpPost]
         public IActionResult ManagePayCode([FromBody] PayCodeDto payCodeDto)
@@ -89,7 +97,11 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-
+        /// <summary>
+        /// Method used to manage payroll calculations
+        /// </summary>
+        /// <param name="calDto"></param>
+        /// <returns></returns>
         [Route("ManageCalculations")]
         [HttpPost]
         public IActionResult ManageCalculations([FromBody] CalDto calDto)
