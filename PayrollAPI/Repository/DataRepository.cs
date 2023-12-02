@@ -25,6 +25,51 @@ namespace PayrollAPI.Repository
             return transaction.GetDbTransaction();
         }
 
+        public async Task<MsgDto> DataTransfer(string json)
+        {
+            MsgDto _msg = new MsgDto();
+
+            try
+            {
+                using var transaction = BeginTransaction();
+
+                IList<Temp_Employee> _tempEmpList = new List<Temp_Employee>();
+                DataTable _masterDataTable = JsonConvert.DeserializeObject<DataTable>(json);
+
+                Parallel.ForEach(_masterDataTable.AsEnumerable(), _dataRow => {
+                    _tempEmpList.Add(new Temp_Employee()
+                    {
+                        company = Convert.ToInt32(_dataRow["company"]),
+                        plant = Convert.ToInt32(_dataRow["plant"]),
+                        epf = _dataRow["epf"].ToString(),
+                        period = Convert.ToInt32(_dataRow["period"]),
+                        empName = _dataRow["empName"].ToString(),
+                        costCenter = _dataRow["costCenter"].ToString(),
+                        empGrade = _dataRow["empGrade"].ToString(),
+                        gradeCode = Convert.ToInt32(_dataRow["gradeCode"]),
+                        paymentType = Convert.ToInt32(_dataRow["paymentType"]),
+                        bankCode = Convert.ToInt32(_dataRow["bankCode"]),
+                        branchCode = Convert.ToInt32(_dataRow["branchCode"]),
+                        accountNo = _dataRow["accountNo"].ToString(),
+                    });
+                });
+
+                await _context.BulkInsertAsync(_tempEmpList);
+                transaction.Commit();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Data Transered Successfully";
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
         public async Task<MsgDto> ConfirmDataTransfer(ApprovalDto approvalDto)
         {
             using var transaction = BeginTransaction();
@@ -155,50 +200,6 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 MsgDto _msg = new MsgDto();
-                _msg.MsgCode = 'E';
-                _msg.Message = "Error : " + ex.Message;
-                _msg.Description = "Inner Expection : " + ex.InnerException;
-                return _msg;
-            }
-        }
-        public async Task<MsgDto> DataTransfer(string json)
-        {
-            MsgDto _msg = new MsgDto();
-
-            try
-            {
-                using var transaction = BeginTransaction();
-
-                IList<Temp_Employee> _tempEmpList = new List<Temp_Employee>();
-                DataTable _masterDataTable = JsonConvert.DeserializeObject<DataTable>(json);
-
-                Parallel.ForEach(_masterDataTable.AsEnumerable(), _dataRow => {
-                    _tempEmpList.Add(new Temp_Employee()
-                    {
-                        company = Convert.ToInt32(_dataRow["company"]),
-                        plant = Convert.ToInt32(_dataRow["plant"]),
-                        epf = _dataRow["epf"].ToString(),
-                        period = Convert.ToInt32(_dataRow["period"]),
-                        empName = _dataRow["empName"].ToString(),
-                        costCenter = _dataRow["costCenter"].ToString(),
-                        empGrade = _dataRow["empGrade"].ToString(),
-                        gradeCode = Convert.ToInt32(_dataRow["gradeCode"]),
-                        paymentType = Convert.ToInt32(_dataRow["paymentType"]),
-                        bankCode = Convert.ToInt32(_dataRow["bankCode"]),
-                        branchCode = Convert.ToInt32(_dataRow["branchCode"]),
-                        accountNo = _dataRow["accountNo"].ToString(),
-                    });
-                });
-
-                await _context.BulkInsertAsync(_tempEmpList);
-                transaction.Commit();
-
-                _msg.MsgCode = 'S';
-                _msg.Message = "Data Transered Successfully";
-                return _msg;
-            }
-            catch (Exception ex)
-            {
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
