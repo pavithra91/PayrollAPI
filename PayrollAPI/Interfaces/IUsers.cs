@@ -12,6 +12,7 @@ namespace PayrollAPI.Interfaces
         public TokenResponse RefreshToken(TokenResponse tokenResponse);
 
         public User GetUser(string username);
+
         public bool CreateUser(UserDto user);
 
         public bool ResetPassword(string username, string password);

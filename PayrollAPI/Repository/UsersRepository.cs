@@ -7,6 +7,7 @@ using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
 using System.Data;
+using System.Drawing;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -83,6 +84,13 @@ namespace PayrollAPI.Repository
 
             tokenResponse.JWTToken = finaltoken;
             tokenResponse.RefreshToken = tokenGenerator.GenerateToken(_user.userID);
+
+            UserDetails _userDetails = new UserDetails();
+            _userDetails.EPF = _user.epf;
+            _userDetails.CostCenter = _user.costCenter;
+            _userDetails.Role = _user.role;
+
+            tokenResponse._userDetails = _userDetails;
 
             return tokenResponse;
         }
