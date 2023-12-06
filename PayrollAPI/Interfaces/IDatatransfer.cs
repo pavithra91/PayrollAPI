@@ -1,4 +1,5 @@
 ﻿using PayrollAPI.DataModel;
+using PayrollAPI.Models;
 using System.Data;
 
 namespace PayrollAPI.Interfaces
@@ -10,6 +11,8 @@ namespace PayrollAPI.Interfaces
         public Task<MsgDto> PreparePayrun(ApprovalDto approvalDto);
 
         public Task<MsgDto> DataTransfer(string json);
+
+        public ICollection<Temp_Employee> GetTempEmployeeList(int companyCode, int period);
 
         IDbTransaction BeginTransaction();
     }

@@ -28,10 +28,10 @@ namespace PayrollAPI.Repository
             tokenGenerator = _refreshToken;
         }
 
-        public User GetUser(string username)
+        public ICollection<User> GetUsers()
         {
-            return null;
-            //var _user = _dbConnect.User.FirstOrDefault(o => o.userID == username)
+            ICollection<User> _userList = _dbConnect.User.ToList();
+            return _userList;
         }
 
         public bool CreateUser(UserDto user) 

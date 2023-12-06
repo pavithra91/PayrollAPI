@@ -34,14 +34,52 @@ namespace PayrollAPI.Repository
                 using var transaction = BeginTransaction();
 
                 IList<Temp_Employee> _tempEmpList = new List<Temp_Employee>();
-                DataTable _masterDataTable = JsonConvert.DeserializeObject<DataTable>(json);
+              //  DataTable _masterDataTable = JsonConvert.DeserializeObject<DataTable>(json);
 
-                Parallel.ForEach(_masterDataTable.AsEnumerable(), _dataRow => {
+                Temp_Employee e = new Temp_Employee();
+                e.company = 3000;
+                e.plant = 3021;
+                e.epf = "17532";
+                e.period = 202302;
+                e.empName = "GUNATHILAKA W A";
+                e.costCenter = "C10110";
+                e.empGrade = "CS";
+                e.gradeCode = 65;
+                e.paymentType = 2;
+                e.bankCode = 7135;
+                e.branchCode = 89;
+                e.accountNo = "123456";
+                e.createdBy = "3021ITFI";
+                e.createdDate = DateTime.Now;
+
+                Temp_Employee e2 = new Temp_Employee();
+                e2.company = 3000;
+                e2.plant = 3021;
+                e2.epf = "17531";
+                e2.period = 202302;
+                e2.empName = "JAYASUNDARA R A P B M";
+                e2.costCenter = "C10110";
+                e2.empGrade = "CS";
+                e2.gradeCode = 65;
+                e2.paymentType = 2;
+                e2.bankCode = 7135;
+                e2.branchCode = 89;
+                e2.accountNo = "123456";
+                e2.createdBy = "3021ITFI";
+                e2.createdDate = DateTime.Now;
+
+
+
+                _tempEmpList.Add(e);
+                _tempEmpList.Add(e2);
+
+                /*foreach (DataRow _dataRow in _masterDataTable.AsEnumerable())
+                {
                     _tempEmpList.Add(new Temp_Employee()
                     {
                         company = Convert.ToInt32(_dataRow["company"]),
                         plant = Convert.ToInt32(_dataRow["plant"]),
-                        epf = _dataRow["epf"].ToString(),
+                        epf = _dataRow["epf"].ToString().Substring(3),
                         period = Convert.ToInt32(_dataRow["period"]),
                         empName = _dataRow["empName"].ToString(),
                         costCenter = _dataRow["costCenter"].ToString(),
@@ -51,10 +89,33 @@ namespace PayrollAPI.Repository
                         bankCode = Convert.ToInt32(_dataRow["bankCode"]),
                         branchCode = Convert.ToInt32(_dataRow["branchCode"]),
                         accountNo = _dataRow["accountNo"].ToString(),
+                        createdBy = _dataRow["createdBy"].ToString(),
+                        createdDate = DateTime.Now,
                     });
-                });
+                } */
+                /* Parallel.ForEach(_masterDataTable.AsEnumerable(), _dataRow => {
+                     _tempEmpList.Add(new Temp_Employee()
+                     {
+                         company = Convert.ToInt32(_dataRow["company"]),
+                         plant = Convert.ToInt32(_dataRow["plant"]),
+                         epf = _dataRow["epf"].ToString(),
+                         period = Convert.ToInt32(_dataRow["period"]),
+                         empName = _dataRow["empName"].ToString(),
+                         costCenter = _dataRow["costCenter"].ToString(),
+                         empGrade = _dataRow["empGrade"].ToString(),
+                         gradeCode = Convert.ToInt32(_dataRow["gradeCode"]),
+                         paymentType = Convert.ToInt32(_dataRow["paymentType"]),
+                         bankCode = Convert.ToInt32(_dataRow["bankCode"]),
+                         branchCode = Convert.ToInt32(_dataRow["branchCode"]),
+                         accountNo = _dataRow["accountNo"].ToString(),
+                     });
+                 }); */
 
-                await _context.BulkInsertAsync(_tempEmpList);
+
+                DataTable dt = new DataTable();
+                //_context.Temp_Employee.AddRange(_tempEmpList);
+
+                _context.Temp_Employee.InsertFromQuery("Temp_Employee", _tempEmpList => new { _tempEmpList.company, _tempEmpList.plant, _tempEmpList.epf, _tempEmpList.period, _tempEmpList.empGrade, _tempEmpList.empName, _tempEmpList.costCenter, _tempEmpList.gradeCode, _tempEmpList.paymentType, _tempEmpList.bankCode, _tempEmpList.accountNo, _tempEmpList.branchCode });
                 transaction.Commit();
 
                 _msg.MsgCode = 'S';
@@ -100,7 +161,7 @@ namespace PayrollAPI.Repository
                     });
                 });
 
-                await _context.BulkInsertAsync(_newEmpList);
+                //await _context.BulkInsertAsync(_newEmpList);
 
                 ICollection<Temp_Payroll> _payItemList = _context.Temp_Payroll.Where(o => o.period == approvalDto.period).ToList();
                 ICollection<PayCode> _payCode = _context.PayCode.ToList();
@@ -135,7 +196,7 @@ namespace PayrollAPI.Repository
                     });
                 }
 
-                await _context.BulkInsertAsync(_newPayrollData);
+               // await _context.BulkInsertAsync(_newPayrollData);
 
                 Payrun _objPay = new Payrun();
                 _objPay.period = approvalDto.period;
@@ -205,6 +266,12 @@ namespace PayrollAPI.Repository
                 _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
+        }
+
+        public ICollection<Temp_Employee> GetTempEmployeeList(int companyCode, int period)
+        {
+            ICollection<Temp_Employee> _tempEmpList = _context.Temp_Employee.Where(o=> o.company == companyCode && o.period == period).ToList();
+            return _tempEmpList;
         }
     }
 }

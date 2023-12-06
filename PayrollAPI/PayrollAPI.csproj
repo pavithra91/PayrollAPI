@@ -29,7 +29,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="org.matheval" Version="1.0.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="7.22.6" />
+    <PackageReference Include="Z.EntityFramework.Plus.EFCore" Version="7.101.1.1" />
   </ItemGroup>
 
   <ItemGroup>

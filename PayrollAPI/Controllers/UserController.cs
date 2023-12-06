@@ -105,11 +105,16 @@ namespace PayrollAPI.Controllers
         /// Used to get all users in the system
         /// </summary>
         /// <returns></returns>
-        [Route("GetUser")]
+        [Route("GetUsers")]
         [HttpGet]
-        public IActionResult GetUser()
+        public IActionResult GetUsers()
         {
-            return Ok("Its Working");
+            ICollection<User> _userList = _usr.GetUsers();
+
+            if (_userList != null)
+                return Ok(_userList);
+            else
+                return BadRequest();
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
+using PayrollAPI.Models;
 
 namespace PayrollAPI.Controllers
 {
@@ -79,6 +80,25 @@ namespace PayrollAPI.Controllers
             {
                 return BadRequest(_msg);
             }
+        }
+
+        [Route("GetEmployeeList")]
+        [HttpGet]
+        public IActionResult GetEmployeeList(int companyCode, int period)
+        {
+            MsgDto _msg = new MsgDto();
+            if (companyCode < 0 || period <0)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Please enter Company Code & Period";
+                return BadRequest(_msg);
+            }
+                ICollection<Temp_Employee> _empList = _data.GetTempEmployeeList(companyCode, period);
+
+            if (_empList != null)
+                return Ok(_empList);
+            else
+                return NotFound();
         }
     }
 }
