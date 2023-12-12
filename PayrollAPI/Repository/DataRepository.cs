@@ -6,7 +6,9 @@ using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
+using System.Collections;
 using System.Data;
+using System.ServiceModel.Channels;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace PayrollAPI.Repository
@@ -29,15 +31,15 @@ namespace PayrollAPI.Repository
         public async Task<MsgDto> DataTransfer(string json)
         {
             MsgDto _msg = new MsgDto();
-
+            using var transaction = BeginTransaction();
             try
             {
-                using var transaction = BeginTransaction();
-
                 IList<Temp_Employee> _tempEmpList = new List<Temp_Employee>();
-                DataTable _masterDataTable = JsonConvert.DeserializeObject<DataTable>(json);
+                IList<Temp_Payroll> _tempPayList = new List<Temp_Payroll>();
 
-                foreach (DataRow _dataRow in _masterDataTable.AsEnumerable())
+                DataSet _masterDataTable = JsonConvert.DeserializeObject<DataSet>(json);
+
+                foreach (DataRow _dataRow in _masterDataTable.Tables[0].AsEnumerable())
                 {
                     _tempEmpList.Add(new Temp_Employee()
                     {
@@ -56,7 +58,30 @@ namespace PayrollAPI.Repository
                         createdBy = _dataRow["createdBy"].ToString(),
                         createdDate = DateTime.Now,
                     });
-                } 
+                }
+
+                foreach (DataRow _dataRow in _masterDataTable.Tables[1].AsEnumerable())
+                {
+                    _tempPayList.Add(new Temp_Payroll()
+                    {
+                        company = Convert.ToInt32(_dataRow["company"]),
+                        plant = Convert.ToInt32(_dataRow["plant"]),
+                        epf = _dataRow["epf"].ToString().Substring(3),
+                        period = Convert.ToInt32(_dataRow["period"]),
+                        othours = (float)Convert.ToDouble(_dataRow["othours"].ToString()),
+                        costcenter = _dataRow["costcenter"].ToString(),
+                        payCode = Convert.ToInt32(_dataRow["payCode"].ToString()),
+                        calCode = "",
+                        payCategory = _dataRow["payCategory"].ToString(),
+                        payCodeType = _dataRow["payCodeType"].ToString(),
+                        paytype = string.IsNullOrEmpty(_dataRow["paytype"].ToString()) ? ' ' : _dataRow["paytype"].ToString()[0],
+                        amount = Convert.ToDecimal(_dataRow["amount"].ToString()),
+                        balanceamount = Convert.ToDecimal(_dataRow["balanceamount"].ToString()),
+                        epfConRate = Convert.ToInt32(_dataRow["epfConRate"]),
+                        taxConRate = Convert.ToInt32(_dataRow["taxConRate"]),
+                        createdDate = DateTime.Now,
+                    });
+                }
                 /* Parallel.ForEach(_masterDataTable.AsEnumerable(), _dataRow => {
                      _tempEmpList.Add(new Temp_Employee()
                      {
@@ -77,6 +102,10 @@ namespace PayrollAPI.Repository
 
 
                 _context.BulkCopy(_tempEmpList);
+                _context.BulkCopy(_tempPayList);
+
+                
+
                 transaction.Commit();
 
                 _msg.MsgCode = 'S';
@@ -85,6 +114,7 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -97,9 +127,7 @@ namespace PayrollAPI.Repository
             using var transaction = BeginTransaction();
             MsgDto _msg = new MsgDto();
             try
-            {
-
-                
+            {      
                 _context.Employee_Data
     .Where(x => x.period == approvalDto.period && x.company < approvalDto.companyCode)
     .InsertFromQuery("Temp_Employee", x => new { 
@@ -244,6 +272,38 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 MsgDto _msg = new MsgDto();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public MsgDto GetDataTransferStatistics(int companyCode, int period)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                int _empCount = _context.Temp_Employee.Where(o => o.company == companyCode && o.period == period).ToList().Count();
+
+                IList _paySummaryList = _context.Temp_Payroll.Where(o => o.company == companyCode && o.period == period).
+                    GroupBy(p => new { p.payCode }).
+                    Select(g => new {
+                        PayCode = g.Key.payCode,
+                        Amount = g.Sum(o => o.amount),
+                        Line_Item_Count = g.Count()
+                    }).OrderBy(p => p.PayCode).ToList();
+
+                var result = new List<object>();
+                result.Add(new { empCount = _empCount, nonSAPPayData = _paySummaryList, SAPPayData = _paySummaryList });
+
+                _msg.Message = JsonConvert.SerializeObject(result);
+                _msg.MsgCode = 'S';
+                
+                return _msg;
+            }
+            catch(Exception ex)
+            {
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;

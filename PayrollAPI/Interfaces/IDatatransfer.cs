@@ -1,5 +1,6 @@
 ﻿using PayrollAPI.DataModel;
 using PayrollAPI.Models;
+using System.Collections;
 using System.Data;
 
 namespace PayrollAPI.Interfaces
@@ -14,6 +15,7 @@ namespace PayrollAPI.Interfaces
 
         public ICollection<Temp_Employee> GetTempEmployeeList(int companyCode, int period);
 
+        public MsgDto GetDataTransferStatistics(int companyCode, int period);
         IDbTransaction BeginTransaction();
     }
 }

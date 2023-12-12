@@ -5,6 +5,7 @@ using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
+using System.Collections;
 
 namespace PayrollAPI.Controllers
 {
@@ -99,6 +100,25 @@ namespace PayrollAPI.Controllers
                 return Ok(_empList);
             else
                 return NotFound();
+        }
+
+        [Route("GetDataTransferStatistics")]
+        [HttpGet]
+        public IActionResult GetDataTransferStatistics(int companyCode, int period)
+        {
+            MsgDto _msg = new MsgDto();
+            if (companyCode < 0 || period < 0)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Please enter Company Code & Period";
+                return BadRequest(_msg);
+            }
+            _msg = _data.GetDataTransferStatistics(companyCode, period);
+
+            if (_msg.MsgCode != 'E')
+                return Ok(_msg.Message);
+            else
+                return NotFound(_msg);
         }
     }
 }
