@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PayrollAPI.Models
@@ -9,7 +10,7 @@ namespace PayrollAPI.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
-        public int company { get; set; }
+        public int companyCode { get; set; }
         public int plant { get; set; }
         public int period { get; set; }
 
@@ -50,6 +51,7 @@ namespace PayrollAPI.Models
         public decimal taxContribution { get; set; }
 
         [Column(TypeName = "boolean")]
-        public bool displayOnPaySheet { get; set; }
+        [DefaultValue(true)]
+        public bool displayOnPaySheet { get; set; } = true;
     }
 }

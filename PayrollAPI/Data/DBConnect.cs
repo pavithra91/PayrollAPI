@@ -23,6 +23,7 @@ namespace PayrollAPI.Data
         public DbSet<Temp_Employee> Temp_Employee { get; set; }
         public DbSet<Temp_Payroll> Temp_Payroll { get; set; }
         public DbSet<TotPayCode> TotPayCode { get; set; }
+        public DbSet<SAPTotPayCode> SAPTotPayCode { get; set; }
         public DbSet<Unrecovered> Unrecovered { get; set; }
         public DbSet<User> User { get; set; }
 
@@ -102,6 +103,14 @@ namespace PayrollAPI.Data
                     .Property(s => s.createdTime)
                     .ForMySQLHasDefaultValueSql("(CURTIME())");
 
+            modelBuilder.Entity<SAPTotPayCode>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<SAPTotPayCode>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
             modelBuilder.Entity<Unrecovered>()
                     .Property(s => s.createdDate)
                     .ForMySQLHasDefaultValueSql("(CURDATE())");
@@ -117,6 +126,18 @@ namespace PayrollAPI.Data
             modelBuilder.Entity<User>()
                     .Property(s => s.createdTime)
                     .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Employee_Data>()
+                    .Property(s => s.status)
+                    .ForMySQLHasDefaultValueSql("1");
+
+            modelBuilder.Entity<Employee_Data>()
+        .Property(s => s.isPaysheetGenerated)
+        .ForMySQLHasDefaultValueSql("1");
+
+            modelBuilder.Entity<Payroll_Data>()
+        .Property(s => s.displayOnPaySheet)
+        .ForMySQLHasDefaultValueSql("1");
         }
     }
 }

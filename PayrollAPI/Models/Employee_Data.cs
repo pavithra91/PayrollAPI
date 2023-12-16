@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 namespace PayrollAPI.Models
 {
@@ -10,7 +11,7 @@ namespace PayrollAPI.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
-        public int company { get; set; }
+        public int companyCode { get; set; }
         public int plant { get; set; }
 
         [Column(TypeName = "varchar(6)")]
@@ -25,7 +26,7 @@ namespace PayrollAPI.Models
 
         public int gradeCode { get; set; }
 
-        [Column(TypeName = "varchar(2)")]
+        [Column(TypeName = "varchar(5)")]
         public string? empGrade { get; set; }
 
         public int paymentType { get; set; }
@@ -36,13 +37,16 @@ namespace PayrollAPI.Models
         public string? accountNo { get; set; }
 
         [Column(TypeName = "boolean")]
-        public bool status { get; set; }
+        [DefaultValue(true)]
+        public bool status { get; set; } = true;
+
 
         [Column(TypeName = "boolean")]
+        [DefaultValue(true)]
         public bool isPaysheetGenerated { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public string? changeBy { get; set; }
-        public DateTime changeDate { get; set; }
+        public DateTime? changeDate { get; set; }
     }
 }

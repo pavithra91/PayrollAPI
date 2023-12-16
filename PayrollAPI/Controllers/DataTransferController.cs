@@ -116,7 +116,7 @@ namespace PayrollAPI.Controllers
             _msg = _data.GetDataTransferStatistics(companyCode, period);
 
             if (_msg.MsgCode != 'E')
-                return Ok(_msg.Message);
+                return Ok(_msg);
             else
                 return NotFound(_msg);
         }

@@ -1,4 +1,5 @@
-﻿using LinqToDB.EntityFrameworkCore;
+﻿using LinqToDB.Data;
+using LinqToDB.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
@@ -9,6 +10,8 @@ using PayrollAPI.Models;
 using System.Collections;
 using System.Data;
 using System.ServiceModel.Channels;
+using Z.BulkOperations;
+using static LinqToDB.Common.Configuration;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace PayrollAPI.Repository
@@ -36,6 +39,7 @@ namespace PayrollAPI.Repository
             {
                 IList<Temp_Employee> _tempEmpList = new List<Temp_Employee>();
                 IList<Temp_Payroll> _tempPayList = new List<Temp_Payroll>();
+                IList<SAPTotPayCode> _tempSAPTot = new List<SAPTotPayCode>();
 
                 DataSet _masterDataTable = JsonConvert.DeserializeObject<DataSet>(json);
 
@@ -64,7 +68,7 @@ namespace PayrollAPI.Repository
                 {
                     _tempPayList.Add(new Temp_Payroll()
                     {
-                        company = Convert.ToInt32(_dataRow["company"]),
+                        companyCode = Convert.ToInt32(_dataRow["company"]),
                         plant = Convert.ToInt32(_dataRow["plant"]),
                         epf = _dataRow["epf"].ToString().Substring(3),
                         period = Convert.ToInt32(_dataRow["period"]),
@@ -79,6 +83,21 @@ namespace PayrollAPI.Repository
                         balanceamount = Convert.ToDecimal(_dataRow["balanceamount"].ToString()),
                         epfConRate = Convert.ToInt32(_dataRow["epfConRate"]),
                         taxConRate = Convert.ToInt32(_dataRow["taxConRate"]),
+                        createdDate = DateTime.Now,
+                    });
+                }
+
+                foreach (DataRow _dataRow in _masterDataTable.Tables[2].AsEnumerable())
+                {
+                    _tempSAPTot.Add(new SAPTotPayCode()
+                    {
+                        companyCode = Convert.ToInt32(_dataRow["company"]),
+                        period = Convert.ToInt32(_dataRow["period"]),
+                        payCode = Convert.ToInt32(_dataRow["payCode"]),
+                        payType = _dataRow["payType"].ToString(),
+                        calCode = "",
+                        totalAmount = Convert.ToDecimal(_dataRow["totAmout"].ToString()),
+                        totCount = Convert.ToInt32(_dataRow["totCount"].ToString()),
                         createdDate = DateTime.Now,
                     });
                 }
@@ -103,8 +122,7 @@ namespace PayrollAPI.Repository
 
                 _context.BulkCopy(_tempEmpList);
                 _context.BulkCopy(_tempPayList);
-
-                
+                _context.BulkCopy(_tempSAPTot);
 
                 transaction.Commit();
 
@@ -127,24 +145,53 @@ namespace PayrollAPI.Repository
             using var transaction = BeginTransaction();
             MsgDto _msg = new MsgDto();
             try
-            {      
-                _context.Employee_Data
-    .Where(x => x.period == approvalDto.period && x.company < approvalDto.companyCode)
-    .InsertFromQuery("Temp_Employee", x => new { 
-        x.company, 
-        x.plant, 
-        x.epf,
-        x.period,
-        x.empName,
-        x.costCenter,
-        x.empGrade,
-        x.gradeCode,
-        x.paymentType,
-        x.bankCode,
-        x.branchCode,
-        x.accountNo,
-        x.status
-    });
+            {
+                ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.Where(o => o.period == approvalDto.period).ToList();
+
+                _context.Temp_Employee
+                .Where(x => x.period == approvalDto.period && x.company == approvalDto.companyCode)
+                .InsertFromQuery("Employee_Data", x => new { 
+                x.company, 
+                x.plant, 
+                x.epf,
+                x.period,
+                x.empName,
+                x.costCenter,
+                x.empGrade,
+                x.gradeCode,
+                x.paymentType,
+                x.bankCode,
+                x.branchCode,
+                x.accountNo
+                });
+
+                _context.Temp_Payroll
+                .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
+                .InsertFromQuery("Payroll_Data", x => new {
+                    x.companyCode,
+                    x.plant,
+                    x.epf,
+                    x.period,
+                    x.costcenter,
+                    x.othours,
+                    x.payCode,
+                    x.calCode,
+                    x.paytype,
+                    x.payCodeType,
+                    x.payCategory,
+                    x.amount,
+                    x.balanceamount,
+                    x.epfConRate,
+                    x.taxConRate,
+                });
+
+                // transaction.Commit();
+
+                // transaction = BeginTransaction();
+
+
+
+
                 /*
                 ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.Where(o => o.period == approvalDto.period).ToList();
 
@@ -220,8 +267,10 @@ namespace PayrollAPI.Repository
                 await _context.SaveChangesAsync();
 
                 */
-                transaction.Commit();
 
+                _context.Payroll_Data.UpdateFromQuery(x => new Payroll_Data { epfContribution = x.amount * (decimal)x.epfConRate, taxContribution = x.amount * (decimal)x.taxConRate, calCode = "_" + x.payCode });
+
+                transaction.Commit();
 
                 _msg.MsgCode = 'S';
                 _msg.Message = "Data Transered Successfully";
@@ -286,7 +335,7 @@ namespace PayrollAPI.Repository
             {
                 int _empCount = _context.Temp_Employee.Where(o => o.company == companyCode && o.period == period).ToList().Count();
 
-                IList _paySummaryList = _context.Temp_Payroll.Where(o => o.company == companyCode && o.period == period).
+                IList _paySummaryList = _context.Temp_Payroll.Where(o => o.companyCode == companyCode && o.period == period).
                     GroupBy(p => new { p.payCode }).
                     Select(g => new {
                         PayCode = g.Key.payCode,
@@ -297,8 +346,9 @@ namespace PayrollAPI.Repository
                 var result = new List<object>();
                 result.Add(new { empCount = _empCount, nonSAPPayData = _paySummaryList, SAPPayData = _paySummaryList });
 
-                _msg.Message = JsonConvert.SerializeObject(result);
+                _msg.Data = JsonConvert.SerializeObject(result);
                 _msg.MsgCode = 'S';
+                _msg.Message = "";
                 
                 return _msg;
             }

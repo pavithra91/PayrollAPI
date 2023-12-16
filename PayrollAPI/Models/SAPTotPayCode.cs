@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PayrollAPI.Models
 {
-    public class PayCode
+    public class SAPTotPayCode
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -13,20 +13,18 @@ namespace PayrollAPI.Models
         public int companyCode { get; set; }
         public int payCode { get; set; }
 
+        [Column(TypeName = "varchar(1)")]
+        public string? payType { get; set; }
+
         [Column(TypeName = "varchar(5)")]
         public string? calCode { get; set; }
 
-        [Column(TypeName = "varchar(2)")]
-        public string? payCategory { get; set; }
+        public int period { get; set; }
 
-        [Column(TypeName = "varchar(100)")]
-        public string? description { get; set; }
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal totalAmount { get; set; }
 
-        [Column(TypeName = "boolean")]
-        public bool isTaxableGross { get; set; }
-
-        [Column(TypeName = "decimal(3, 2)")]
-        public decimal rate { get; set; }
+        public int totCount { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public string? createdBy { get; set; }
@@ -36,10 +34,5 @@ namespace PayrollAPI.Models
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime createdTime { get; set; }
-
-        [Column(TypeName = "varchar(10)")]
-        public string? lastUpdateBy { get; set; }
-        public DateTime? lastUpdateDate { get; set; }
-        public DateTime? lastUpdateTime { get; set; }
     }
 }

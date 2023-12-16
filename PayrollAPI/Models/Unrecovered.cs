@@ -10,6 +10,7 @@ namespace PayrollAPI.Models
         public int id { get; set; }
 
         public int companyCode { get; set; }
+        public int location { get; set; }
         public int period { get; set; }
         public string epf { get; set; }
 

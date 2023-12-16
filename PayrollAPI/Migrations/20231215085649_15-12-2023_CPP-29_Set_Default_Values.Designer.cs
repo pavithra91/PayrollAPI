@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PayrollAPI.Data;
 
@@ -10,9 +11,11 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations
 {
     [DbContext(typeof(DBConnect))]
-    partial class DBConnectModelSnapshot : ModelSnapshot
+    [Migration("20231215085649_15-12-2023_CPP-29_Set_Default_Values")]
+    partial class _15122023_CPP29_Set_Default_Values
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,7 +199,7 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("changeBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime?>("changeDate")
+                    b.Property<DateTime>("changeDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("companyCode")
@@ -219,9 +222,7 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("isPaysheetGenerated")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValueSql("1");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("paymentType")
                         .HasColumnType("int");
@@ -233,9 +234,7 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValueSql("1");
+                        .HasColumnType("boolean");
 
                     b.HasKey("id");
 
@@ -347,9 +346,7 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("varchar(6)");
 
                     b.Property<bool>("displayOnPaySheet")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValueSql("1");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("epf")
                         .IsRequired()
