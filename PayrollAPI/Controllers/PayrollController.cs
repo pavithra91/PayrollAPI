@@ -25,7 +25,6 @@ namespace PayrollAPI.Controllers
         {
             MsgDto _msg = await _payroll.ProcessPayroll(approvalDto);
 
-
             if (_msg.MsgCode == 'S')
             {
                 return Ok(_msg);

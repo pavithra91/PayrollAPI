@@ -8,8 +8,8 @@ namespace PayrollAPI.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
-        public int company { get; set; }
-        public int plant { get; set; }
+        public int companyCode { get; set; }
+        public int location { get; set; }
 
         [Column(TypeName = "varchar(6)")]
         public string epf { get; set; }

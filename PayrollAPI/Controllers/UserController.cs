@@ -15,7 +15,7 @@ using System.Text;
 
 namespace PayrollAPI.Controllers
 {
-    [Authorize]
+
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase

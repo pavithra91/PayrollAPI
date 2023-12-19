@@ -39,7 +39,7 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "varchar(10)")]
         public string? lastUpdateBy { get; set; }
-        public DateTime lastUpdateDate { get; set; }
-        public DateTime lastUpdateTime { get; set; }
+        public DateTime? lastUpdateDate { get; set; }
+        public DateTime? lastUpdateTime { get; set; }
     }
 }

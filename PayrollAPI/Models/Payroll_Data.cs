@@ -11,7 +11,7 @@ namespace PayrollAPI.Models
         public int id { get; set; }
 
         public int companyCode { get; set; }
-        public int plant { get; set; }
+        public int location { get; set; }
         public int period { get; set; }
 
         [Column(TypeName = "varchar(6)")]
@@ -29,7 +29,7 @@ namespace PayrollAPI.Models
         public char? paytype { get; set; }
 
         [Column(TypeName = "varchar(6)")]
-        public string? costcenter { get; set; }
+        public string? costCenter { get; set; }
 
         [Column(TypeName = "varchar(2)")]
         public string? payCodeType { get; set; }
@@ -38,7 +38,7 @@ namespace PayrollAPI.Models
         public decimal amount { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
-        public decimal balanceamount { get; set; }
+        public decimal balanceAmount { get; set; }
 
         public float epfConRate { get; set; }
 
@@ -51,7 +51,6 @@ namespace PayrollAPI.Models
         public decimal taxContribution { get; set; }
 
         [Column(TypeName = "boolean")]
-        [DefaultValue(true)]
-        public bool displayOnPaySheet { get; set; } = true;
+        public bool? displayOnPaySheet { get; set; }
     }
 }

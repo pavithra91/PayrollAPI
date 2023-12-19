@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PayrollAPI.Data;
 
@@ -10,9 +11,11 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations
 {
     [DbContext(typeof(DBConnect))]
-    partial class DBConnectModelSnapshot : ModelSnapshot
+    [Migration("20231218051238_18-12-2023-Update_location")]
+    partial class _18122023Update_location
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,10 +56,10 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime?>("lastUpdateDate")
+                    b.Property<DateTime>("lastUpdateDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime?>("lastUpdateTime")
+                    b.Property<DateTime>("lastUpdateTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("payCategory")
@@ -546,9 +549,6 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("calFormula")
                         .HasColumnType("varchar(500)");
 
-                    b.Property<int>("companyCode")
-                        .HasColumnType("int");
-
                     b.Property<string>("createdBy")
                         .HasColumnType("varchar(10)");
 
@@ -568,10 +568,10 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime?>("lastUpdateDate")
+                    b.Property<DateTime>("lastUpdateDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime?>("lastUpdateTime")
+                    b.Property<DateTime>("lastUpdateTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal>("range")

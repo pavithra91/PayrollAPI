@@ -23,7 +23,7 @@ namespace PayrollAPI.Models
         public string? calCode { get; set; }
 
         [Column(TypeName = "varchar(6)")]
-        public string? costcenter { get; set; }
+        public string? costCenter { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal amount { get; set; }

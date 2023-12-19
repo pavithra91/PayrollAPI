@@ -12,7 +12,7 @@ namespace PayrollAPI.Models
         public int id { get; set; }
 
         public int companyCode { get; set; }
-        public int plant { get; set; }
+        public int location { get; set; }
 
         [Column(TypeName = "varchar(6)")]
         public string epf { get; set; }
@@ -37,13 +37,11 @@ namespace PayrollAPI.Models
         public string? accountNo { get; set; }
 
         [Column(TypeName = "boolean")]
-        [DefaultValue(true)]
-        public bool status { get; set; } = true;
+        public bool? status { get; set; }
 
 
         [Column(TypeName = "boolean")]
-        [DefaultValue(true)]
-        public bool isPaysheetGenerated { get; set; }
+        public bool? isPaysheetGenerated { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public string? changeBy { get; set; }

@@ -28,30 +28,35 @@ namespace PayrollAPI.Repository
                 ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == approvalDto.period).OrderBy(o => o.epf).ToList();
                 ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period).ToList();
                 ICollection<Calculation> _calculation = _context.Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
+                ICollection<Tax_Calculation> _taxCalculation = _context.Tax_Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
                 ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == approvalDto.companyCode).ToList();
 
                 // Calculate EPF and Tax
                 using var transaction = BeginTransaction();
 
-                Parallel.ForEach(_emp, emp =>
+                //Parallel.ForEach(_emp, emp =>
+                foreach(Employee_Data emp in _emp)
                 {
                     ICollection<Payroll_Data> _empPayrollData = _payrollData.Where(o => o.epf == emp.epf).OrderBy(o => o.payCode).ToList();
-
+                    
+                    decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
                     decimal _epfTot = _empPayrollData.Where(o => o.epfContribution > 0).Sum(w => w.epfContribution);
                     decimal _taxTot = _empPayrollData.Where(o => o.taxContribution > 0).Sum(w => w.taxContribution);
 
                     Payroll_Data _tempEPFTOT = new Payroll_Data();
+                    _tempEPFTOT.companyCode = emp.companyCode;
+                    _tempEPFTOT.location = emp.location;
                     _tempEPFTOT.period = approvalDto.period;
                     _tempEPFTOT.epf = emp.epf;
                     _tempEPFTOT.othours = 0;
-                    _tempEPFTOT.payCategory = "";
+                    _tempEPFTOT.payCategory = "T";
                     _tempEPFTOT.payCode = 0;
                     _tempEPFTOT.calCode = "EPFTO";
                     _tempEPFTOT.paytype = null;
-                    _tempEPFTOT.costcenter = emp.costCenter;
+                    _tempEPFTOT.costCenter = emp.costCenter;
                     _tempEPFTOT.payCodeType = "T";
                     _tempEPFTOT.amount = _epfTot;
-                    _tempEPFTOT.balanceamount = 0;
+                    _tempEPFTOT.balanceAmount = 0;
                     _tempEPFTOT.displayOnPaySheet = false;
                     _tempEPFTOT.epfConRate = 0;
                     _tempEPFTOT.epfContribution = 0;
@@ -59,29 +64,55 @@ namespace PayrollAPI.Repository
                     _tempEPFTOT.taxContribution = 0;
 
                     _empPayrollData.Add(_tempEPFTOT);
-                    // _context.Payroll_Data.Add(_objEPFTOT);
-                    /*
-                    Payroll_Data _objTAXTOT = new Payroll_Data();
-                    _objTAXTOT.period = approvalDto.period;
-                    _objTAXTOT.epf = emp.epf;
-                    _objTAXTOT.othours = 0;
-                    _objTAXTOT.payCategory = "";
-                    _objTAXTOT.payCode = 0;
-                    _objTAXTOT.calCode = "EPFTO";
-                    _objTAXTOT.paytype = 0;
-                    _objTAXTOT.costcenter = emp.costCenter;
-                    _objTAXTOT.payCodeType = "T";
-                    _objTAXTOT.amount = _epfTot;
-                    _objTAXTOT.balanceamount = 0;
-                    _objTAXTOT.displayOnPaySheet = false;
-                    _objTAXTOT.epfConRate = 0;
-                    _objTAXTOT.epfContribution = 0;
-                    _objTAXTOT.taxConRate = 0;
-                    _objTAXTOT.taxContribution = 0;
+                    _context.Payroll_Data.Add(_tempEPFTOT);
 
-                    _payrollData.Add(_objTAXTOT);
-                    */
+                    Payroll_Data _tempGROSS = new Payroll_Data();
+                    _tempGROSS.companyCode = emp.companyCode;
+                    _tempGROSS.location = emp.location;
+                    _tempGROSS.period = approvalDto.period;
+                    _tempGROSS.epf = emp.epf;
+                    _tempGROSS.othours = 0;
+                    _tempGROSS.payCategory = "T";
+                    _tempGROSS.payCode = 0;
+                    _tempGROSS.calCode = "TGROS";
+                    _tempGROSS.paytype = null;
+                    _tempGROSS.costCenter = emp.costCenter;
+                    _tempGROSS.payCodeType = "T";
+                    _tempGROSS.amount = _grossTot;
+                    _tempGROSS.balanceAmount = 0;
+                    _tempGROSS.displayOnPaySheet = false;
+                    _tempGROSS.epfConRate = 0;
+                    _tempGROSS.epfContribution = 0;
+                    _tempGROSS.taxConRate = 0;
+                    _tempGROSS.taxContribution = 0;
 
+                    _empPayrollData.Add(_tempGROSS);
+                    //_context.Payroll_Data.Add(_tempEPFTOT);
+
+                    Payroll_Data _objTAXGRO = new Payroll_Data();
+                    _objTAXGRO.companyCode = emp.companyCode;
+                    _objTAXGRO.location = emp.location;
+                    _objTAXGRO.period = approvalDto.period;
+                    _objTAXGRO.epf = emp.epf;
+                    _objTAXGRO.othours = 0;
+                    _objTAXGRO.payCategory = "T";
+                    _objTAXGRO.payCode = 0;
+                    _objTAXGRO.calCode = "TAXGR";
+                    _objTAXGRO.paytype = null;
+                    _objTAXGRO.costCenter = emp.costCenter;
+                    _objTAXGRO.payCodeType = "T";
+                    _objTAXGRO.amount = _taxTot;
+                    _objTAXGRO.balanceAmount = 0;
+                    _objTAXGRO.displayOnPaySheet = false;
+                    _objTAXGRO.epfConRate = 0;
+                    _objTAXGRO.epfContribution = 0;
+                    _objTAXGRO.taxConRate = 0;
+                    _objTAXGRO.taxContribution = 0;
+
+                    _empPayrollData.Add(_objTAXGRO);
+                    _context.Payroll_Data.Add(_objTAXGRO);
+
+                    // Calculations
                     foreach (Calculation cal in _calculation)
                     {
                         Expression expression = new Expression();
@@ -100,17 +131,19 @@ namespace PayrollAPI.Repository
                         Decimal _result = expression.Eval<Decimal>();
 
                         Payroll_Data _objEPFTOT = new Payroll_Data();
+                        _objEPFTOT.companyCode = emp.companyCode;
+                        _objEPFTOT.location = emp.location;
                         _objEPFTOT.period = approvalDto.period;
                         _objEPFTOT.epf = emp.epf;
                         _objEPFTOT.othours = 0;
-                        _objEPFTOT.payCategory = "T";
+                        _objEPFTOT.payCategory = cal.payCategory;
                         _objEPFTOT.payCode = cal.payCode;
                         _objEPFTOT.calCode = cal.calCode;
                         _objEPFTOT.paytype = null;
-                        _objEPFTOT.costcenter = emp.costCenter;
-                        _objEPFTOT.payCodeType = "S";
+                        _objEPFTOT.costCenter = emp.costCenter;
+                        _objEPFTOT.payCodeType = "P";
                         _objEPFTOT.amount = _result;
-                        _objEPFTOT.balanceamount = 0;
+                        _objEPFTOT.balanceAmount = 0;
                         _objEPFTOT.displayOnPaySheet = true;
                         _objEPFTOT.epfConRate = 0;
                         _objEPFTOT.epfContribution = 0;
@@ -121,7 +154,44 @@ namespace PayrollAPI.Repository
                         _context.Payroll_Data.Add(_objEPFTOT);
                     };
 
-                    decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
+                    // Tax Calculation
+                    foreach (Tax_Calculation cal in _taxCalculation)
+                    {
+                        if(_taxTot > cal.range) 
+                        {
+                            continue;
+                        }
+                        Expression expression = new Expression();
+                        expression.SetFomular(cal.calFormula);
+                        expression.Bind("TGROSS", _taxTot);
+                        Decimal _taxResult = expression.Eval<Decimal>();
+
+                        Payroll_Data _objTAXTOT = new Payroll_Data();
+                        _objTAXTOT.companyCode = emp.companyCode;
+                        _objTAXTOT.location = emp.location;
+                        _objTAXTOT.period = approvalDto.period;
+                        _objTAXTOT.epf = emp.epf;
+                        _objTAXTOT.othours = 0;
+                        _objTAXTOT.payCategory = "1";
+                        _objTAXTOT.payCode = 328;
+                        _objTAXTOT.calCode = "";
+                        _objTAXTOT.paytype = null;
+                        _objTAXTOT.costCenter = emp.costCenter;
+                        _objTAXTOT.payCodeType = "P";
+                        _objTAXTOT.amount = _taxResult;
+                        _objTAXTOT.balanceAmount = 0;
+                        _objTAXTOT.displayOnPaySheet = true;
+                        _objTAXTOT.epfConRate = 0;
+                        _objTAXTOT.epfContribution = 0;
+                        _objTAXTOT.taxConRate = 0;
+                        _objTAXTOT.taxContribution = 0;
+
+                        _empPayrollData.Add(_objTAXTOT);
+                        _context.Payroll_Data.Add(_objTAXTOT);
+                        break;
+                    }
+
+                    
                     decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1").Sum(w => w.amount);
 
                     if (_grossDed > _grossTot)
@@ -137,19 +207,22 @@ namespace PayrollAPI.Repository
                                 // Add to unrecovered List
                                 Unrecovered _unRecoveredObj = new Unrecovered();
                                 _unRecoveredObj.companyCode = deductionItem.companyCode;
-                                _unRecoveredObj.location = deductionItem.plant;
+                                _unRecoveredObj.location = deductionItem.location;
                                 _unRecoveredObj.period = deductionItem.period;
                                 _unRecoveredObj.epf = deductionItem.epf;
                                 _unRecoveredObj.payCategory = deductionItem.payCategory;
                                 _unRecoveredObj.payCode = deductionItem.payCode;
                                 _unRecoveredObj.calCode = deductionItem.calCode;
-                                _unRecoveredObj.costcenter = deductionItem.costcenter;
+                                _unRecoveredObj.costCenter = deductionItem.costCenter;
                                 _unRecoveredObj.amount = deductionItem.amount;
+                                _context.Unrecovered.Add(_unRecoveredObj);
                             }
                         }
                     }
 
-                });
+                };
+
+                await _context.SaveChangesAsync();
 
                 transaction.Commit();
 

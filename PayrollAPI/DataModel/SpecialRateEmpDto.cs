@@ -6,7 +6,7 @@
         public char flag { get; set; }
         public int companyCode { get; set; }
         public string epf { get; set; }
-        public string? costcenter { get; set; }
+        public string? costCenter { get; set; }
         public int payCode { get; set; }
         public string? calCode { get; set; }
         public decimal rate { get; set; }

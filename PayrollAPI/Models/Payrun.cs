@@ -9,6 +9,7 @@ namespace PayrollAPI.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
+        public int companyCode { get; set; }
         public int period { get; set; }
         public int noOfEmployees { get; set; }
         public int noOfRecords { get; set; }

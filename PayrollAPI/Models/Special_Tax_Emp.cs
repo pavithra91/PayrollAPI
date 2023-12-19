@@ -15,7 +15,8 @@ namespace PayrollAPI.Models
         public string epf { get; set; }
 
         [Column(TypeName = "varchar(50)")]
-        public string? costcenter { get; set; }
+        public string? costCenter { get; set; }
+        public int? location { get; set; }
 
         [Column(TypeName = "varchar(500)")]
         public string? calFormula { get; set; }

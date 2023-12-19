@@ -9,6 +9,8 @@ namespace PayrollAPI.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
+        public int companyCode { get; set; }
+
         [Column(TypeName = "decimal(10, 2)")]
         public decimal range { get; set; }
 
@@ -32,7 +34,7 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "varchar(10)")]
         public string? lastUpdateBy { get; set; }
-        public DateTime lastUpdateDate { get; set; }
-        public DateTime lastUpdateTime { get; set; }
+        public DateTime? lastUpdateDate { get; set; }
+        public DateTime? lastUpdateTime { get; set; }
     }
 }

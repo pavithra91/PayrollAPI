@@ -12,7 +12,7 @@ namespace PayrollAPI.Models
 
         public int companyCode { get; set; }
 
-        public int plant { get; set; }
+        public int location { get; set; }
 
         public int period { get; set; }
 
@@ -33,7 +33,7 @@ namespace PayrollAPI.Models
         public char? paytype { get; set; }
 
         [Column(TypeName = "varchar(6)")]
-        public string? costcenter { get; set; }
+        public string? costCenter { get; set; }
 
         [Column(TypeName = "varchar(2)")]
         public string? payCodeType { get; set; }

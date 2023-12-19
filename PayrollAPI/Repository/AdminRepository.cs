@@ -199,7 +199,7 @@ namespace PayrollAPI.Repository
                 {
                     epf = specialRateEmpDto.epf,
                     companyCode = specialRateEmpDto.companyCode,
-                    costcenter = specialRateEmpDto.costcenter,
+                    costCenter = specialRateEmpDto.costCenter,
                     payCode = specialRateEmpDto.payCode,
                     calCode = specialRateEmpDto.calCode,
                     rate = specialRateEmpDto.rate,
@@ -222,7 +222,7 @@ namespace PayrollAPI.Repository
                 if (_sRateEmp != null)
                 {
                     _sRateEmp.companyCode = specialRateEmpDto.companyCode;
-                    _sRateEmp.costcenter = specialRateEmpDto.costcenter;
+                    _sRateEmp.costCenter = specialRateEmpDto.costCenter;
                     _sRateEmp.payCode = specialRateEmpDto.payCode;
                     _sRateEmp.calCode = specialRateEmpDto.calCode;
                     _sRateEmp.rate = specialRateEmpDto.rate;
@@ -278,7 +278,7 @@ namespace PayrollAPI.Repository
                 {
                     epf = specialTaxEmpDto.epf,
                     companyCode = specialTaxEmpDto.companyCode,
-                    costcenter = specialTaxEmpDto.costcenter,
+                    costCenter = specialTaxEmpDto.costCenter,
                     calFormula = specialTaxEmpDto.calFormula,
                     status = true,
                     createdBy = specialTaxEmpDto.createdBy,
@@ -299,7 +299,7 @@ namespace PayrollAPI.Repository
                 if (_sTaxEmp != null)
                 {
                     _sTaxEmp.companyCode = specialTaxEmpDto.companyCode;
-                    _sTaxEmp.costcenter = specialTaxEmpDto.costcenter;
+                    _sTaxEmp.costCenter = specialTaxEmpDto.costCenter;
                     _sTaxEmp.calFormula = specialTaxEmpDto.calFormula;
                     _sTaxEmp.status = specialTaxEmpDto.status;
                     _sTaxEmp.lastUpdateBy = specialTaxEmpDto.lastUpdateBy;

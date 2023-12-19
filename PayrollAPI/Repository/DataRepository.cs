@@ -47,8 +47,8 @@ namespace PayrollAPI.Repository
                 {
                     _tempEmpList.Add(new Temp_Employee()
                     {
-                        company = Convert.ToInt32(_dataRow["company"]),
-                        plant = Convert.ToInt32(_dataRow["plant"]),
+                        companyCode = Convert.ToInt32(_dataRow["company"]),
+                        location = Convert.ToInt32(_dataRow["plant"]),
                         epf = _dataRow["epf"].ToString().Substring(3),
                         period = Convert.ToInt32(_dataRow["period"]),
                         empName = _dataRow["empName"].ToString(),
@@ -69,11 +69,11 @@ namespace PayrollAPI.Repository
                     _tempPayList.Add(new Temp_Payroll()
                     {
                         companyCode = Convert.ToInt32(_dataRow["company"]),
-                        plant = Convert.ToInt32(_dataRow["plant"]),
+                        location = Convert.ToInt32(_dataRow["plant"]),
                         epf = _dataRow["epf"].ToString().Substring(3),
                         period = Convert.ToInt32(_dataRow["period"]),
                         othours = (float)Convert.ToDouble(_dataRow["othours"].ToString()),
-                        costcenter = _dataRow["costcenter"].ToString(),
+                        costCenter = _dataRow["costcenter"].ToString(),
                         payCode = Convert.ToInt32(_dataRow["payCode"].ToString()),
                         calCode = "",
                         payCategory = _dataRow["payCategory"].ToString(),
@@ -149,10 +149,10 @@ namespace PayrollAPI.Repository
                 ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.Where(o => o.period == approvalDto.period).ToList();
 
                 _context.Temp_Employee
-                .Where(x => x.period == approvalDto.period && x.company == approvalDto.companyCode)
+                .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
                 .InsertFromQuery("Employee_Data", x => new { 
-                x.company, 
-                x.plant, 
+                x.companyCode, 
+                x.location, 
                 x.epf,
                 x.period,
                 x.empName,
@@ -169,10 +169,10 @@ namespace PayrollAPI.Repository
                 .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
                 .InsertFromQuery("Payroll_Data", x => new {
                     x.companyCode,
-                    x.plant,
+                    x.location,
                     x.epf,
                     x.period,
-                    x.costcenter,
+                    x.costCenter,
                     x.othours,
                     x.payCode,
                     x.calCode,
@@ -333,7 +333,7 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                int _empCount = _context.Temp_Employee.Where(o => o.company == companyCode && o.period == period).ToList().Count();
+                int _empCount = _context.Temp_Employee.Where(o => o.companyCode == companyCode && o.period == period).ToList().Count();
 
                 IList _paySummaryList = _context.Temp_Payroll.Where(o => o.companyCode == companyCode && o.period == period).
                     GroupBy(p => new { p.payCode }).
@@ -343,8 +343,16 @@ namespace PayrollAPI.Repository
                         Line_Item_Count = g.Count()
                     }).OrderBy(p => p.PayCode).ToList();
 
+                IList _paySAPSummaryList = _context.SAPTotPayCode.Where(o => o.companyCode == companyCode && o.period == period).
+                    GroupBy(p => new { p.payCode }).
+                    Select(g => new {
+                        PayCode = g.Key.payCode,
+                        Amount = g.Sum(o => o.totalAmount),
+                        Line_Item_Count = g.Sum(o => o.totCount)
+                    }).OrderBy(p => p.PayCode).ToList();
+
                 var result = new List<object>();
-                result.Add(new { empCount = _empCount, nonSAPPayData = _paySummaryList, SAPPayData = _paySummaryList });
+                result.Add(new { empCount = _empCount, nonSAPPayData = _paySummaryList, SAPPayData = _paySAPSummaryList });
 
                 _msg.Data = JsonConvert.SerializeObject(result);
                 _msg.MsgCode = 'S';
@@ -363,7 +371,7 @@ namespace PayrollAPI.Repository
 
         public ICollection<Temp_Employee> GetTempEmployeeList(int companyCode, int period)
         {
-            ICollection<Temp_Employee> _tempEmpList = _context.Temp_Employee.Where(o=> o.company == companyCode && o.period == period).ToList();
+            ICollection<Temp_Employee> _tempEmpList = _context.Temp_Employee.Where(o=> o.companyCode == companyCode && o.period == period).ToList();
             return _tempEmpList;
         }
     }
