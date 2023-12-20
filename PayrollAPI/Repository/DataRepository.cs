@@ -1,6 +1,8 @@
-﻿using LinqToDB.Data;
+﻿using LinqToDB;
+using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
 using PayrollAPI.Data;
@@ -140,14 +142,39 @@ namespace PayrollAPI.Repository
             }
         }
 
+        public async Task<MsgDto> RollBackTempData(ApprovalDto approvalDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                _context.Employee_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                    DeleteFromQuery();
+                _context.Payroll_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                    DeleteFromQuery();
+
+                transaction.Commit();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Data Rollback Operation Completed Successfully";
+                return _msg;
+            }
+            catch(Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
         public async Task<MsgDto> ConfirmDataTransfer(ApprovalDto approvalDto)
         {
             using var transaction = BeginTransaction();
             MsgDto _msg = new MsgDto();
             try
             {
-                ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.Where(o => o.period == approvalDto.period).ToList();
-
                 _context.Temp_Employee
                 .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
                 .InsertFromQuery("Employee_Data", x => new { 
@@ -185,88 +212,15 @@ namespace PayrollAPI.Repository
                     x.taxConRate,
                 });
 
-                // transaction.Commit();
-
-                // transaction = BeginTransaction();
-
-
-
-
-                /*
-                ICollection<Temp_Employee> _employeeList = _context.Temp_Employee.Where(o => o.period == approvalDto.period).ToList();
-
-                IList<Employee_Data> _newEmpList = new List<Employee_Data>();
-
-                Parallel.ForEach(_employeeList, emp =>
-                {
-                    _newEmpList.Add(new Employee_Data()
-                    {
-                        company = emp.company,
-                        plant = emp.plant,
-                        epf = emp.epf,
-                        period = emp.period,
-                        empName = emp.empName,
-                        costCenter = emp.costCenter,
-                        empGrade = emp.empGrade,
-                        gradeCode = emp.gradeCode,
-                        paymentType = emp.paymentType,
-                        bankCode = emp.bankCode,
-                        branchCode = emp.branchCode,
-                        accountNo = emp.accountNo,
-                        status = true
-                    });
-                });
-
-                //await _context.BulkInsertAsync(_newEmpList);
-
-                ICollection<Temp_Payroll> _payItemList = _context.Temp_Payroll.Where(o => o.period == approvalDto.period).ToList();
-                ICollection<PayCode> _payCode = _context.PayCode.ToList();
-
-                IList<Payroll_Data> _newPayrollData = new List<Payroll_Data>();
-
-                foreach (PayCode payCode in _payCode)
-                {
-                    ICollection<Temp_Payroll> _tempList = _payItemList.Where(w => w.payCode == payCode.payCode).ToList();
-
-                    Parallel.ForEach(_tempList, payItem => {
-                        _newPayrollData.Add(new Payroll_Data()
-                        {
-                            company = payItem.company,
-                            plant = payItem.plant,
-                            epf = payItem.epf,
-                            period = payItem.period,
-                            othours = payItem.othours,
-                            payCategory = payItem.payCategory,
-                            payCode = payItem.payCode,
-                            calCode = payCode.calCode,
-                            paytype = payItem.paytype,
-                            costcenter = payItem.costcenter,
-                            payCodeType = payItem.payCodeType,
-                            amount = payItem.amount,
-                            balanceamount = payItem.balanceamount,
-                            epfConRate = payItem.epfConRate,
-                            epfContribution = (payItem.amount * (decimal)payItem.epfConRate),
-                            taxConRate = payItem.taxConRate,
-                            taxContribution = (payItem.amount * (decimal)payItem.taxConRate),
-                        });
-                    });
-                }
-
-               // await _context.BulkInsertAsync(_newPayrollData);
-
                 Payrun _objPay = new Payrun();
                 _objPay.period = approvalDto.period;
                 _objPay.approvedBy = approvalDto.approvedBy;
                 _objPay.approvedDate = DateTime.Now;
-                _objPay.noOfEmployees = _newEmpList.Count;
-                _objPay.noOfRecords = _newPayrollData.Count;
+                _objPay.noOfEmployees = _context.Temp_Employee.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).Count();
+                _objPay.noOfRecords = _context.Temp_Payroll.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).Count();
                 _objPay.payrunStatus = "Approved";
 
-                _context.Add(_objPay);
-
-                await _context.SaveChangesAsync();
-
-                */
+                _context.Payrun.Add(_objPay);
 
                 _context.Payroll_Data.UpdateFromQuery(x => new Payroll_Data { epfContribution = x.amount * (decimal)x.epfConRate, taxContribution = x.amount * (decimal)x.taxConRate, calCode = "_" + x.payCode });
 
@@ -308,7 +262,6 @@ namespace PayrollAPI.Repository
                         _data.taxContribution = payItem.rate * (decimal)_data.taxConRate;
                         _data.epfContribution = payItem.rate * (decimal)_data.epfConRate;
                     }
-                    // _context.SaveChanges();
                 });
 
                 await _context.SaveChangesAsync();

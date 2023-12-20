@@ -9,6 +9,7 @@ using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
 using org.matheval;
 using Expression = org.matheval.Expression;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace PayrollAPI.Repository
 {
@@ -41,7 +42,7 @@ namespace PayrollAPI.Repository
                     
                     decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
                     decimal _epfTot = _empPayrollData.Where(o => o.epfContribution > 0).Sum(w => w.epfContribution);
-                    decimal _taxTot = _empPayrollData.Where(o => o.taxContribution > 0).Sum(w => w.taxContribution);
+                    decimal _taxTot = _empPayrollData.Where(o => o.taxContribution > 0 && o.paytype != 'A').Sum(w => w.taxContribution);
 
                     Payroll_Data _tempEPFTOT = new Payroll_Data();
                     _tempEPFTOT.companyCode = emp.companyCode;
@@ -174,7 +175,7 @@ namespace PayrollAPI.Repository
                         _objTAXTOT.othours = 0;
                         _objTAXTOT.payCategory = "1";
                         _objTAXTOT.payCode = 328;
-                        _objTAXTOT.calCode = "";
+                        _objTAXTOT.calCode = "APTAX";
                         _objTAXTOT.paytype = null;
                         _objTAXTOT.costCenter = emp.costCenter;
                         _objTAXTOT.payCodeType = "P";
@@ -191,7 +192,18 @@ namespace PayrollAPI.Repository
                         break;
                     }
 
-                    
+                    EPF_ETF ePF_ETF= new EPF_ETF();
+                    ePF_ETF.epf = emp.epf;
+                    ePF_ETF.companyCode = emp.companyCode;
+                    ePF_ETF.location = emp.location;
+                    ePF_ETF.grade = emp.empGrade;
+                    ePF_ETF.epfGross = _epfTot;
+                    ePF_ETF.taxableGross = _taxTot;
+                    ePF_ETF.emp_contribution = _empPayrollData.Where(x=>x.calCode == "EPFEM").Select(x=>x.amount).FirstOrDefault(0);
+                    ePF_ETF.comp_contribution = _empPayrollData.Where(x => x.calCode == "EPFCO").Select(x => x.amount).FirstOrDefault(0);
+                    ePF_ETF.etf = _empPayrollData.Where(x => x.calCode == "ETFCO").Select(x => x.amount).FirstOrDefault(0);
+                    ePF_ETF.tax = _empPayrollData.Where(x => x.calCode == "APTAX").Select(x => x.amount).FirstOrDefault(0);
+
                     decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1").Sum(w => w.amount);
 
                     if (_grossDed > _grossTot)

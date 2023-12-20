@@ -41,6 +41,28 @@ namespace PayrollAPI.Controllers
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="approvalDto"></param>
+        /// <returns></returns>
+        [Route("temp-data-rollback")]
+        [HttpPost]
+        public async Task<IActionResult> RollBackTempData([FromBody] ApprovalDto approvalDto)
+        {
+            MsgDto _msg = await _data.RollBackTempData(approvalDto);
+
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        /// <summary>
         /// Method used to Confirm the data transfer is Complete
         /// </summary>
         /// <param name="approvalDto"></param>
