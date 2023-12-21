@@ -7,6 +7,8 @@ namespace PayrollAPI.Interfaces
     {
         public Task<MsgDto> ProcessPayroll(ApprovalDto approvalDto);
 
+        public Task<MsgDto> ProcessPayrollbyEPF(string epf, int period, int companyCode);
+
         public IDbTransaction BeginTransaction();
     }
 }

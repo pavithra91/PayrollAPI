@@ -34,5 +34,24 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
+
+        [Route("ProcessPayrollbyEPF")]
+        [HttpPost]
+        public async Task<IActionResult> ProcessPayrollbyEPF(string epf)
+        {
+            int period = 202310;
+            int companyCode = 3000;
+
+            MsgDto _msg = await _payroll.ProcessPayrollbyEPF(epf, period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
     }
 }

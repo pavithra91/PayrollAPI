@@ -13,7 +13,7 @@ namespace PayrollAPI.Interfaces
 
         public ICollection<User> GetUsers();
 
-        public bool CreateUser(UserDto user);
+        public Task<MsgDto> CreateUser(UserDto user);
 
         public bool ResetPassword(string username, string password);
     }

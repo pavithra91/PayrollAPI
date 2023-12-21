@@ -73,14 +73,18 @@ namespace PayrollAPI.Controllers
         /// <returns></returns>
         [Route("CreateUser")]
         [HttpPost]
-        public IActionResult CreateUser([FromBody] UserDto usrDto)
+        public async Task<IActionResult> CreateUser([FromBody] UserDto usrDto)
         {
-            bool _user = _usr.CreateUser(usrDto);
+            MsgDto _msg = await _usr.CreateUser(usrDto);
 
-            if(_user)
-                return Ok(_user);
-            else 
-                return BadRequest();
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
         }
         
         /// <summary>

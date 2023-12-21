@@ -34,24 +34,39 @@ namespace PayrollAPI.Repository
             return _userList;
         }
 
-        public bool CreateUser(UserDto user) 
+        public async Task<MsgDto> CreateUser(UserDto user) 
         {
-            string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString(), user.costCenter);
-            var _user = new User
+            try
             {
-                userID = user.userID,
-                epf = user.epf,
-                empName = user.empName,
-                costCenter = user.costCenter,
-                role = user.role,
-                pwdHash = pwdHash,
-                status = true,
-                createdBy = user.createdBy,
-                createdDate = DateTime.Now
-            };
+                string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString(), user.costCenter);
+                var _user = new User
+                {
+                    userID = user.userID,
+                    epf = user.epf,
+                    empName = user.empName,
+                    costCenter = user.costCenter,
+                    role = user.role,
+                    pwdHash = pwdHash,
+                    status = true,
+                    createdBy = user.createdBy,
+                    createdDate = DateTime.Now
+                };
 
-            _dbConnect.Add(_user);
-            return Save();
+                _dbConnect.Add(_user);
+
+                MsgDto _msg = new MsgDto();
+                _msg.MsgCode = 'S';
+                _msg.Message = "User Created";
+                return _msg;
+            }
+            catch(Exception ex)
+            {
+                MsgDto _msg = new MsgDto();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
         }
 
         public TokenResponse AuthenticateUser(Users usr)
