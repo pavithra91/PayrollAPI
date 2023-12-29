@@ -9,6 +9,8 @@ namespace PayrollAPI.Interfaces
 
         public Task<MsgDto> ProcessPayrollbyEPF(string epf, int period, int companyCode);
 
+        public Task<MsgDto> GetPayrollSummary(int period, int companyCode);
+
         public IDbTransaction BeginTransaction();
     }
 }

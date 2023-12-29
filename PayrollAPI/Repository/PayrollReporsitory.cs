@@ -10,6 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 using org.matheval;
 using Expression = org.matheval.Expression;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
+using Newtonsoft.Json;
 
 namespace PayrollAPI.Repository
 {
@@ -26,11 +27,13 @@ namespace PayrollAPI.Repository
         {
             try
             {
+                MsgDto _msg = new MsgDto();
                 ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).OrderBy(o => o.epf).ToList();
                 ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).ToList();
                 ICollection<Calculation> _calculation = _context.Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
                 ICollection<Tax_Calculation> _taxCalculation = _context.Tax_Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
                 ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == approvalDto.companyCode).ToList();
+                Payrun _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
 
                 // Calculate EPF and Tax
                 using var transaction = BeginTransaction();
@@ -194,8 +197,10 @@ namespace PayrollAPI.Repository
 
                     EPF_ETF ePF_ETF= new EPF_ETF();
                     ePF_ETF.epf = emp.epf;
+                    ePF_ETF.period= emp.period;
                     ePF_ETF.companyCode = emp.companyCode;
                     ePF_ETF.location = emp.location;
+                    ePF_ETF.empName = emp.empName;
                     ePF_ETF.grade = emp.empGrade;
                     ePF_ETF.epfGross = _epfTot;
                     ePF_ETF.taxableGross = _taxTot;
@@ -203,6 +208,8 @@ namespace PayrollAPI.Repository
                     ePF_ETF.comp_contribution = _empPayrollData.Where(x => x.calCode == "EPFCO").Select(x => x.amount).FirstOrDefault(0);
                     ePF_ETF.etf = _empPayrollData.Where(x => x.calCode == "ETFCO").Select(x => x.amount).FirstOrDefault(0);
                     ePF_ETF.tax = _empPayrollData.Where(x => x.calCode == "APTAX").Select(x => x.amount).FirstOrDefault(0);
+
+                    await _context.EPF_ETF.AddAsync(ePF_ETF);
 
                     decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1").Sum(w => w.amount);
 
@@ -234,11 +241,25 @@ namespace PayrollAPI.Repository
 
                 };
 
+                if(_payRun != null)
+                {
+                    _payRun.payrunBy = "";
+                    _payRun.payrunStatus = "Complete";
+                    _payRun.payrunDate = DateTime.Now;
+                    _payRun.payrunTime = DateTime.Now;
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Please Confirm Data Transfer";
+                    return _msg;
+                }
+
                 await _context.SaveChangesAsync();
 
                 transaction.Commit();
 
-                MsgDto _msg = new MsgDto();
+                
                 _msg.MsgCode = 'S';
                 _msg.Message = "Data Transered Successfully";
                 return _msg;
@@ -432,8 +453,10 @@ namespace PayrollAPI.Repository
 
                     EPF_ETF ePF_ETF = new EPF_ETF();
                     ePF_ETF.epf = emp.epf;
+                    ePF_ETF.period = emp.period;
                     ePF_ETF.companyCode = emp.companyCode;
                     ePF_ETF.location = emp.location;
+                    ePF_ETF.empName = emp.empName;
                     ePF_ETF.grade = emp.empGrade;
                     ePF_ETF.epfGross = _epfTot;
                     ePF_ETF.taxableGross = _taxTot;
@@ -441,6 +464,8 @@ namespace PayrollAPI.Repository
                     ePF_ETF.comp_contribution = _empPayrollData.Where(x => x.calCode == "EPFCO").Select(x => x.amount).FirstOrDefault(0);
                     ePF_ETF.etf = _empPayrollData.Where(x => x.calCode == "ETFCO").Select(x => x.amount).FirstOrDefault(0);
                     ePF_ETF.tax = _empPayrollData.Where(x => x.calCode == "APTAX").Select(x => x.amount).FirstOrDefault(0);
+
+                    await _context.EPF_ETF.AddAsync(ePF_ETF);
 
                     decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1").Sum(w => w.amount);
 
@@ -469,7 +494,6 @@ namespace PayrollAPI.Repository
                             }
                         }
                     }
-
                 };
 
                 await _context.SaveChangesAsync();
@@ -487,6 +511,27 @@ namespace PayrollAPI.Repository
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> GetPayrollSummary(int period, int companyCode)
+        {
+            ICollection<EPF_ETF> ePF_ETFs = await _context.EPF_ETF.Where(o => o.period == period && o.companyCode == companyCode).OrderBy(o => o.epf).ToListAsync();
+            
+            MsgDto _msg = new MsgDto();
+
+            if (ePF_ETFs.Count > 0)
+            {
+                _msg.Data = JsonConvert.SerializeObject(ePF_ETFs);
+                _msg.MsgCode = 'S';
+                _msg.Message = "Data Transered Successfully";
+                return _msg;
+            }
+            else
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "No Data Available";
                 return _msg;
             }
         }

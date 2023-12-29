@@ -11,15 +11,16 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "varchar(10)")]
         public string? userID { get; set; }
+        public int companyCode { get; set; }
+
+        [Column(TypeName = "varchar(6)")]
+        public string? costCenter { get; set; }
 
         [Column(TypeName = "varchar(6)")]
         public string epf { get; set; }
 
         [Column(TypeName = "varchar(60)")]
         public string? empName { get; set; }
-
-        [Column(TypeName = "varchar(6)")]
-        public string? costCenter { get; set; }
 
         [Column(TypeName = "varchar(6)")]
         public string? role { get; set; }

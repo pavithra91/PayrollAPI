@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using LinqToDB;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -16,22 +18,47 @@ namespace PayrollAPI.Repository
 {
     public class UsersRepository : IUsers
     {
-        private readonly DBConnect _dbConnect;
+        private readonly DBConnect _context;
         private readonly JWTSetting setting;
         private readonly PasswordHasher passwordHasher;
         private readonly IRefreshTokenGenerator tokenGenerator;
         public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken) 
         {
-            _dbConnect = dB;
+            _context = dB;
             this.setting = options.Value;
             passwordHasher = new PasswordHasher();
             tokenGenerator = _refreshToken;
         }
 
-        public ICollection<User> GetUsers()
+        public async Task<MsgDto> GetUsers()
         {
-            ICollection<User> _userList = _dbConnect.User.ToList();
-            return _userList;
+            MsgDto _msg = new MsgDto();
+            try
+            {                
+                ICollection<User> _userList = await _context.User.ToListAsync();
+
+                if (_userList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_userList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
         }
 
         public async Task<MsgDto> CreateUser(UserDto user) 
@@ -52,7 +79,7 @@ namespace PayrollAPI.Repository
                     createdDate = DateTime.Now
                 };
 
-                _dbConnect.Add(_user);
+                _context.Add(_user);
 
                 MsgDto _msg = new MsgDto();
                 _msg.MsgCode = 'S';
@@ -73,7 +100,7 @@ namespace PayrollAPI.Repository
         {
             TokenResponse tokenResponse = new TokenResponse();
 
-            var _user = _dbConnect.User.FirstOrDefault(o => o.userID == usr.UserId);
+            var _user = _context.User.FirstOrDefault(o => o.userID == usr.UserId);
 
             bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString(), _user.costCenter);
 
@@ -107,6 +134,16 @@ namespace PayrollAPI.Repository
 
             tokenResponse._userDetails = _userDetails;
 
+            LoginInfo _log = new LoginInfo();
+            _log.userID = _user.userID;
+            _log.tokenID = tokenResponse.JWTToken.ToString();
+            _log.refreshToken = tokenResponse.RefreshToken;
+            _log.loginDateTime = DateTime.Now;
+            _log.isActive = true;
+
+            _context.LoginInfo.Add(_log);
+            Save();
+
             return tokenResponse;
         }
 
@@ -129,7 +166,7 @@ namespace PayrollAPI.Repository
             }
 
             var username = principle.Identity.Name;
-            var _reftable = _dbConnect.LoginInfo.FirstOrDefault(o => o.userID == username && o.refreshToken == token.RefreshToken);
+            var _reftable = _context.LoginInfo.FirstOrDefault(o => o.userID == username && o.refreshToken == token.RefreshToken);
             if(_reftable==null) 
             {
                 return null;
@@ -159,21 +196,21 @@ namespace PayrollAPI.Repository
 
         public bool ResetPassword(string username, string password)
         {
-            var _user = _dbConnect.User.FirstOrDefault(o => o.userID == username);
+            var _user = _context.User.FirstOrDefault(o => o.userID == username);
 
             string pwdHash = passwordHasher.Hash(password, _user.epf.ToString(), _user.costCenter);
 
             _user.pwdHash = pwdHash;
 
 
-            _dbConnect.Update(_user);
+            _context.Update(_user);
             return Save();
         }
 
 
         public bool Save()
         {
-            var saved = _dbConnect.SaveChanges();
+            var saved = _context.SaveChanges();
             return saved > 0 ? true: false;
         }
     }

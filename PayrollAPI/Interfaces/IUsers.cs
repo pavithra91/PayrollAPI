@@ -11,7 +11,7 @@ namespace PayrollAPI.Interfaces
 
         public TokenResponse RefreshToken(TokenResponse tokenResponse);
 
-        public ICollection<User> GetUsers();
+        public Task<MsgDto> GetUsers();
 
         public Task<MsgDto> CreateUser(UserDto user);
 

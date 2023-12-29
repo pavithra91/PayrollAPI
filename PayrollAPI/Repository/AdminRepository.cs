@@ -1,4 +1,5 @@
-﻿using PayrollAPI.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
@@ -20,6 +21,7 @@ namespace PayrollAPI.Repository
             {
                 var _tax = new Tax_Calculation
                 {
+                    companyCode = taxCalDto.companyCode,
                     calFormula = taxCalDto.calFormula,
                     description = taxCalDto.description,
                     range = taxCalDto.range,
@@ -33,30 +35,6 @@ namespace PayrollAPI.Repository
 
                 return _msg;
             }
-            else if (taxCalDto.flag == 'U')
-            {
-                var _tax = _context.Tax_Calculation.FirstOrDefault(o => o.id == taxCalDto.id);
-                if (_tax != null)
-                {
-                    _tax.calFormula = taxCalDto.calFormula;
-                    _tax.description = taxCalDto.description;
-                    _tax.status = taxCalDto.status;
-                    _tax.range = taxCalDto.range;
-                    _tax.lastUpdateBy = taxCalDto.lastUpdateBy;
-                    _tax.lastUpdateDate = DateTime.Now;
-
-                    _msg.MsgCode = 'S';
-                    _msg.Message = "Tax updated Successfully";
-                }
-                else
-                {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = "No Tax Code Found";
-                }
-
-                _context.SaveChanges();
-                return _msg;
-            }
             else if (taxCalDto.flag == 'D')
             {
                 // Not Implemented
@@ -67,6 +45,49 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
         }
+
+        public async Task<MsgDto> UpdateTax(TaxCalDto taxCalDto)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _tax = _context.Tax_Calculation.FirstOrDefault(o => o.id == taxCalDto.id);
+                if (_tax != null)
+                {
+                    _tax.calFormula = taxCalDto.calFormula ?? _tax.calFormula;
+                    _tax.description = taxCalDto.description ?? _tax.description;
+
+                    if(taxCalDto.range > 0)
+                    {
+                        _tax.range = taxCalDto.range;
+                    }
+
+                    _tax.lastUpdateBy = taxCalDto.lastUpdateBy;
+                    _tax.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Tax updated Successfully";
+
+                    _context.Entry(_tax).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                    return _msg;
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Tax Code Found";
+                    return _msg;
+                }
+           }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
         public MsgDto ManagePayCode(PayCodeDto payCodeDto)
         {
             MsgDto _msg = new MsgDto();

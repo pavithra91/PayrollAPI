@@ -53,5 +53,21 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
+
+        [Route("get-payroll-summary")]
+        [HttpGet]
+        public async Task<IActionResult> GetPayrollSummary(int period, int companyCode)
+        {
+            MsgDto _msg = await _payroll.GetPayrollSummary(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
     }
 }

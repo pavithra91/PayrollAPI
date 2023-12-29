@@ -111,14 +111,14 @@ namespace PayrollAPI.Controllers
         /// <returns></returns>
         [Route("GetUsers")]
         [HttpGet]
-        public IActionResult GetUsers()
+        public async Task<IActionResult> GetUsers()
         {
-            ICollection<User> _userList = _usr.GetUsers();
+            MsgDto _msg = await _usr.GetUsers();
 
-            if (_userList != null)
-                return Ok(_userList);
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
             else
-                return BadRequest();
+                return BadRequest(_msg);
         }
     }
 }

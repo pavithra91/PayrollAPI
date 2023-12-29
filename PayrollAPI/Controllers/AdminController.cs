@@ -15,6 +15,22 @@ namespace PayrollAPI.Controllers
             _admin = admin;
         }
 
+        [Route("update-tax")]
+        [HttpPut]
+        public async Task<ActionResult> UpdateTax([FromBody] TaxCalDto taxCalDto)
+        {
+            MsgDto _msg = await _admin.UpdateTax(taxCalDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         /// <summary>
         /// Method used to manage (assign, update and delete) special tax to employees
         /// </summary>

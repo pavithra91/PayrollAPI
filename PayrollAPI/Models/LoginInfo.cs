@@ -12,6 +12,8 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "varchar(10)")]
         public string? userID { get; set; }
+        public int companyCode { get; set; }
+        public int costCenter { get; set; }
 
         [Column(TypeName = "varchar(100)")]
         public string? tokenID { get; set; }

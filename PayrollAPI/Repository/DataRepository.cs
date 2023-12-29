@@ -213,9 +213,11 @@ namespace PayrollAPI.Repository
                 });
 
                 Payrun _objPay = new Payrun();
+                _objPay.companyCode = approvalDto.companyCode;
                 _objPay.period = approvalDto.period;
                 _objPay.approvedBy = approvalDto.approvedBy;
                 _objPay.approvedDate = DateTime.Now;
+                _objPay.approvedTime = DateTime.Now;
                 _objPay.noOfEmployees = _context.Temp_Employee.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).Count();
                 _objPay.noOfRecords = _context.Temp_Payroll.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).Count();
                 _objPay.payrunStatus = "Approved";

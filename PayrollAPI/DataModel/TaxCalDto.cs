@@ -4,6 +4,7 @@
     {
         public int id { get; set; }
         public char flag { get; set; }
+        public int companyCode { get; set; }
         public decimal range { get; set; }
         public string? calFormula { get; set; }
         public string? description { get; set; }
