@@ -535,5 +535,92 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
         }
+
+        public async Task<MsgDto> GetPaySheet(string epf, int period)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                ICollection<Payroll_Data> _payData = await _context.Payroll_Data.
+                    Where(o => o.period == period && o.epf == epf).
+                    OrderBy(o => o.epf).ToListAsync();
+
+                ICollection<PayCode> _payCodes = await _context.PayCode.ToListAsync();
+
+                ICollection<Payroll_Data> _earningData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "0").OrderBy(o => o.epf).ToList();
+
+                var _earningDataResult = from payData in _earningData
+                                         join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                         into Earnings
+                                         where payData.epf == epf
+                                         from defaultVal in Earnings.DefaultIfEmpty()
+                                         select new
+                                         {
+                                             name = defaultVal.description,
+                                             payCode = payData.payCode,
+                                             amount = payData.amount,
+                                             calCode = payData.calCode,
+                                         };
+
+                ICollection<Payroll_Data> _deductionData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "1").OrderBy(o => o.epf).ToList();
+
+                var _deductionDataResult = from payData in _deductionData
+                                           join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                         into Deductions
+                                           where payData.epf == epf && payData.payCode > 0
+                                           from defaultVal in Deductions.DefaultIfEmpty()
+                                           select new
+                                           {
+                                               name = defaultVal.description,
+                                               payCode = payData.payCode,
+                                               amount = payData.amount,
+                                               calCode = payData.calCode,
+                                           };
+
+                var _empData = await _context.Employee_Data.
+                               Where(o => o.period == period && o.epf == epf).
+                               Select(e => new
+                               {
+                                   e.epf,
+                                   e.empName,
+                                   e.companyCode,
+                                   e.location,
+                                   e.costCenter,
+                                   e.empGrade,
+                                   e.gradeCode,
+                               }).ToListAsync();
+
+                var _salData = await _context.EPF_ETF.
+                   Where(o => o.period == period && o.epf == epf).
+                   Select(e => new
+                   {
+                       e.epfGross,
+                       e.taxableGross,
+                       e.tax,
+                       e.emp_contribution,
+                       e.comp_contribution,
+                       e.etf,
+                   }).ToListAsync();
+
+                DataTable dt = new DataTable();
+                dt.Columns.Add("empData");
+                dt.Columns.Add("salData");
+                dt.Columns.Add("earningData");
+                dt.Columns.Add("deductionData");
+                dt.Rows.Add(JsonConvert.SerializeObject(_empData), JsonConvert.SerializeObject(_salData), JsonConvert.SerializeObject(_earningDataResult), JsonConvert.SerializeObject(_deductionDataResult));
+
+                _msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
+                _msg.MsgCode = 'S';
+                _msg.Message = "Data Transered Successfully";
+                return _msg;
+            }
+            catch(Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
     }
 }

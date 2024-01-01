@@ -69,5 +69,21 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
+
+        [Route("get-paysheet")]
+        [HttpGet]
+        public async Task<ActionResult> GetPaySheet(string epf, int period)
+        {
+            MsgDto _msg = await _payroll.GetPaySheet(epf, period);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
     }
 }

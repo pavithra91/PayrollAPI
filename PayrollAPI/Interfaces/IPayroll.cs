@@ -11,6 +11,8 @@ namespace PayrollAPI.Interfaces
 
         public Task<MsgDto> GetPayrollSummary(int period, int companyCode);
 
+        public Task<MsgDto> GetPaySheet(string epf, int period);
+
         public IDbTransaction BeginTransaction();
     }
 }
