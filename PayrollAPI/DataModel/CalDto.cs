@@ -11,6 +11,7 @@
         public string? payCategory { get; set; }
         public string? calFormula { get; set; }
         public string? calDescription { get; set; }
+        public string? contributor { get; set; }
         public bool status { get; set; }
         public string? createdBy { get; set; }
         public DateTime createdDate { get; set; }

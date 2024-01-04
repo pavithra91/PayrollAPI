@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PayrollAPI.Data;
 
@@ -10,9 +11,11 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations
 {
     [DbContext(typeof(DBConnect))]
-    partial class DBConnectModelSnapshot : ModelSnapshot
+    [Migration("20240102023219_02.01.2023-1")]
+    partial class _020120231
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,9 +39,6 @@ namespace PayrollAPI.Migrations
 
                     b.Property<int>("companyCode")
                         .HasColumnType("int");
-
-                    b.Property<string>("contributor")
-                        .HasColumnType("varchar(2)");
 
                     b.Property<string>("createdBy")
                         .HasColumnType("varchar(10)");
@@ -574,9 +574,6 @@ namespace PayrollAPI.Migrations
 
                     b.Property<int>("companyCode")
                         .HasColumnType("int");
-
-                    b.Property<string>("contributor")
-                        .HasColumnType("varchar(2)");
 
                     b.Property<string>("createdBy")
                         .HasColumnType("varchar(10)");

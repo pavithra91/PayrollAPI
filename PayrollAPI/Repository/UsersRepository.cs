@@ -61,6 +61,37 @@ namespace PayrollAPI.Repository
             }
         }
 
+        public async Task<MsgDto> GetUserbyId(int id)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                User _user = await _context.User.Where(o=>o.id == id).FirstOrDefaultAsync();
+
+                if (_user != null)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_user);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
         public async Task<MsgDto> CreateUser(UserDto user) 
         {
             try

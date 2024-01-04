@@ -23,11 +23,20 @@ namespace PayrollAPI.Repository
             _context = db;
         }
 
+        public IDbTransaction BeginTransaction()
+        {
+            var transaction = _context.Database.BeginTransaction();
+
+            return transaction.GetDbTransaction();
+        }
+
         public async Task<MsgDto> ProcessPayroll(ApprovalDto approvalDto)
         {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+
             try
             {
-                MsgDto _msg = new MsgDto();
                 ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).OrderBy(o => o.epf).ToList();
                 ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).ToList();
                 ICollection<Calculation> _calculation = _context.Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
@@ -36,7 +45,6 @@ namespace PayrollAPI.Repository
                 Payrun _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
 
                 // Calculate EPF and Tax
-                using var transaction = BeginTransaction();
 
                 //Parallel.ForEach(_emp, emp =>
                 foreach(Employee_Data emp in _emp)
@@ -145,7 +153,7 @@ namespace PayrollAPI.Repository
                         _objEPFTOT.calCode = cal.calCode;
                         _objEPFTOT.paytype = null;
                         _objEPFTOT.costCenter = emp.costCenter;
-                        _objEPFTOT.payCodeType = "P";
+                        _objEPFTOT.payCodeType = cal.contributor;
                         _objEPFTOT.amount = _result;
                         _objEPFTOT.balanceAmount = 0;
                         _objEPFTOT.displayOnPaySheet = true;
@@ -181,7 +189,7 @@ namespace PayrollAPI.Repository
                         _objTAXTOT.calCode = "APTAX";
                         _objTAXTOT.paytype = null;
                         _objTAXTOT.costCenter = emp.costCenter;
-                        _objTAXTOT.payCodeType = "P";
+                        _objTAXTOT.payCodeType = cal.contributor;
                         _objTAXTOT.amount = _taxResult;
                         _objTAXTOT.balanceAmount = 0;
                         _objTAXTOT.displayOnPaySheet = true;
@@ -211,11 +219,11 @@ namespace PayrollAPI.Repository
 
                     await _context.EPF_ETF.AddAsync(ePF_ETF);
 
-                    decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1").Sum(w => w.amount);
+                    decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).Sum(w => w.amount);
 
                     if (_grossDed > _grossTot)
                     {
-                        ICollection<Payroll_Data> _empDeductions = _empPayrollData.Where(o => o.payCategory == "1").OrderBy(o => o.payCode).ToList();
+                        ICollection<Payroll_Data> _empDeductions = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).OrderBy(o => o.payCode).ToList();
 
                         foreach (Payroll_Data deductionItem in _empDeductions)
                         {
@@ -235,6 +243,14 @@ namespace PayrollAPI.Repository
                                 _unRecoveredObj.costCenter = deductionItem.costCenter;
                                 _unRecoveredObj.amount = deductionItem.amount;
                                 _context.Unrecovered.Add(_unRecoveredObj);
+
+
+                                Payroll_Data _payItem = _empPayrollData.Where(o => o.calCode == deductionItem.calCode).FirstOrDefault();
+                                _payItem.amount = deductionItem.amount + _grossTot;
+                                
+                                _context.Attach(_payItem);
+                                _context.Entry(_payItem).Property(p => p.amount).IsModified = true;
+                                _grossTot = 0;
                             }
                         }
                     }
@@ -266,23 +282,18 @@ namespace PayrollAPI.Repository
             }
             catch(Exception ex)
             {
-                MsgDto _msg = new MsgDto();
+                transaction.Rollback();
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
         }
-
-        public IDbTransaction BeginTransaction()
-        {
-            var transaction = _context.Database.BeginTransaction();
-
-            return transaction.GetDbTransaction();
-        }
-
+              
         public async Task<MsgDto> ProcessPayrollbyEPF(string epf, int period, int companyCode)
         {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
             try
             {
                 ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == period && o.companyCode == companyCode && o.epf == epf).OrderBy(o => o.epf).ToList();
@@ -292,7 +303,6 @@ namespace PayrollAPI.Repository
                 ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == companyCode).ToList();
 
                 // Calculate EPF and Tax
-                using var transaction = BeginTransaction();
 
                 //Parallel.ForEach(_emp, emp =>
                 foreach (Employee_Data emp in _emp)
@@ -401,7 +411,7 @@ namespace PayrollAPI.Repository
                         _objEPFTOT.calCode = cal.calCode;
                         _objEPFTOT.paytype = null;
                         _objEPFTOT.costCenter = emp.costCenter;
-                        _objEPFTOT.payCodeType = "P";
+                        _objEPFTOT.payCodeType = cal.contributor;
                         _objEPFTOT.amount = _result;
                         _objEPFTOT.balanceAmount = 0;
                         _objEPFTOT.displayOnPaySheet = true;
@@ -437,7 +447,7 @@ namespace PayrollAPI.Repository
                         _objTAXTOT.calCode = "APTAX";
                         _objTAXTOT.paytype = null;
                         _objTAXTOT.costCenter = emp.costCenter;
-                        _objTAXTOT.payCodeType = "P";
+                        _objTAXTOT.payCodeType = cal.contributor;
                         _objTAXTOT.amount = _taxResult;
                         _objTAXTOT.balanceAmount = 0;
                         _objTAXTOT.displayOnPaySheet = true;
@@ -467,18 +477,20 @@ namespace PayrollAPI.Repository
 
                     await _context.EPF_ETF.AddAsync(ePF_ETF);
 
-                    decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1").Sum(w => w.amount);
+                    decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).Sum(w => w.amount);
+                    bool _flag = false;
 
                     if (_grossDed > _grossTot)
                     {
-                        ICollection<Payroll_Data> _empDeductions = _empPayrollData.Where(o => o.payCategory == "1").OrderBy(o => o.payCode).ToList();
+                        ICollection<Payroll_Data> _empDeductions = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).OrderBy(o => o.payCode).ToList();
 
                         foreach (Payroll_Data deductionItem in _empDeductions)
                         {
-                            _grossTot -= deductionItem.amount;
+                            _grossTot -= deductionItem.amount;                          
 
                             if (_grossTot < 0)
                             {
+                                _flag = true;
                                 // Add to unrecovered List
                                 Unrecovered _unRecoveredObj = new Unrecovered();
                                 _unRecoveredObj.companyCode = deductionItem.companyCode;
@@ -489,8 +501,14 @@ namespace PayrollAPI.Repository
                                 _unRecoveredObj.payCode = deductionItem.payCode;
                                 _unRecoveredObj.calCode = deductionItem.calCode;
                                 _unRecoveredObj.costCenter = deductionItem.costCenter;
-                                _unRecoveredObj.amount = deductionItem.amount;
+                                _unRecoveredObj.amount = _grossTot; 
                                 _context.Unrecovered.Add(_unRecoveredObj);
+
+                                Payroll_Data _payItem = _context.Payroll_Data.Where(o=>o.calCode == deductionItem.calCode).FirstOrDefault();
+                                _payItem.amount = deductionItem.amount + _grossTot;
+                                _context.Attach(_payItem);
+                                _context.Entry(_payItem).Property(p => p.amount).IsModified = true;
+                                _grossTot = 0;
                             }
                         }
                     }
@@ -507,7 +525,7 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
-                MsgDto _msg = new MsgDto();
+                transaction.Rollback();
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -602,12 +620,22 @@ namespace PayrollAPI.Repository
                        e.etf,
                    }).ToListAsync();
 
+                var _unrecovered = await _context.Unrecovered.
+                    Where(o => o.period == period && o.epf == epf).
+                    Select(e => new
+                    {
+                        e.payCode,
+                        e.calCode,
+                        e.amount
+                    }).ToListAsync();
+
                 DataTable dt = new DataTable();
                 dt.Columns.Add("empData");
                 dt.Columns.Add("salData");
                 dt.Columns.Add("earningData");
                 dt.Columns.Add("deductionData");
-                dt.Rows.Add(JsonConvert.SerializeObject(_empData), JsonConvert.SerializeObject(_salData), JsonConvert.SerializeObject(_earningDataResult), JsonConvert.SerializeObject(_deductionDataResult));
+                dt.Columns.Add("unRecoveredData");
+                dt.Rows.Add(JsonConvert.SerializeObject(_empData), JsonConvert.SerializeObject(_salData), JsonConvert.SerializeObject(_earningDataResult), JsonConvert.SerializeObject(_deductionDataResult), JsonConvert.SerializeObject(_unrecovered));
 
                 _msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
                 _msg.MsgCode = 'S';
@@ -615,6 +643,28 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
             catch(Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> GetPayrunDetails()
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                ICollection<Payrun> _payRun = await _context.Payrun.
+                    OrderBy(o => o.id).ToListAsync();
+
+                _msg.MsgCode = 'S';
+                _msg.Data = JsonConvert.SerializeObject(_payRun);
+                _msg.Message = "Data Transered Successfully";
+                return _msg;
+            }
+            catch (Exception ex)
             {
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;

@@ -13,6 +13,8 @@ namespace PayrollAPI.Interfaces
 
         public Task<MsgDto> GetUsers();
 
+        public Task<MsgDto> GetUserbyId(int id);
+
         public Task<MsgDto> CreateUser(UserDto user);
 
         public bool ResetPassword(string username, string password);

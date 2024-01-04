@@ -20,6 +20,9 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(500)")]
         public string? description { get; set; }
 
+        [Column(TypeName = "varchar(2)")]
+        public string? contributor { get; set; }
+
         [Column(TypeName = "boolean")]
         public bool status { get; set; }
 

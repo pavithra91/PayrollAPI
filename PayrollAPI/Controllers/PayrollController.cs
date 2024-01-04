@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 
@@ -75,6 +76,22 @@ namespace PayrollAPI.Controllers
         public async Task<ActionResult> GetPaySheet(string epf, int period)
         {
             MsgDto _msg = await _payroll.GetPaySheet(epf, period);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+        
+        [Route("get-payrun")]
+        [HttpGet]
+        public async Task<ActionResult> GetPayrunDetails()
+        {
+            MsgDto _msg = await _payroll.GetPayrunDetails();
 
             if (_msg.MsgCode == 'S')
             {

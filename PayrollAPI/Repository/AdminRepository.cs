@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Newtonsoft.Json;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
+using System.Data;
 
 namespace PayrollAPI.Repository
 {
@@ -13,12 +16,108 @@ namespace PayrollAPI.Repository
         {
             _context = context;
         }
-        public MsgDto ManageTax(TaxCalDto taxCalDto)
+
+        public IDbTransaction BeginTransaction()
+        {
+            var transaction = _context.Database.BeginTransaction();
+
+            return transaction.GetDbTransaction();
+        }
+
+        public async Task<MsgDto> GetTaxDetails()
         {
             MsgDto _msg = new MsgDto();
-
-            if (taxCalDto.flag == 'N')
+            try
             {
+                var _taxList = await _context.Tax_Calculation.Select(o => new { 
+                o.id,
+                o.companyCode,
+                o.range,
+                o.calFormula,
+                o.description,
+                o.contributor,
+                o.status,
+                o.createdBy,
+                o.createdDate,
+                o.createdTime,
+                o.lastUpdateBy,
+                o.lastUpdateDate,
+                o.lastUpdateTime }).ToListAsync();
+
+                if (_taxList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_taxList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> GetTaxDetailsById(int id)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _tax = await _context.Tax_Calculation.Where(o=>o.id == id).Select(o => new {
+                    o.id,
+                    o.companyCode,
+                    o.range,
+                    o.calFormula,
+                    o.description,
+                    o.contributor,
+                    o.status,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_tax != null)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_tax);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> CreateTaxCalculation(TaxCalDto taxCalDto)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                using var transaction = BeginTransaction();
+
                 var _tax = new Tax_Calculation
                 {
                     companyCode = taxCalDto.companyCode,
@@ -31,26 +130,29 @@ namespace PayrollAPI.Repository
                 };
 
                 _context.Add(_tax);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
+                transaction.Commit();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Tax Calculation Created Successfully";
                 return _msg;
             }
-            else if (taxCalDto.flag == 'D')
+            catch (Exception ex)
             {
-                // Not Implemented
-                return _msg;
-            }
-            else
-            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
         }
-
         public async Task<MsgDto> UpdateTax(TaxCalDto taxCalDto)
         {
             MsgDto _msg = new MsgDto();
             try
             {
+                using var transaction = BeginTransaction();
+
                 var _tax = _context.Tax_Calculation.FirstOrDefault(o => o.id == taxCalDto.id);
                 if (_tax != null)
                 {
@@ -70,11 +172,14 @@ namespace PayrollAPI.Repository
 
                     _context.Entry(_tax).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
+
+                    transaction.Commit();
+
                     return _msg;
                 }
                 else
                 {
-                    _msg.MsgCode = 'E';
+                    _msg.MsgCode = 'N';
                     _msg.Message = "No Tax Code Found";
                     return _msg;
                 }
@@ -88,12 +193,110 @@ namespace PayrollAPI.Repository
             }
         }
 
-        public MsgDto ManagePayCode(PayCodeDto payCodeDto)
+        public async Task<MsgDto> GetPayCodes()
         {
             MsgDto _msg = new MsgDto();
-
-            if (payCodeDto.flag == 'N')
+            try
             {
+                var _payCodeList = await _context.PayCode.Select(o => new {
+                    o.id,
+                    o.companyCode,
+                    o.payCode,
+                    o.calCode,
+                    o.description,
+                    o.payCategory,
+                    o.rate,
+                    o.isTaxableGross,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_payCodeList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_payCodeList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> GetPayCodesById(int id)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _tax = await _context.PayCode.Where(o => o.id == id).Select(o => new {
+                    o.id,
+                    o.companyCode,
+                    o.payCode,
+                    o.calCode,
+                    o.description,
+                    o.payCategory,
+                    o.rate,
+                    o.isTaxableGross,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_tax != null)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_tax);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> CreatePayCode(PayCodeDto payCodeDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                var _ePayCode = _context.PayCode.FirstOrDefault(o => o.payCode == payCodeDto.payCode);
+
+                if (_ePayCode != null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Pay Code already exists";
+                }
+
                 var _payCode = new PayCode
                 {
                     calCode = payCodeDto.calCode,
@@ -108,52 +311,185 @@ namespace PayrollAPI.Repository
                 };
 
                 _context.Add(_payCode);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Pay Code Created Successfully";
 
                 return _msg;
             }
-            else if(payCodeDto.flag == 'U')
+            catch(Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+            
+        }
+        public async Task<MsgDto> UpdatePayCode(PayCodeDto payCodeDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
             {
                 var _payCode = _context.PayCode.FirstOrDefault(o => o.id == payCodeDto.id);
                 if (_payCode != null)
                 {
-                    _payCode.calCode = payCodeDto.calCode;
-                    _payCode.description = payCodeDto.description;
-                    _payCode.payCategory = payCodeDto.payCategory;
-                    _payCode.rate = payCodeDto.rate;
-                    _payCode.isTaxableGross = payCodeDto.isTaxableGross;
-                    _payCode.payCode = payCodeDto.payCode;
+                    _payCode.calCode = payCodeDto.calCode ?? _payCode.calCode;
+                    _payCode.description = payCodeDto.description ?? _payCode.description;
+                    _payCode.payCategory = payCodeDto.payCategory ?? _payCode.payCategory;
+
+                    if(_payCode.isTaxableGross != payCodeDto.isTaxableGross)
+                    {
+                        _payCode.isTaxableGross = payCodeDto.isTaxableGross;
+                    }
+
+                    if (payCodeDto.rate > 0)
+                    {
+                        _payCode.rate = payCodeDto.rate;
+                    }
+
                     _payCode.lastUpdateBy = payCodeDto.lastUpdateBy;
                     _payCode.lastUpdateDate = DateTime.Now;
 
                     _msg.MsgCode = 'S';
-                    _msg.Message = "Pay code updated Successfully";
+                    _msg.Message = "Pay Code updated Successfully";
+
+                    _context.Entry(_payCode).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+
+                    transaction.Commit();
+                    return _msg;
                 }
                 else
                 {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = "No Paycode Found";
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No Pay Code Found";
+                    return _msg;
                 }
-
-                _context.SaveChanges();
-                return _msg;
             }
-            else if (payCodeDto.flag == 'D')
+            catch (Exception ex)
             {
-                // Not Implemented
-                return _msg;
-            }
-            else
-            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
         }
-        public MsgDto ManageCalculations(CalDto calDto)
+
+        public async Task<MsgDto> GetCalculations()
         {
             MsgDto _msg = new MsgDto();
-
-            if (calDto.flag == 'N')
+            try
             {
+                var _calculationList = await _context.Calculation.Select(o => new {
+                    o.id,
+                    o.companyCode,
+                    o.payCode,
+                    o.calCode,
+                    o.calFormula,
+                    o.calDescription,
+                    o.payCategory,
+                    o.contributor,
+                    o.sequence,
+                    o.status,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_calculationList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_calculationList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> GetCalculationsById(int id)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _calculation = await _context.Calculation.Where(o => o.id == id).Select(o => new {
+                    o.id,
+                    o.companyCode,
+                    o.payCode,
+                    o.calCode,
+                    o.calFormula,
+                    o.calDescription,
+                    o.payCategory,
+                    o.contributor,
+                    o.sequence,
+                    o.status,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_calculation != null)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_calculation);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> CreateCalculation(CalDto calDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                var _eCal = _context.Calculation.FirstOrDefault(o => o.calCode == calDto.calCode);
+
+                if (_eCal != null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Cal Code already exists";
+                }
+
                 var _cal = new Calculation
                 {
                     calCode = calDto.calCode,
@@ -161,6 +497,7 @@ namespace PayrollAPI.Repository
                     calDescription = calDto.calDescription,
                     payCode = calDto.payCode,
                     payCategory = calDto.payCategory,
+                    contributor = calDto.contributor,
                     calFormula = calDto.calFormula,
                     sequence = calDto.sequence,
                     status = true,
@@ -169,22 +506,47 @@ namespace PayrollAPI.Repository
                 };
 
                 _context.Add(_cal);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Calculation Created Successfully";
 
                 return _msg;
             }
-            else if (calDto.flag == 'U')
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> UpdateCalculation(CalDto calDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
             {
                 var _cal = _context.Calculation.FirstOrDefault(o => o.id == calDto.id);
                 if (_cal != null)
                 {
-                    _cal.calCode = calDto.calCode;
-                    _cal.calDescription = calDto.calDescription;
-                    _cal.payCategory = calDto.payCategory;
-                    _cal.payCode = calDto.payCode;
-                    _cal.calFormula = calDto.calFormula;
-                    _cal.status = calDto.status;
-                    _cal.sequence = calDto.sequence;
+                    _cal.calCode = calDto.calCode ?? _cal.calCode;
+                    _cal.calDescription = calDto.calDescription ?? _cal.calDescription;
+                    _cal.payCategory = calDto.payCategory ?? _cal.payCategory;
+                    _cal.calFormula = calDto.calFormula ?? _cal.calFormula;
+                    _cal.contributor = calDto.contributor ?? _cal.contributor;
+                                      
+                    if(_cal.payCode != calDto.payCode)
+                    {
+                        _cal.payCode = calDto.payCode;
+                    }
+                    if(_cal.sequence != calDto.sequence)
+                    {
+                        _cal.sequence = calDto.sequence;
+                    }
                     _cal.lastUpdateBy = calDto.lastUpdateBy;
                     _cal.lastUpdateDate = DateTime.Now;
 
@@ -193,29 +555,167 @@ namespace PayrollAPI.Repository
                 }
                 else
                 {
-                    _msg.MsgCode = 'E';
+                    _msg.MsgCode = 'N';
                     _msg.Message = "No Calculation Formula Found";
                 }
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+
                 return _msg;
             }
-            else if (calDto.flag == 'D')
+            catch (Exception ex)
             {
-                // Not Implemented
-                return _msg;
-            }
-            else
-            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
         }
-        public MsgDto ManageSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto)
+        public async Task<MsgDto> DeleteCalculation(CalDto calDto)
         {
             MsgDto _msg = new MsgDto();
-
-            if (specialRateEmpDto.flag == 'N')
+            using var transaction = BeginTransaction();
+            try
             {
+                var _cal = _context.Calculation.FirstOrDefault(o => o.id == calDto.id);
+                if (_cal != null)
+                {
+                    _cal.status = false;
+                    _cal.lastUpdateBy = calDto.lastUpdateBy;
+                    _cal.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Calculation Mark for Deletion";
+                }
+                else
+                {
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No Calculation Formula Found";
+                }
+
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> GetSplRateEmp()
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _empSplRateList = await _context.EmpSpecialRate.Select(o => new {
+                    o.id,
+                    o.epf,
+                    o.companyCode,
+                    o.payCode,
+                    o.calCode,
+                    o.costCenter,        
+                    o.location,
+                    o.rate,
+                    o.status,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_empSplRateList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_empSplRateList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> GetSplRateEmpById(int id)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _empSplRate = await _context.EmpSpecialRate.Where(o => o.id == id).Select(o => new {
+                    o.id,
+                    o.epf,
+                    o.companyCode,
+                    o.payCode,
+                    o.calCode,
+                    o.costCenter,
+                    o.location,
+                    o.rate,
+                    o.status,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_empSplRate != null)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_empSplRate);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> CreateSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                var _eSplRate = _context.EmpSpecialRate.FirstOrDefault(o => o.payCode == specialRateEmpDto.payCode && o.epf == specialRateEmpDto.epf && o.status == true);
+
+                if (_eSplRate != null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Active Special Rate Already assign to Employee : " + specialRateEmpDto.epf + " for Paycode : " + specialRateEmpDto.payCode;
+                }
+
                 var _sRateEmp = new EmpSpecialRate
                 {
                     epf = specialRateEmpDto.epf,
@@ -230,24 +730,45 @@ namespace PayrollAPI.Repository
                 };
 
                 _context.Add(_sRateEmp);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
 
                 _msg.MsgCode = 'S';
                 _msg.Message = "Special Rate apply to Paycode " + specialRateEmpDto.payCode + " for Employee : " + specialRateEmpDto.epf;
 
                 return _msg;
             }
-            else if (specialRateEmpDto.flag == 'U')
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> UpdateSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
             {
                 var _sRateEmp = _context.EmpSpecialRate.FirstOrDefault(o => o.id == specialRateEmpDto.id);
                 if (_sRateEmp != null)
                 {
-                    _sRateEmp.companyCode = specialRateEmpDto.companyCode;
-                    _sRateEmp.costCenter = specialRateEmpDto.costCenter;
-                    _sRateEmp.payCode = specialRateEmpDto.payCode;
-                    _sRateEmp.calCode = specialRateEmpDto.calCode;
-                    _sRateEmp.rate = specialRateEmpDto.rate;
-                    _sRateEmp.status = specialRateEmpDto.status;
+                    _sRateEmp.costCenter = specialRateEmpDto.costCenter ?? _sRateEmp.costCenter;                    
+                    _sRateEmp.calCode = specialRateEmpDto.calCode ?? _sRateEmp.calCode;
+                    
+                    if (_sRateEmp.payCode != specialRateEmpDto.payCode)
+                    {
+                        _sRateEmp.payCode = specialRateEmpDto.payCode;
+                    }
+                    if (_sRateEmp.rate != specialRateEmpDto.rate)
+                    {
+                        _sRateEmp.rate = specialRateEmpDto.rate;
+                    }
+
                     _sRateEmp.lastUpdateBy = specialRateEmpDto.lastUpdateBy;
                     _sRateEmp.lastUpdateDate = DateTime.Now;
 
@@ -256,14 +777,30 @@ namespace PayrollAPI.Repository
                 }
                 else
                 {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = "No Employee Found";
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No Record Found";
                 }
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
                 return _msg;
             }
-            else if (specialRateEmpDto.flag == 'D')
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> DeleteSpecialRateEmp(SpecialRateEmpDto specialRateEmpDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
             {
                 var _sRateEmp = _context.EmpSpecialRate.FirstOrDefault(o => o.id == specialRateEmpDto.id);
                 if (_sRateEmp != null)
@@ -277,23 +814,118 @@ namespace PayrollAPI.Repository
                 }
                 else
                 {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = "No Employee Found";
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No Record Found";
                 }
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+
                 return _msg;
             }
-            else
+            catch (Exception ex)
             {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
         }
-        public MsgDto ManageSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto)
+
+        public async Task<MsgDto> GetSplTaxEmp()
         {
             MsgDto _msg = new MsgDto();
+            try
+            {
+                var _empSplTaxList = await _context.Special_Tax_Emp.Select(o => new {
+                    o.id,
+                    o.epf,
+                    o.companyCode,
+                    o.costCenter,
+                    o.location,
+                    o.calFormula,
+                    o.status,                    
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
 
-            if (specialTaxEmpDto.flag == 'N')
+                if (_empSplTaxList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_empSplTaxList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> GetSplTaxEmpById(int id)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _empSplTax = await _context.Special_Tax_Emp.Where(o => o.id == id).Select(o => new {
+                    o.id,
+                    o.epf,
+                    o.companyCode,
+                    o.costCenter,
+                    o.location,
+                    o.calFormula,
+                    o.status,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_empSplTax != null)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_empSplTax);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> CreateSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
             {
                 var _sTaxEmp = new Special_Tax_Emp
                 {
@@ -306,23 +938,36 @@ namespace PayrollAPI.Repository
                     createdDate = DateTime.Now
                 };
 
-               // _context.Add(_sTaxEmp);
-              //  _context.SaveChanges();
+                _context.Special_Tax_Emp.Add(_sTaxEmp);
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
 
                 _msg.MsgCode = 'S';
                 _msg.Message = "Special Tax Rate apply to Employee : " + specialTaxEmpDto.epf;
 
                 return _msg;
             }
-            else if (specialTaxEmpDto.flag == 'U')
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> UpdateSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
             {
                 var _sTaxEmp = _context.Special_Tax_Emp.FirstOrDefault(o => o.id == specialTaxEmpDto.id);
                 if (_sTaxEmp != null)
                 {
-                    _sTaxEmp.companyCode = specialTaxEmpDto.companyCode;
-                    _sTaxEmp.costCenter = specialTaxEmpDto.costCenter;
-                    _sTaxEmp.calFormula = specialTaxEmpDto.calFormula;
-                    _sTaxEmp.status = specialTaxEmpDto.status;
+                    _sTaxEmp.costCenter = specialTaxEmpDto.costCenter ?? _sTaxEmp.costCenter;
+                    _sTaxEmp.calFormula = specialTaxEmpDto.calFormula ?? _sTaxEmp.calFormula;
                     _sTaxEmp.lastUpdateBy = specialTaxEmpDto.lastUpdateBy;
                     _sTaxEmp.lastUpdateDate = DateTime.Now;
 
@@ -331,14 +976,30 @@ namespace PayrollAPI.Repository
                 }
                 else
                 {
-                    _msg.MsgCode = 'E';
+                    _msg.MsgCode = 'N';
                     _msg.Message = "No Employee Found";
                 }
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
                 return _msg;
             }
-            else if (specialTaxEmpDto.flag == 'D')
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> DeleteSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
             {
                 var _sTaxEmp = _context.Special_Tax_Emp.FirstOrDefault(o => o.id == specialTaxEmpDto.id);
                 if (_sTaxEmp != null)
@@ -348,19 +1009,26 @@ namespace PayrollAPI.Repository
                     _sTaxEmp.lastUpdateDate = DateTime.Now;
 
                     _msg.MsgCode = 'S';
-                    _msg.Message = "1 Record Mark for Deletion";
+                    _msg.Message = "Record Mark for Deletion";
                 }
                 else
                 {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = "No Employee Found";
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No Record Found";
                 }
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
                 return _msg;
             }
-            else
+            catch (Exception ex)
             {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
         }

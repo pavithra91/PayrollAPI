@@ -120,5 +120,17 @@ namespace PayrollAPI.Controllers
             else
                 return BadRequest(_msg);
         }
+
+        [Route("get-user-id")]
+        [HttpGet]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            MsgDto _msg = await _usr.GetUserbyId(id);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
     }
 }
