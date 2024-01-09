@@ -38,7 +38,7 @@ namespace PayrollAPI.Controllers
 
         [Route("ProcessPayrollbyEPF")]
         [HttpPost]
-        public async Task<IActionResult> ProcessPayrollbyEPF(string epf)
+        public async Task<ActionResult> ProcessPayrollbyEPF(string epf)
         {
             int period = 202310;
             int companyCode = 3000;
@@ -55,9 +55,25 @@ namespace PayrollAPI.Controllers
             }
         }
 
+        [Route("create-unrecovered")]
+        [HttpPost]
+        public async Task<ActionResult> CreateUnrecoveredFile([FromBody] ApprovalDto approvalDto)
+        {
+            MsgDto _msg = await _payroll.CreateUnrecoveredFile(approvalDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         [Route("get-payroll-summary")]
         [HttpGet]
-        public async Task<IActionResult> GetPayrollSummary(int period, int companyCode)
+        public async Task<ActionResult> GetPayrollSummary(int period, int companyCode)
         {
             MsgDto _msg = await _payroll.GetPayrollSummary(period, companyCode);
 
@@ -92,6 +108,22 @@ namespace PayrollAPI.Controllers
         public async Task<ActionResult> GetPayrunDetails()
         {
             MsgDto _msg = await _payroll.GetPayrunDetails();
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("get-payrun-by-period")]
+        [HttpGet]
+        public async Task<ActionResult> GetPayrunDetails(int period, int companyCode)
+        {
+            MsgDto _msg = await _payroll.GetPayrunDetails(period, companyCode);
 
             if (_msg.MsgCode == 'S')
             {

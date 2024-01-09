@@ -126,6 +126,21 @@ namespace PayrollAPI.Repository
                 _context.BulkCopy(_tempPayList);
                 _context.BulkCopy(_tempSAPTot);
 
+                foreach (DataRow _dataRow in _masterDataTable.Tables[3].AsEnumerable())
+                {
+                    Payrun _objPay = new Payrun();
+                    _objPay.companyCode = Convert.ToInt32(_dataRow["company"]);
+                    _objPay.period = Convert.ToInt32(_dataRow["period"]);
+                    _objPay.dataTransferredBy = _dataRow["transferedBy"].ToString();
+                    _objPay.dataTransferredDate = DateTime.Now;
+                    _objPay.dataTransferredTime = DateTime.Now;
+                    _objPay.noOfEmployees = _masterDataTable.Tables[0].Rows.Count;
+                    _objPay.noOfRecords = _masterDataTable.Tables[1].Rows.Count;
+                    _objPay.payrunStatus = "Data Transferred";
+
+                    _context.Payrun.Add(_objPay);
+                }                    
+
                 transaction.Commit();
 
                 _msg.MsgCode = 'S';
@@ -212,24 +227,14 @@ namespace PayrollAPI.Repository
                     x.taxConRate,
                 });
 
-                Payrun _objPay = new Payrun();
-                _objPay.companyCode = approvalDto.companyCode;
-                _objPay.period = approvalDto.period;
-                _objPay.approvedBy = approvalDto.approvedBy;
-                _objPay.approvedDate = DateTime.Now;
-                _objPay.approvedTime = DateTime.Now;
-                _objPay.noOfEmployees = _context.Temp_Employee.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).Count();
-                _objPay.noOfRecords = _context.Temp_Payroll.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).Count();
-                _objPay.payrunStatus = "Approved";
-
-                _context.Payrun.Add(_objPay);
+                
 
                 _context.Payroll_Data.UpdateFromQuery(x => new Payroll_Data { epfContribution = x.amount * (decimal)x.epfConRate, taxContribution = x.amount * (decimal)x.taxConRate, calCode = "_" + x.payCode });
 
                 transaction.Commit();
 
                 _msg.MsgCode = 'S';
-                _msg.Message = "Data Transered Successfully";
+                _msg.Message = "Data Transered Confirmed";
                 return _msg;
             }
             catch (Exception ex)
