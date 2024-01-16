@@ -136,11 +136,12 @@ namespace PayrollAPI.Repository
                     _objPay.dataTransferredTime = DateTime.Now;
                     _objPay.noOfEmployees = _masterDataTable.Tables[0].Rows.Count;
                     _objPay.noOfRecords = _masterDataTable.Tables[1].Rows.Count;
-                    _objPay.payrunStatus = "Data Transferred";
+                    _objPay.payrunStatus = "DTR";
 
                     _context.Payrun.Add(_objPay);
-                }                    
-
+                    
+                }
+                await _context.SaveChangesAsync();
                 transaction.Commit();
 
                 _msg.MsgCode = 'S';
@@ -163,16 +164,37 @@ namespace PayrollAPI.Repository
             using var transaction = BeginTransaction();
             try
             {
-                _context.Employee_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
-                    DeleteFromQuery();
-                _context.Payroll_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
-                    DeleteFromQuery();
+                Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode 
+                && x.period == approvalDto.period).FirstOrDefault();
 
-                transaction.Commit();
+                if(_payRun == null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"No Data available for period - {approvalDto.period}. Rollback operation failed.";
+                    return _msg;
+                }
 
-                _msg.MsgCode = 'S';
-                _msg.Message = "Data Rollback Operation Completed Successfully";
-                return _msg;
+                if(_payRun.payrunStatus == "DTR")
+                {
+                    _context.Employee_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+                    _context.Payroll_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+                    _context.Payrun.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+
+                    transaction.Commit();
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Data Rollback Operation Completed Successfully";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"Payrun status - {_payRun.payrunStatus} - cannot be rollback.";
+                    return _msg;
+                }
             }
             catch(Exception ex)
             {
@@ -190,52 +212,74 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                _context.Temp_Employee
-                .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
-                .InsertFromQuery("Employee_Data", x => new { 
-                x.companyCode, 
-                x.location, 
-                x.epf,
-                x.period,
-                x.empName,
-                x.costCenter,
-                x.empGrade,
-                x.gradeCode,
-                x.paymentType,
-                x.bankCode,
-                x.branchCode,
-                x.accountNo
-                });
+                Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode
+                        && x.period == approvalDto.period).FirstOrDefault();
 
-                _context.Temp_Payroll
+                if(_payRun != null )
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"No Data available for period - {approvalDto.period}. Rollback operation failed.";
+                    return _msg;
+                }
+                else if(_payRun.payrunStatus == "DTR")
+                {
+                    _context.Temp_Employee
                 .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
-                .InsertFromQuery("Payroll_Data", x => new {
+                .InsertFromQuery("Employee_Data", x => new {
                     x.companyCode,
                     x.location,
                     x.epf,
                     x.period,
+                    x.empName,
                     x.costCenter,
-                    x.othours,
-                    x.payCode,
-                    x.calCode,
-                    x.paytype,
-                    x.payCodeType,
-                    x.payCategory,
-                    x.amount,
-                    x.balanceamount,
-                    x.epfConRate,
-                    x.taxConRate,
+                    x.empGrade,
+                    x.gradeCode,
+                    x.paymentType,
+                    x.bankCode,
+                    x.branchCode,
+                    x.accountNo
                 });
 
-                
+                    _context.Temp_Payroll
+                    .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
+                    .InsertFromQuery("Payroll_Data", x => new {
+                        x.companyCode,
+                        x.location,
+                        x.epf,
+                        x.period,
+                        x.costCenter,
+                        x.othours,
+                        x.payCode,
+                        x.calCode,
+                        x.paytype,
+                        x.payCodeType,
+                        x.payCategory,
+                        x.amount,
+                        x.balanceamount,
+                        x.epfConRate,
+                        x.taxConRate,
+                    });
 
-                _context.Payroll_Data.UpdateFromQuery(x => new Payroll_Data { epfContribution = x.amount * (decimal)x.epfConRate, taxContribution = x.amount * (decimal)x.taxConRate, calCode = "_" + x.payCode });
+                    _context.Payroll_Data.UpdateFromQuery(x => new Payroll_Data { epfContribution = x.amount * (decimal)x.epfConRate, taxContribution = x.amount * (decimal)x.taxConRate, calCode = "_" + x.payCode });
+                    
+                    _payRun.approvedBy = approvalDto.approvedBy;
+                    _payRun.approvedDate = DateTime.Today;
+                    _payRun.approvedTime = DateTime.Now;
+                    _payRun.payrunStatus = "Confirmed";
 
-                transaction.Commit();
 
-                _msg.MsgCode = 'S';
-                _msg.Message = "Data Transered Confirmed";
-                return _msg;
+                    transaction.Commit();
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Data Transered Confirmed";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"Payrun already Confirmed for period - {approvalDto.period}.";
+                    return _msg;
+                }               
             }
             catch (Exception ex)
             {
