@@ -44,10 +44,10 @@ namespace PayrollAPI.Repository
                 ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == approvalDto.companyCode).ToList();
                 Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
 
-                if (_payRun != null)
+                if (_payRun == null)
                 {
                     _msg.MsgCode = 'E';
-                    _msg.Message = $"No Data available for period - {approvalDto.period}. Rollback operation failed.";
+                    _msg.Message = $"No Data available for period - {approvalDto.period}. Payrun operation failed.";
                     return _msg;
                 }
                 else if (_payRun.payrunStatus == "Confirmed")
@@ -228,19 +228,10 @@ namespace PayrollAPI.Repository
                         await _context.EPF_ETF.AddAsync(ePF_ETF);
                     };
 
-                    if (_payRun != null)
-                    {
-                        _payRun.payrunBy = "";
-                        _payRun.payrunStatus = "Complete";
-                        _payRun.payrunDate = DateTime.Now;
-                        _payRun.payrunTime = DateTime.Now;
-                    }
-                    else
-                    {
-                        _msg.MsgCode = 'E';
-                        _msg.Message = "Please Confirm Data Transfer";
-                        return _msg;
-                    }
+                   _payRun.payrunBy = approvalDto.approvedBy;
+                   _payRun.payrunStatus = "Payrun Complete";
+                   _payRun.payrunDate = DateTime.Now;
+                   _payRun.payrunTime = DateTime.Now;
 
                     await _context.SaveChangesAsync();
 
@@ -279,7 +270,7 @@ namespace PayrollAPI.Repository
             ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).OrderBy(o => o.epf).ToList();
             ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).ToList();
             ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == approvalDto.companyCode).ToList();
-            Payrun _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
+            Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
 
             foreach (Employee_Data emp in _emp)
             {
@@ -520,7 +511,6 @@ namespace PayrollAPI.Repository
                     await _context.EPF_ETF.AddAsync(ePF_ETF);
 
                     decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).Sum(w => w.amount);
-                    bool _flag = false;
 
                     if (_grossDed > _grossTot)
                     {
@@ -532,7 +522,6 @@ namespace PayrollAPI.Repository
 
                             if (_grossTot < 0)
                             {
-                                _flag = true;
                                 // Add to unrecovered List
                                 Unrecovered _unRecoveredObj = new Unrecovered();
                                 _unRecoveredObj.companyCode = deductionItem.companyCode;

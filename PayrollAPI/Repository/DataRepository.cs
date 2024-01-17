@@ -136,7 +136,7 @@ namespace PayrollAPI.Repository
                     _objPay.dataTransferredTime = DateTime.Now;
                     _objPay.noOfEmployees = _masterDataTable.Tables[0].Rows.Count;
                     _objPay.noOfRecords = _masterDataTable.Tables[1].Rows.Count;
-                    _objPay.payrunStatus = "DTR";
+                    _objPay.payrunStatus = "Transfer Complete";
 
                     _context.Payrun.Add(_objPay);
                     
@@ -158,54 +158,6 @@ namespace PayrollAPI.Repository
             }
         }
 
-        public async Task<MsgDto> RollBackTempData(ApprovalDto approvalDto)
-        {
-            MsgDto _msg = new MsgDto();
-            using var transaction = BeginTransaction();
-            try
-            {
-                Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode 
-                && x.period == approvalDto.period).FirstOrDefault();
-
-                if(_payRun == null)
-                {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = $"No Data available for period - {approvalDto.period}. Rollback operation failed.";
-                    return _msg;
-                }
-
-                if(_payRun.payrunStatus == "DTR")
-                {
-                    _context.Employee_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
-                        DeleteFromQuery();
-                    _context.Payroll_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
-                        DeleteFromQuery();
-                    _context.Payrun.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
-                        DeleteFromQuery();
-
-                    transaction.Commit();
-
-                    _msg.MsgCode = 'S';
-                    _msg.Message = "Data Rollback Operation Completed Successfully";
-                    return _msg;
-                }
-                else
-                {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = $"Payrun status - {_payRun.payrunStatus} - cannot be rollback.";
-                    return _msg;
-                }
-            }
-            catch(Exception ex)
-            {
-                transaction.Rollback();
-                _msg.MsgCode = 'E';
-                _msg.Message = "Error : " + ex.Message;
-                _msg.Description = "Inner Expection : " + ex.InnerException;
-                return _msg;
-            }
-        }
-
         public async Task<MsgDto> ConfirmDataTransfer(ApprovalDto approvalDto)
         {
             using var transaction = BeginTransaction();
@@ -215,13 +167,13 @@ namespace PayrollAPI.Repository
                 Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode
                         && x.period == approvalDto.period).FirstOrDefault();
 
-                if(_payRun != null )
+                if(_payRun == null )
                 {
                     _msg.MsgCode = 'E';
-                    _msg.Message = $"No Data available for period - {approvalDto.period}. Rollback operation failed.";
+                    _msg.Message = $"No Data available for period - {approvalDto.period}. Operation failed.";
                     return _msg;
                 }
-                else if(_payRun.payrunStatus == "DTR")
+                else if(_payRun.payrunStatus == "Transfer Complete")
                 {
                     _context.Temp_Employee
                 .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
@@ -266,7 +218,9 @@ namespace PayrollAPI.Repository
                     _payRun.approvedDate = DateTime.Today;
                     _payRun.approvedTime = DateTime.Now;
                     _payRun.payrunStatus = "Confirmed";
+                    _context.Attach(_payRun);
 
+                    await _context.SaveChangesAsync();
 
                     transaction.Commit();
 
@@ -366,6 +320,54 @@ namespace PayrollAPI.Repository
             }
             catch(Exception ex)
             {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> RollBackTempData(ApprovalDto approvalDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode
+                && x.period == approvalDto.period).FirstOrDefault();
+
+                if (_payRun == null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"No Data available for period - {approvalDto.period}. Rollback operation failed.";
+                    return _msg;
+                }
+
+                if (_payRun.payrunStatus == "Transfer Complete")
+                {
+                    _context.Employee_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+                    _context.Payroll_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+                    _context.Payrun.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+
+                    transaction.Commit();
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Data Rollback Operation Completed Successfully";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"Payrun status - {_payRun.payrunStatus} - cannot be rollback.";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
