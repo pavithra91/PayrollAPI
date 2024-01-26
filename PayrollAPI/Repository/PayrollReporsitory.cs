@@ -11,16 +11,18 @@ using org.matheval;
 using Expression = org.matheval.Expression;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
 using Newtonsoft.Json;
+using PayrollAPI.Controllers;
 
 namespace PayrollAPI.Repository
 {
     public class PayrollReporsitory : IPayroll
     {
         private readonly DBConnect _context;
-
-        public PayrollReporsitory(DBConnect db)
+        private readonly ILogger _logger;
+        public PayrollReporsitory(DBConnect db, ILogger<PayrollReporsitory> logger)
         {
             _context = db;
+            _logger = logger;
         }
 
         public IDbTransaction BeginTransaction()
@@ -259,7 +261,6 @@ namespace PayrollAPI.Repository
             }
         }
 
-
         public async Task<MsgDto> CreateUnrecoveredFile(ApprovalDto approvalDto)
         {
             // TODO : Check _payrun Status
@@ -321,7 +322,6 @@ namespace PayrollAPI.Repository
             return _msg;
 
         }
-
 
         public async Task<MsgDto> ProcessPayrollbyEPF(string epf, int period, int companyCode)
         {
@@ -587,6 +587,7 @@ namespace PayrollAPI.Repository
 
         public async Task<MsgDto> GetPaySheet(string epf, int period)
         {
+            _logger.LogInformation($"Get PaySheet for Emp {epf}");
             MsgDto _msg = new MsgDto();
             try
             {
@@ -675,6 +676,7 @@ namespace PayrollAPI.Repository
             }
             catch(Exception ex)
             {
+                _logger.LogError("Error");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;

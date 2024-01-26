@@ -3,12 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NLog;
+using NLog.Web;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Repository;
 using System.Configuration;
 using System.Reflection;
 using System.Text;
+
+
+// Initialize Logs
+var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 
 // Disable Cors
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -21,10 +27,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://127.0.0.1:5173",
-                                             "https://localhost:3000",
-                                             "http://10.10.13.119:3000",
-                                             "http://localhost:3000").AllowAnyHeader()
+                          policy.AllowAnyOrigin().AllowAnyHeader()
                                                   .AllowAnyMethod();
                       });
 });
@@ -66,7 +69,8 @@ builder.Services.AddAuthentication(item =>
 
 
 
-
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
 
 
 

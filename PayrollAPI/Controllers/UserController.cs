@@ -36,14 +36,23 @@ namespace PayrollAPI.Controllers
         [HttpPost]
         public IActionResult Authenticate([FromBody] Users user)
         {
-            var _user = _usr.AuthenticateUser(user);
-            if (_user != null)
+            var _user = _usr.AuthenticateUser(user, out string msg, out int status);
+
+            if (_user != null && status == 1)
             {
                 return Ok(_user); 
             }
+            else if(status == -1)
+            {
+                return NotFound(msg);
+            }
+            else if (status == -2)
+            {
+                return Unauthorized(msg);
+            }
             else
             {
-                return Unauthorized();
+                return BadRequest(msg);
             }
             
         }

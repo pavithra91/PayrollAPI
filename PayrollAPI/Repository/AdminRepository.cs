@@ -305,7 +305,7 @@ namespace PayrollAPI.Repository
                     payCode = payCodeDto.payCode,
                     payCategory = payCodeDto.payCategory,
                     rate = payCodeDto.rate,
-                    isTaxableGross = true,
+                    isTaxableGross = payCodeDto.isTaxableGross,
                     createdBy = payCodeDto.createdBy,
                     createdDate = DateTime.Now
                 };
@@ -348,7 +348,7 @@ namespace PayrollAPI.Repository
                         _payCode.isTaxableGross = payCodeDto.isTaxableGross;
                     }
 
-                    if (payCodeDto.rate > 0)
+                    if (payCodeDto.rate >= 0)
                     {
                         _payCode.rate = payCodeDto.rate;
                     }

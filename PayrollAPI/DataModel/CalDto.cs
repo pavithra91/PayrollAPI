@@ -16,6 +16,6 @@
         public string? createdBy { get; set; }
         public DateTime createdDate { get; set; }
         public string? lastUpdateBy { get; set; }
-        public DateTime lastUpdateDate { get; set; }
+        public DateTime? lastUpdateDate { get; set; }
     }
 }

@@ -29,6 +29,8 @@ namespace PayrollAPI.Data
 
         public DbSet<LoginInfo> LoginInfo { get; set; }
 
+        public DbSet<SysLog> SysLog { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Calculation>()
