@@ -37,16 +37,29 @@ namespace PayrollAPI.Migrations
                     b.Property<int>("companyCode")
                         .HasColumnType("int");
 
+                    b.Property<string>("contributor")
+                        .HasColumnType("varchar(2)");
+
                     b.Property<string>("createdBy")
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
 
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime>("lastUpdateDate")
+                    b.Property<DateTime?>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("lastUpdateTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("payCategory")
@@ -75,11 +88,21 @@ namespace PayrollAPI.Migrations
                     b.Property<decimal>("comp_contribution")
                         .HasColumnType("decimal(10, 2)");
 
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
                     b.Property<string>("createdBy")
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
 
                     b.Property<string>("empName")
                         .HasColumnType("varchar(200)");
@@ -87,18 +110,33 @@ namespace PayrollAPI.Migrations
                     b.Property<decimal>("emp_contribution")
                         .HasColumnType("decimal(10, 2)");
 
-                    b.Property<int>("epf")
-                        .HasColumnType("int");
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("varchar(6)");
+
+                    b.Property<decimal>("epfGross")
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<decimal>("etf")
                         .HasColumnType("decimal(10, 2)");
 
                     b.Property<string>("grade")
-                        .IsRequired()
-                        .HasColumnType("varchar(2)");
+                        .HasColumnType("varchar(5)");
+
+                    b.Property<int>("location")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("lumpsumTax")
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<int>("period")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("tax")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<decimal>("taxableGross")
+                        .HasColumnType("decimal(10, 2)");
 
                     b.HasKey("id");
 
@@ -117,23 +155,37 @@ namespace PayrollAPI.Migrations
                     b.Property<int>("companyCode")
                         .HasColumnType("int");
 
-                    b.Property<string>("costcenter")
+                    b.Property<string>("costCenter")
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("createdBy")
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
 
-                    b.Property<int>("epf")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("varchar(6)");
 
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("lastUpdateDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("lastUpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("location")
+                        .HasColumnType("int");
 
                     b.Property<int>("payCode")
                         .HasColumnType("int");
@@ -155,8 +207,8 @@ namespace PayrollAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("accountNo")
-                        .HasColumnType("int");
+                    b.Property<string>("accountNo")
+                        .HasColumnType("varchar(15)");
 
                     b.Property<int>("bankCode")
                         .HasColumnType("int");
@@ -167,26 +219,35 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("changeBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime>("changeDate")
+                    b.Property<DateTime?>("changeDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
 
                     b.Property<string>("costCenter")
                         .HasColumnType("varchar(6)");
 
                     b.Property<string>("empGrade")
-                        .HasColumnType("varchar(2)");
+                        .HasColumnType("varchar(5)");
 
                     b.Property<string>("empName")
                         .HasColumnType("varchar(500)");
 
-                    b.Property<int>("epf")
-                        .HasColumnType("int");
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("varchar(6)");
 
                     b.Property<int>("gradeCode")
                         .HasColumnType("int");
 
-                    b.Property<bool>("isPaysheetGenerated")
-                        .HasColumnType("boolean");
+                    b.Property<bool?>("isPaysheetGenerated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValueSql("1");
+
+                    b.Property<int>("location")
+                        .HasColumnType("int");
 
                     b.Property<int>("paymentType")
                         .HasColumnType("int");
@@ -194,8 +255,10 @@ namespace PayrollAPI.Migrations
                     b.Property<int>("period")
                         .HasColumnType("int");
 
-                    b.Property<bool>("status")
-                        .HasColumnType("boolean");
+                    b.Property<bool?>("status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValueSql("1");
 
                     b.HasKey("id");
 
@@ -208,17 +271,26 @@ namespace PayrollAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<int>("costCenter")
+                        .HasColumnType("int");
+
                     b.Property<bool>("isActive")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("loginDateTime")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime>("loginTime")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("refreshToken")
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(300)");
 
                     b.Property<string>("tokenID")
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(300)");
 
                     b.Property<string>("userID")
                         .HasColumnType("varchar(10)");
@@ -244,7 +316,14 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
 
                     b.Property<string>("description")
                         .HasColumnType("varchar(100)");
@@ -255,7 +334,10 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime>("lastUpdateDate")
+                    b.Property<DateTime?>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("lastUpdateTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("payCategory")
@@ -281,26 +363,35 @@ namespace PayrollAPI.Migrations
                     b.Property<decimal>("amount")
                         .HasColumnType("decimal(10, 2)");
 
-                    b.Property<decimal>("balanceamount")
+                    b.Property<decimal>("balanceAmount")
                         .HasColumnType("decimal(10, 2)");
 
                     b.Property<string>("calCode")
                         .HasColumnType("varchar(5)");
 
-                    b.Property<string>("costcenter")
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("costCenter")
                         .HasColumnType("varchar(6)");
 
-                    b.Property<bool>("displayOnPaySheet")
-                        .HasColumnType("boolean");
+                    b.Property<bool?>("displayOnPaySheet")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValueSql("1");
 
-                    b.Property<int>("epf")
-                        .HasColumnType("int");
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("varchar(6)");
 
                     b.Property<float>("epfConRate")
                         .HasColumnType("float");
 
                     b.Property<decimal>("epfContribution")
                         .HasColumnType("decimal(10, 2)");
+
+                    b.Property<int>("location")
+                        .HasColumnType("int");
 
                     b.Property<float>("othours")
                         .HasColumnType("float");
@@ -314,8 +405,8 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("payCodeType")
                         .HasColumnType("varchar(2)");
 
-                    b.Property<ulong>("paytype")
-                        .HasColumnType("bit");
+                    b.Property<string>("paytype")
+                        .HasColumnType("varchar(1)");
 
                     b.Property<int>("period")
                         .HasColumnType("int");
@@ -340,7 +431,22 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("approvedBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime>("approvedDate")
+                    b.Property<DateTime?>("approvedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("approvedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("dataTransferredBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("dataTransferredDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("dataTransferredTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("noOfEmployees")
@@ -352,11 +458,14 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("payrunBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime>("payrunDate")
+                    b.Property<DateTime?>("payrunDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("payrunStatus")
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime?>("payrunTime")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("period")
                         .HasColumnType("int");
@@ -364,6 +473,51 @@ namespace PayrollAPI.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Payrun");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.SAPTotPayCode", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("calCode")
+                        .HasColumnType("varchar(5)");
+
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("createdBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<int>("payCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("payType")
+                        .HasColumnType("varchar(1)");
+
+                    b.Property<int>("period")
+                        .HasColumnType("int");
+
+                    b.Property<int>("totCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("totalAmount")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("SAPTotPayCode");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Special_Tax_Emp", b =>
@@ -378,17 +532,25 @@ namespace PayrollAPI.Migrations
                     b.Property<int>("companyCode")
                         .HasColumnType("int");
 
-                    b.Property<string>("costcenter")
+                    b.Property<string>("costCenter")
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("createdBy")
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
 
-                    b.Property<int>("epf")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("varchar(6)");
 
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
@@ -396,12 +558,44 @@ namespace PayrollAPI.Migrations
                     b.Property<DateTime>("lastUpdateDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime>("lastUpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("location")
+                        .HasColumnType("int");
+
                     b.Property<bool>("status")
                         .HasColumnType("boolean");
 
                     b.HasKey("id");
 
                     b.ToTable("Special_Tax_Emp");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.SysLog", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("application")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("level")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("loggedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("message")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("id");
+
+                    b.ToTable("SysLog");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Tax_Calculation", b =>
@@ -413,11 +607,24 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("calFormula")
                         .HasColumnType("varchar(500)");
 
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("contributor")
+                        .HasColumnType("varchar(2)");
+
                     b.Property<string>("createdBy")
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
 
                     b.Property<string>("description")
                         .HasColumnType("varchar(500)");
@@ -425,7 +632,10 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<DateTime>("lastUpdateDate")
+                    b.Property<DateTime?>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("lastUpdateTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal>("range")
@@ -445,13 +655,16 @@ namespace PayrollAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("accountNo")
-                        .HasColumnType("int");
+                    b.Property<string>("accountNo")
+                        .HasColumnType("varchar(15)");
 
                     b.Property<int>("bankCode")
                         .HasColumnType("int");
 
                     b.Property<int>("branchCode")
+                        .HasColumnType("int");
+
+                    b.Property<int>("companyCode")
                         .HasColumnType("int");
 
                     b.Property<string>("costCenter")
@@ -461,18 +674,29 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
 
                     b.Property<string>("empGrade")
-                        .HasColumnType("varchar(2)");
+                        .HasColumnType("varchar(5)");
 
                     b.Property<string>("empName")
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("varchar(100)");
 
-                    b.Property<int>("epf")
-                        .HasColumnType("int");
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("varchar(6)");
 
                     b.Property<int>("gradeCode")
+                        .HasColumnType("int");
+
+                    b.Property<int>("location")
                         .HasColumnType("int");
 
                     b.Property<int>("paymentType")
@@ -501,14 +725,31 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("calCode")
                         .HasColumnType("varchar(5)");
 
-                    b.Property<string>("costcenter")
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("costCenter")
                         .HasColumnType("varchar(6)");
 
-                    b.Property<int>("epf")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("varchar(6)");
 
                     b.Property<float>("epfConRate")
                         .HasColumnType("float");
+
+                    b.Property<int>("location")
+                        .HasColumnType("int");
 
                     b.Property<float>("othours")
                         .HasColumnType("float");
@@ -522,8 +763,8 @@ namespace PayrollAPI.Migrations
                     b.Property<string>("payCodeType")
                         .HasColumnType("varchar(2)");
 
-                    b.Property<ulong>("paytype")
-                        .HasColumnType("bit");
+                    b.Property<string>("paytype")
+                        .HasColumnType("varchar(1)");
 
                     b.Property<int>("period")
                         .HasColumnType("int");
@@ -552,7 +793,14 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
 
                     b.Property<int>("payCode")
                         .HasColumnType("int");
@@ -568,10 +816,62 @@ namespace PayrollAPI.Migrations
                     b.ToTable("TotPayCode");
                 });
 
+            modelBuilder.Entity("PayrollAPI.Models.Unrecovered", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("amount")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("calCode")
+                        .HasColumnType("varchar(5)");
+
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("costCenter")
+                        .HasColumnType("varchar(6)");
+
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("location")
+                        .HasColumnType("int");
+
+                    b.Property<string>("payCategory")
+                        .HasColumnType("varchar(2)");
+
+                    b.Property<int>("payCode")
+                        .HasColumnType("int");
+
+                    b.Property<int>("period")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Unrecovered");
+                });
+
             modelBuilder.Entity("PayrollAPI.Models.User", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("companyCode")
                         .HasColumnType("int");
 
                     b.Property<string>("costCenter")
@@ -581,18 +881,29 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("createdDate")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
 
                     b.Property<string>("empName")
                         .HasColumnType("varchar(60)");
 
-                    b.Property<int>("epf")
-                        .HasColumnType("int");
+                    b.Property<string>("epf")
+                        .IsRequired()
+                        .HasColumnType("varchar(6)");
 
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("lastUpdateTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("pwdHash")

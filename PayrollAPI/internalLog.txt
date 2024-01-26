@@ -1,0 +1,117 @@
+2024-01-17 14:59:24.5721 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-17 14:59:24.7825 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-17 14:59:24.9548 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-17 14:59:26.4243 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-17 14:59:27.5233 Info Configuration initialized.
+2024-01-17 14:59:38.1200 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-18 09:59:43.3574 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-18 09:59:44.2593 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-18 09:59:45.6026 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-18 09:59:49.8892 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-18 09:59:53.4454 Info Configuration initialized.
+2024-01-18 10:00:18.3880 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-18 10:49:34.8619 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-18 10:49:35.5118 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-18 10:49:35.7784 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-18 10:49:38.3950 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-18 10:49:39.7783 Info Configuration initialized.
+2024-01-18 10:49:58.5410 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-18 11:30:16.6194 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-18 11:30:16.9944 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-18 11:30:17.3607 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-18 11:30:18.6642 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-18 11:30:19.4137 Info Configuration initialized.
+2024-01-18 11:30:35.8748 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-18 11:34:41.3478 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-18 11:34:41.5219 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-18 11:34:41.5914 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-18 11:34:41.9123 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-18 11:34:42.0668 Info Configuration initialized.
+2024-01-18 11:34:45.0108 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-19 09:15:25.5438 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-19 09:15:25.9573 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-19 09:15:26.2847 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-19 09:15:28.4451 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-19 09:15:30.2510 Info Configuration initialized.
+2024-01-19 09:15:41.5011 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-19 13:59:20.9126 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-19 13:59:21.6372 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-19 13:59:22.1723 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-19 13:59:24.1292 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-19 13:59:25.9982 Info Configuration initialized.
+2024-01-19 13:59:55.7978 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-22 10:20:45.4162 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-22 10:20:46.5212 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-22 10:20:47.1069 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\source\repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-22 10:20:50.7718 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-22 10:20:53.9377 Info Configuration initialized.
+2024-01-22 10:21:16.5319 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\source\repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-22 10:26:17.0474 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-01-22 10:26:17.1794 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-01-22 10:26:17.2787 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\source\repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config
+2024-01-22 10:26:17.4531 Error DatabaseTarget(Name=database): Failed to create ConnectionType from DBProvider=MySqlConnector.MySqlConnection, MySqlConnector Exception: System.IO.FileNotFoundException: Could not load file or assembly 'MySqlConnector, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+File name: 'MySqlConnector, Culture=neutral, PublicKeyToken=null'
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMarkHandle stackMark, ObjectHandleOnStack assemblyLoadContext, ObjectHandleOnStack type, ObjectHandleOnStack keepalive)
+   at System.RuntimeTypeHandle.GetTypeByName(String name, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark, AssemblyLoadContext assemblyLoadContext)
+   at System.RuntimeType.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase, StackCrawlMark& stackMark)
+   at System.Type.GetType(String typeName, Boolean throwOnError, Boolean ignoreCase)
+   at NLog.Targets.DatabaseTarget.SetConnectionType()
+   at NLog.Targets.DatabaseTarget.InitializeTarget()
+2024-01-22 10:26:17.8180 Info Configuration initialized.
+2024-01-22 10:26:21.1911 Info Validating config: TargetNames=database, ConfigItems=21, FilePath=C:\Users\17532\source\repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\nlog.config

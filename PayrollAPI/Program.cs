@@ -2,13 +2,36 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using NLog;
+using NLog.Web;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Repository;
 using System.Configuration;
+using System.Reflection;
 using System.Text;
 
+
+// Initialize Logs
+var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+
+// Disable Cors
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Disable Cors
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.AllowAnyOrigin().AllowAnyHeader()
+                                                  .AllowAnyMethod();
+                      });
+});
+
 
 // Add services to the container.
 
@@ -46,7 +69,8 @@ builder.Services.AddAuthentication(item =>
 
 
 
-
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
 
 
 
@@ -57,10 +81,27 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IUsers, UsersRepository>();
 builder.Services.AddScoped<IDatatransfer, DataRepository>();
 builder.Services.AddScoped<IPayroll, PayrollReporsitory>();
+builder.Services.AddScoped<IAdmin, AdminRepository>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { 
+        Title = "CPSTL Payroll API", 
+        Version = "v1",
+        Description = "CPSTL Payroll API is a robust tool designed to efficiently handle and process company's payroll data.",
+        Contact = new OpenApiContact
+        {
+            Name = "R.A.P.B.M Jayasundara",
+            Email = "pavi.dsscst@gmail.com",
+            Url = new Uri("https://www.linkedin.com/in/pavithra-jayasundara/"),
+        }
+    });
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
 
 var app = builder.Build();
 
@@ -68,10 +109,17 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(
+        c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "CPSTL Payroll API V1");
+        });
 }
 
 app.UseHttpsRedirection();
+
+// Disable Cors
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthentication();
 app.UseAuthorization();

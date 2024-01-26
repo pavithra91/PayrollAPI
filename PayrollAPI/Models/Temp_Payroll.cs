@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 namespace PayrollAPI.Models
 {
@@ -9,23 +10,30 @@ namespace PayrollAPI.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
+        public int companyCode { get; set; }
+
+        public int location { get; set; }
+
         public int period { get; set; }
-        public int epf { get; set; }
+
+        [Column(TypeName = "varchar(6)")]
+        public string epf { get; set; }
+
+        [DefaultValue(0)]
         public float othours { get; set; }
 
         [Column(TypeName = "varchar(2)")]
-        public string? payCategory { get; set; }
+        public string? payCategory { get; set; } 
         
         public int payCode { get; set; }
 
         [Column(TypeName = "varchar(5)")]
         public string? calCode { get; set; }
 
-        [Column(TypeName = "bit")]
-        public int paytype { get; set; }
+        public char? paytype { get; set; }
 
         [Column(TypeName = "varchar(6)")]
-        public string? costcenter { get; set; }
+        public string? costCenter { get; set; }
 
         [Column(TypeName = "varchar(2)")]
         public string? payCodeType { get; set; }
@@ -38,5 +46,11 @@ namespace PayrollAPI.Models
 
         public float epfConRate { get; set; }
         public float taxConRate { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime createdDate { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime createdTime { get; set; }
     }
 }

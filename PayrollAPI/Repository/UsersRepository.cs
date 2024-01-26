@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using LinqToDB.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -15,76 +17,277 @@ namespace PayrollAPI.Repository
 {
     public class UsersRepository : IUsers
     {
-        private readonly DBConnect _dbConnect;
+        private readonly DBConnect _context;
         private readonly JWTSetting setting;
         private readonly PasswordHasher passwordHasher;
         private readonly IRefreshTokenGenerator tokenGenerator;
         public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken) 
         {
-            _dbConnect = dB;
+            _context = dB;
             this.setting = options.Value;
             passwordHasher = new PasswordHasher();
             tokenGenerator = _refreshToken;
         }
 
-        public User GetUser(string username)
+        public IDbTransaction BeginTransaction()
         {
-            return null;
-            //var _user = _dbConnect.User.FirstOrDefault(o => o.userID == username)
+            var transaction = _context.Database.BeginTransaction();
+
+            return transaction.GetDbTransaction();
         }
 
-        public bool CreateUser(UserDto user) 
+        public async Task<MsgDto> GetUsers()
         {
-            string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString(), user.costCenter);
-            var _user = new User
+            MsgDto _msg = new MsgDto();
+            try
+            {                
+                ICollection<User> _userList = await _context.User.ToListAsync();
+
+                if (_userList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_userList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
             {
-                userID = user.userID,
-                epf = user.epf,
-                empName = user.empName,
-                costCenter = user.costCenter,
-                role = user.role,
-                pwdHash = pwdHash,
-                status = true,
-                createdBy = user.createdBy,
-                createdDate = DateTime.Now
-            };
-
-            _dbConnect.Add(_user);
-            return Save();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
         }
 
-        public TokenResponse AuthenticateUser(Users usr)
+        public async Task<MsgDto> GetUserbyId(int id)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                User? _user = await _context.User.Where(o=>o.id == id).FirstOrDefaultAsync();
+
+                if (_user != null)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_user);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> CreateUser(UserDto user) 
+        {
+            try
+            {
+                using var transaction = BeginTransaction();
+
+                string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString(), user.costCenter);
+                var _user = new User
+                {
+                    userID = user.userID,
+                    epf = user.epf,
+                    empName = user.empName,
+                    costCenter = user.costCenter,
+                    role = user.role,
+                    pwdHash = pwdHash,
+                    status = true,
+                    createdBy = user.createdBy,
+                    createdDate = DateTime.Now
+                };
+
+                _context.Add(_user);
+
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
+                MsgDto _msg = new MsgDto();
+                _msg.MsgCode = 'S';
+                _msg.Message = "User Created";
+                return _msg;
+            }
+            catch(Exception ex)
+            {
+                MsgDto _msg = new MsgDto();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> UpdateUser(UserDto userDto)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                using var transaction = BeginTransaction();
+
+                var _user = _context.User.FirstOrDefault(o => o.id == Convert.ToInt32(userDto.userID));
+                if (_user != null)
+                {
+                    _user.costCenter = userDto.costCenter ?? _user.costCenter;
+                    _user.empName = userDto.empName ?? _user.empName;
+                    _user.role = userDto.role ?? _user.role;
+
+                    _user.lastUpdateBy = userDto.lastUpdateBy;
+                    _user.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Tax updated Successfully";
+
+                    _context.Entry(_user).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+
+                    transaction.Commit();
+
+                    return _msg;
+                }
+                else
+                {
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No User Found";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> DeleteUser(UserDto userDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                var _user = _context.User.FirstOrDefault(o => o.id == Convert.ToInt32(userDto.userID));
+                if (_user != null)
+                {
+                    _user.status = false;
+                    _user.lastUpdateBy = userDto.lastUpdateBy;
+                    _user.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = $"User {_user.userID} is Mark for Deletion";
+                }
+                else
+                {
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No Calculation Formula Found";
+                }
+
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public TokenResponse? AuthenticateUser(Users usr, out string msg, out int status)
         {
             TokenResponse tokenResponse = new TokenResponse();
-
-            var _user = _dbConnect.User.FirstOrDefault(o => o.userID == usr.UserId);
-
-            bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString(), _user.costCenter);
-
-            // if (_user == null)
-            // return Unauthorized();
-
-            var tokenhandler = new JwtSecurityTokenHandler();
-            var tokenKey = Encoding.UTF8.GetBytes(setting.securitykey);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            try
             {
-                Subject = new ClaimsIdentity(
-                    new Claim[]
-                    {
+                var _user = _context.User.FirstOrDefault(o => o.userID == usr.UserId);
+
+                bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString(), _user.costCenter);
+
+                if (_user == null)
+                {
+                    status = -1;
+                    msg = "Username Not Found";
+                    return null;
+                }
+
+                if(!pwd)
+                {
+                    status = -2;
+                    msg = "Wrong Password";
+                    return null;
+                }
+
+                var tokenhandler = new JwtSecurityTokenHandler();
+                var tokenKey = Encoding.UTF8.GetBytes(setting.securitykey);
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(
+                        new Claim[]
+                        {
                         new Claim(ClaimTypes.Name, "Pavithra"),
-                    }
-                ),
-                Expires = DateTime.Now.AddMinutes(5),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256)
-            };
+                        }
+                    ),
+                    Expires = DateTime.Now.AddMinutes(5),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256)
+                };
 
-            var token = tokenhandler.CreateToken(tokenDescriptor);
-            string finaltoken = tokenhandler.WriteToken(token);
+                var token = tokenhandler.CreateToken(tokenDescriptor);
+                string finaltoken = tokenhandler.WriteToken(token);
 
-            tokenResponse.JWTToken = finaltoken;
-            tokenResponse.RefreshToken = tokenGenerator.GenerateToken(_user.userID);
+                tokenResponse.JWTToken = finaltoken;
+                tokenResponse.RefreshToken = tokenGenerator.GenerateToken(_user.userID);
 
-            return tokenResponse;
+                UserDetails _userDetails = new UserDetails();
+                _userDetails.EPF = _user.epf;
+                _userDetails.CostCenter = _user.costCenter;
+                _userDetails.Role = _user.role;
+
+                tokenResponse._userDetails = _userDetails;
+
+                LoginInfo _log = new LoginInfo();
+                _log.userID = _user.userID;
+                _log.tokenID = tokenResponse.JWTToken.ToString();
+                _log.refreshToken = tokenResponse.RefreshToken;
+                _log.loginDateTime = DateTime.Now;
+                _log.isActive = true;
+
+                _context.LoginInfo.Add(_log);
+                Save();
+                status = 1;
+                msg = "Success";
+                return tokenResponse;
+            }
+            catch(Exception ex)
+            {
+                status = 0;
+                msg = ex.Message;
+                return null;
+            }
         }
 
         public TokenResponse RefreshToken(TokenResponse token)
@@ -106,7 +309,7 @@ namespace PayrollAPI.Repository
             }
 
             var username = principle.Identity.Name;
-            var _reftable = _dbConnect.LoginInfo.FirstOrDefault(o => o.userID == username && o.refreshToken == token.RefreshToken);
+            var _reftable = _context.LoginInfo.FirstOrDefault(o => o.userID == username && o.refreshToken == token.RefreshToken);
             if(_reftable==null) 
             {
                 return null;
@@ -136,21 +339,20 @@ namespace PayrollAPI.Repository
 
         public bool ResetPassword(string username, string password)
         {
-            var _user = _dbConnect.User.FirstOrDefault(o => o.userID == username);
+            var _user = _context.User.FirstOrDefault(o => o.userID == username);
 
             string pwdHash = passwordHasher.Hash(password, _user.epf.ToString(), _user.costCenter);
 
             _user.pwdHash = pwdHash;
 
-
-            _dbConnect.Update(_user);
+            _context.Update(_user);
             return Save();
         }
 
 
         public bool Save()
         {
-            var saved = _dbConnect.SaveChanges();
+            var saved = _context.SaveChanges();
             return saved > 0 ? true: false;
         }
     }

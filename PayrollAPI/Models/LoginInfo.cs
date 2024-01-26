@@ -12,14 +12,17 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "varchar(10)")]
         public string? userID { get; set; }
+        public int companyCode { get; set; }
+        public int costCenter { get; set; }
 
-        [Column(TypeName = "varchar(100)")]
+        [Column(TypeName = "varchar(300)")]
         public string? tokenID { get; set; }
 
-        [Column(TypeName = "varchar(100)")]
+        [Column(TypeName = "varchar(300)")]
         public string? refreshToken { get; set; }
 
         public DateTime loginDateTime { get; set; }
+        public DateTime loginTime { get; set; }
 
         [Column(TypeName = "boolean")]
         public bool isActive { get; set; }

@@ -30,10 +30,16 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "varchar(10)")]
         public string? createdBy { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime createdDate { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime createdTime { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public string? lastUpdateBy { get; set; }
-        public DateTime lastUpdateDate { get; set; }
+        public DateTime? lastUpdateDate { get; set; }
+        public DateTime? lastUpdateTime { get; set; }
     }
 }

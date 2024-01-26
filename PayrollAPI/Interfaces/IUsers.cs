@@ -7,12 +7,19 @@ namespace PayrollAPI.Interfaces
 {
     public interface IUsers
     {
-        public TokenResponse AuthenticateUser(Users usr);
+        public TokenResponse? AuthenticateUser(Users usr, out string msg, out int status);
 
         public TokenResponse RefreshToken(TokenResponse tokenResponse);
 
-        public User GetUser(string username);
-        public bool CreateUser(UserDto user);
+        public Task<MsgDto> GetUsers();
+
+        public Task<MsgDto> GetUserbyId(int id);
+
+        public Task<MsgDto> CreateUser(UserDto user);
+
+        public Task<MsgDto> UpdateUser(UserDto user);
+
+        public Task<MsgDto> DeleteUser(UserDto userDto);
 
         public bool ResetPassword(string username, string password);
     }

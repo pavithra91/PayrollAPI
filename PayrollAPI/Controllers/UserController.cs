@@ -15,7 +15,7 @@ using System.Text;
 
 namespace PayrollAPI.Controllers
 {
-    [Authorize]
+
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -26,23 +26,41 @@ namespace PayrollAPI.Controllers
              _usr = users;
         }
 
+        /// <summary>
+        /// Method used to authenticate API requet User
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         [AllowAnonymous]
         [Route("Authenticate")]
         [HttpPost]
-        public IActionResult Authenticate([FromBody] Users usr)
+        public IActionResult Authenticate([FromBody] Users user)
         {
-            var _user = _usr.AuthenticateUser(usr);
-            if (_user != null)
+            var _user = _usr.AuthenticateUser(user, out string msg, out int status);
+
+            if (_user != null && status == 1)
             {
                 return Ok(_user); 
             }
+            else if(status == -1)
+            {
+                return NotFound(msg);
+            }
+            else if (status == -2)
+            {
+                return Unauthorized(msg);
+            }
             else
             {
-                return Unauthorized();
+                return BadRequest(msg);
             }
             
         }
-
+        /// <summary>
+        /// Method used to refresh the JWT token
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         [Route("Refresh")]
         [HttpPost]
         public IActionResult Refresh([FromBody] TokenResponse token)
@@ -57,23 +75,37 @@ namespace PayrollAPI.Controllers
                 return Ok(_refreshToken);
             }
         }
-
+        /// <summary>
+        /// Method used to Create new User
+        /// </summary>
+        /// <param name="usrDto"></param>
+        /// <returns></returns>
         [Route("CreateUser")]
         [HttpPost]
-        public IActionResult CreateUser([FromBody] UserDto usrDto)
+        public async Task<IActionResult> CreateUser([FromBody] UserDto usrDto)
         {
-            bool _user = _usr.CreateUser(usrDto);
+            MsgDto _msg = await _usr.CreateUser(usrDto);
 
-            if(_user)
-                return Ok(_user);
-            else 
-                return BadRequest();
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
         }
-
+        
+        /// <summary>
+        /// Method used to Reset existing User's Password
+        /// </summary>
+        /// <param name="usrDto"></param>
+        /// <returns></returns>
         [Route("ResetPassword")]
         [HttpPost]
         public IActionResult ResetPassword([FromBody] UserDto usrDto)
         {
+
             bool _user = _usr.ResetPassword(usrDto.userID, usrDto.password);
 
             if (_user)
@@ -82,12 +114,32 @@ namespace PayrollAPI.Controllers
                 return BadRequest();
         }
 
-
-        [Route("GetUser")]
+        /// <summary>
+        /// Used to get all users in the system
+        /// </summary>
+        /// <returns></returns>
+        [Route("GetUsers")]
         [HttpGet]
-        public IActionResult GetUser()
+        public async Task<IActionResult> GetUsers()
         {
-            return Ok("Its Working");
+            MsgDto _msg = await _usr.GetUsers();
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("get-user-id")]
+        [HttpGet]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            MsgDto _msg = await _usr.GetUserbyId(id);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
         }
     }
 }
