@@ -134,5 +134,21 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
+
+        [Route("write-back")]
+        [HttpGet]
+        public async Task<ActionResult> Writeback(int period, int companyCode)
+        {
+            MsgDto _msg = await _payroll.Writeback(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
     }
 }

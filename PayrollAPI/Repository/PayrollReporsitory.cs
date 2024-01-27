@@ -12,6 +12,7 @@ using Expression = org.matheval.Expression;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
 using Newtonsoft.Json;
 using PayrollAPI.Controllers;
+using Newtonsoft.Json.Linq;
 
 namespace PayrollAPI.Repository
 {
@@ -722,6 +723,52 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> Writeback(int period, int companyCode)
+        {
+            _logger.LogInformation("Process Started");
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                ICollection<Payroll_Data> _payData = await _context.Payroll_Data.Where(o => o.period == period && o.companyCode == companyCode).
+                    ToListAsync();
+                ICollection<Unrecovered> _unrecovered = await _context.Unrecovered.Where(o => o.period == period && o.companyCode == companyCode).
+                    ToListAsync();
+                _logger.LogInformation("Get the Database data");
+                foreach (var item in _unrecovered)
+                {
+                    _payData.Add(new Payroll_Data
+                    {
+                        companyCode = item.companyCode,
+                        location = item.location,
+                        period = item.period,
+                        epf = item.epf,
+                        othours = 0,
+                        payCategory = item.payCategory,
+                        payCode = item.payCode,
+                        calCode = item.calCode,
+                        costCenter = item.costCenter,
+                        payCodeType = "U",
+                        amount = item.amount,
+                        balanceAmount = 0
+                    });
+                }
+
+                _logger.LogInformation("Process Success");
+                _msg.MsgCode = 'S';
+                _msg.Data = JsonConvert.SerializeObject(_payData.OrderBy(o => o.epf));
+                _msg.Message = "Success";
+                return _msg;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
