@@ -34,6 +34,13 @@ namespace PayrollAPI.Models
         [Column(TypeName = "boolean")]
         public bool status { get; set; }
 
+        [Column(TypeName = "boolean")]
+        public bool isAccountLocked { get; set; }
+
+        public int failAttempts { get; set; }
+
+        public int accountLockoutPolicy { get; set; }
+
         [Column(TypeName = "varchar(10)")]
         public string? createdBy { get; set; }
 

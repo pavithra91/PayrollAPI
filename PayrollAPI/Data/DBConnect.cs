@@ -8,7 +8,7 @@ namespace PayrollAPI.Data
     {
         public DBConnect(DbContextOptions<DBConnect> options) : base(options)
         {
-
+            this.Database.SetCommandTimeout(180);
         }
 
         public DbSet<Calculation> Calculation { get; set; }
@@ -134,12 +134,12 @@ namespace PayrollAPI.Data
                     .ForMySQLHasDefaultValueSql("1");
 
             modelBuilder.Entity<Employee_Data>()
-        .Property(s => s.isPaysheetGenerated)
-        .ForMySQLHasDefaultValueSql("1");
+                    .Property(s => s.isPaysheetGenerated)
+                    .ForMySQLHasDefaultValueSql("1");
 
             modelBuilder.Entity<Payroll_Data>()
-        .Property(s => s.displayOnPaySheet)
-        .ForMySQLHasDefaultValueSql("1");
+                    .Property(s => s.displayOnPaySheet)
+                    .ForMySQLHasDefaultValueSql("1");
         }
     }
 }

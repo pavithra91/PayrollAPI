@@ -345,9 +345,9 @@ namespace PayrollAPI.Repository
 
                 if (_payRun.payrunStatus == "Transfer Complete")
                 {
-                    _context.Employee_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                    _context.Temp_Employee.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
                         DeleteFromQuery();
-                    _context.Payroll_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                    _context.Temp_Payroll.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
                         DeleteFromQuery();
                     _context.Payrun.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
                         DeleteFromQuery();

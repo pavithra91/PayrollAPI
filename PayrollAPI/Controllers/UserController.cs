@@ -95,7 +95,47 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-        
+
+        [Route("update-user")]
+        [HttpPut]
+        public async Task<ActionResult> UpdateUser([FromBody] UserDto usrDto)
+        {
+            MsgDto _msg = await _usr.UpdateUser(usrDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else if (_msg.MsgCode == 'N')
+            {
+                return NotFound(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("delete-user")]
+        [HttpPut]
+        public async Task<ActionResult> DeleteUser([FromBody] UserDto usrDto)
+        {
+            MsgDto _msg = await _usr.DeleteUser(usrDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else if (_msg.MsgCode == 'N')
+            {
+                return NotFound(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         /// <summary>
         /// Method used to Reset existing User's Password
         /// </summary>

@@ -110,10 +110,14 @@ namespace PayrollAPI.Repository
                     userID = user.userID,
                     epf = user.epf,
                     empName = user.empName,
+                    companyCode = Convert.ToInt32(user.companyCode),
                     costCenter = user.costCenter,
                     role = user.role,
                     pwdHash = pwdHash,
                     status = true,
+                    isAccountLocked = false,
+                    failAttempts = 0,
+                    accountLockoutPolicy = 3,
                     createdBy = user.createdBy,
                     createdDate = DateTime.Now
                 };
@@ -146,7 +150,7 @@ namespace PayrollAPI.Repository
             {
                 using var transaction = BeginTransaction();
 
-                var _user = _context.User.FirstOrDefault(o => o.id == Convert.ToInt32(userDto.userID));
+                var _user = _context.User.FirstOrDefault(o => o.id == Convert.ToInt32(userDto.id));
                 if (_user != null)
                 {
                     _user.costCenter = userDto.costCenter ?? _user.costCenter;
@@ -157,7 +161,7 @@ namespace PayrollAPI.Repository
                     _user.lastUpdateDate = DateTime.Now;
 
                     _msg.MsgCode = 'S';
-                    _msg.Message = "Tax updated Successfully";
+                    _msg.Message = $"User {_user.userID} updated Successfully";
 
                     _context.Entry(_user).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
@@ -201,7 +205,7 @@ namespace PayrollAPI.Repository
                 else
                 {
                     _msg.MsgCode = 'N';
-                    _msg.Message = "No Calculation Formula Found";
+                    _msg.Message = "No User Account Found";
                 }
 
                 await _context.SaveChangesAsync();
@@ -235,10 +239,28 @@ namespace PayrollAPI.Repository
                     return null;
                 }
 
-                if(!pwd)
+                if (_user.isAccountLocked)
+                {
+                    status = -2;
+                    msg = "Account Locked";
+                    _context.SaveChangesAsync();
+
+                    return null;
+                }
+
+                if (!pwd)
                 {
                     status = -2;
                     msg = "Wrong Password";
+                    _user.failAttempts = _user.failAttempts + 1;
+                    
+                    if(_user.failAttempts == _user.accountLockoutPolicy)
+                    {
+                        _user.isAccountLocked = true;
+                    }
+                    _context.Entry(_user).State = EntityState.Modified;
+                    _context.SaveChangesAsync();
+
                     return null;
                 }
 

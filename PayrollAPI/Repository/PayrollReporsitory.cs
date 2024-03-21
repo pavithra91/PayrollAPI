@@ -738,7 +738,7 @@ namespace PayrollAPI.Repository
             {
                 ICollection<Payroll_Data> _payData = await _context.Payroll_Data.Where(o => o.period == period && o.companyCode == companyCode).
                     ToListAsync();
-                ICollection<Unrecovered> _unrecovered = await _context.Unrecovered.Where(o => o.period == period && o.companyCode == companyCode).
+                ICollection<Unrecovered> _unrecovered = await _context.Unrecovered.Where(o => o.period == period && o.companyCode == companyCode).AsSplitQuery().
                     ToListAsync();
                 _logger.LogInformation("Get the Database data");
                 foreach (var item in _unrecovered)

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PayrollAPI.Data;
 
@@ -10,9 +11,11 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations
 {
     [DbContext(typeof(DBConnect))]
-    partial class DBConnectModelSnapshot : ModelSnapshot
+    [Migration("20240321044915_21-03-2024")]
+    partial class _21032024
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,7 +79,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Calculation", (string)null);
+                    b.ToTable("Calculation");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.EPF_ETF", b =>
@@ -140,7 +143,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("EPF_ETF", (string)null);
+                    b.ToTable("EPF_ETF");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.EmpSpecialRate", b =>
@@ -198,7 +201,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("EmpSpecialRate", (string)null);
+                    b.ToTable("EmpSpecialRate");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Employee_Data", b =>
@@ -262,7 +265,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Employee_Data", (string)null);
+                    b.ToTable("Employee_Data");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.LoginInfo", b =>
@@ -297,7 +300,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("LoginInfo", (string)null);
+                    b.ToTable("LoginInfo");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.PayCode", b =>
@@ -351,7 +354,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("PayCode", (string)null);
+                    b.ToTable("PayCode");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Payroll_Data", b =>
@@ -419,7 +422,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Payroll_Data", (string)null);
+                    b.ToTable("Payroll_Data");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Payrun", b =>
@@ -472,7 +475,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Payrun", (string)null);
+                    b.ToTable("Payrun");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.SAPTotPayCode", b =>
@@ -517,7 +520,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("SAPTotPayCode", (string)null);
+                    b.ToTable("SAPTotPayCode");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Special_Tax_Emp", b =>
@@ -569,7 +572,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Special_Tax_Emp", (string)null);
+                    b.ToTable("Special_Tax_Emp");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.SysLog", b =>
@@ -595,7 +598,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("SysLog", (string)null);
+                    b.ToTable("SysLog");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Tax_Calculation", b =>
@@ -646,7 +649,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Tax_Calculation", (string)null);
+                    b.ToTable("Tax_Calculation");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Temp_Employee", b =>
@@ -707,7 +710,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Temp_Employee", (string)null);
+                    b.ToTable("Temp_Employee");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Temp_Payroll", b =>
@@ -774,7 +777,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Temp_Payroll", (string)null);
+                    b.ToTable("Temp_Payroll");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.TotPayCode", b =>
@@ -813,7 +816,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("TotPayCode", (string)null);
+                    b.ToTable("TotPayCode");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Unrecovered", b =>
@@ -862,7 +865,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Unrecovered", (string)null);
+                    b.ToTable("Unrecovered");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.User", b =>
@@ -932,7 +935,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("User", (string)null);
+                    b.ToTable("User");
                 });
 #pragma warning restore 612, 618
         }
