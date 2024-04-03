@@ -11,13 +11,20 @@ namespace PayrollAPI.Models
 
     public struct UserDetails
     {
+        public int ID { get; set; }
+        
         public string EPF { get; set; }
+        public string EmpName { get; set; }
+        public string UserID { get; set; }
         public string CostCenter { get; set; }
         public string Role { get; set; }
 
-        public UserDetails(string _epf, string _costCenter, string _role)
+        public UserDetails(int _id, string _epf, string _empName, string _userID, string _costCenter, string _role)
         {
+            ID = _id;
             EPF = _epf;
+            EmpName = _empName;
+            UserID = _userID;
             CostCenter = _costCenter;
             Role = _role;
         }

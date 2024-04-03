@@ -102,7 +102,23 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-        
+
+        [Route("print-paysheet")]
+        [HttpGet]
+        public async Task<ActionResult> PrintPaySheets(int companyCode, int period)
+        {
+            MsgDto _msg = await _payroll.PrintPaySheets(companyCode, period);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         [Route("get-payrun")]
         [HttpGet]
         public async Task<ActionResult> GetPayrunDetails()

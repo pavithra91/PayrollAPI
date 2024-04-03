@@ -104,7 +104,7 @@ namespace PayrollAPI.Repository
             {
                 using var transaction = BeginTransaction();
 
-                string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString(), user.costCenter);
+                string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString());
                 var _user = new User
                 {
                     userID = user.userID,
@@ -230,7 +230,7 @@ namespace PayrollAPI.Repository
             {
                 var _user = _context.User.FirstOrDefault(o => o.userID == usr.UserId);
 
-                bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString(), _user.costCenter);
+                bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString());
 
                 if (_user == null)
                 {
@@ -285,8 +285,18 @@ namespace PayrollAPI.Repository
                 tokenResponse.RefreshToken = tokenGenerator.GenerateToken(_user.userID);
 
                 UserDetails _userDetails = new UserDetails();
+                _userDetails.ID = _user.id;
                 _userDetails.EPF = _user.epf;
                 _userDetails.CostCenter = _user.costCenter;
+                if(_user.empName!=null)
+                {
+                    _userDetails.EmpName = _user.empName;
+                }
+                else
+                {
+                    _userDetails.EmpName = "";
+                }
+                _userDetails.UserID = _user.userID;
                 _userDetails.Role = _user.role;
 
                 tokenResponse._userDetails = _userDetails;
@@ -363,7 +373,7 @@ namespace PayrollAPI.Repository
         {
             var _user = _context.User.FirstOrDefault(o => o.userID == username);
 
-            string pwdHash = passwordHasher.Hash(password, _user.epf.ToString(), _user.costCenter);
+            string pwdHash = passwordHasher.Hash(password, _user.epf.ToString());
 
             _user.pwdHash = pwdHash;
 

@@ -232,7 +232,7 @@ namespace PayrollAPI.Repository
                     };
 
                    _payRun.payrunBy = approvalDto.approvedBy;
-                   _payRun.payrunStatus = "Payrun Complete";
+                   _payRun.payrunStatus = "EPF/TAX Calculated";
                    _payRun.payrunDate = DateTime.Now;
                    _payRun.payrunTime = DateTime.Now;
 
@@ -242,13 +242,13 @@ namespace PayrollAPI.Repository
 
 
                     _msg.MsgCode = 'S';
-                    _msg.Message = "Payrun Complete Successfully";
+                    _msg.Message = "EPF/TAX Calculated Successfully";
                     return _msg;
                 }
                 else
                 {
                     _msg.MsgCode = 'E';
-                    _msg.Message = "Payrun Already Complete. Operation Failed!";
+                    _msg.Message = "EPF/TAX Already Ccalculated. Operation Failed!";
                     return _msg;
                 }
             }
@@ -314,6 +314,11 @@ namespace PayrollAPI.Repository
                     }
                 }
             }
+
+            _payRun.payrunBy = approvalDto.approvedBy;
+            _payRun.payrunStatus = "Unrec File Created";
+            _payRun.payrunDate = DateTime.Now;
+            _payRun.payrunTime = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
@@ -676,6 +681,122 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
             catch(Exception ex)
+            {
+                _logger.LogError("Error");
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> PrintPaySheets(int companyCode, int period)
+        {
+            //_logger.LogInformation($"Get PaySheet for Emp {epf}");
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                ICollection<Payroll_Data> _payData = await _context.Payroll_Data.
+                    Where(o => o.period == period && o.companyCode == companyCode).
+                    OrderBy(o => o.epf).ToListAsync();
+
+                ICollection<Employee_Data> _empData = await _context.Employee_Data.
+                    Where(o => o.period == period && o.companyCode == companyCode).
+                    OrderBy(o => o.epf).ToListAsync();
+
+                ICollection<EPF_ETF> _epfData = await _context.EPF_ETF.
+                    Where(o => o.period == period && o.companyCode == companyCode).
+                    OrderBy(o => o.epf).ToListAsync();
+
+                ICollection<Unrecovered> _unrecoveredData = await _context.Unrecovered.
+                    Where(o => o.period == period && o.companyCode == companyCode).
+                    OrderBy(o => o.epf).ToListAsync();
+
+                ICollection<PayCode> _payCodes = await _context.PayCode.ToListAsync();
+
+                ICollection<Payroll_Data> _earningData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "0").OrderBy(o => o.epf).ToList();
+                ICollection<Payroll_Data> _deductionData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "1").OrderBy(o => o.epf).ToList();
+
+                DataTable dt = new DataTable();
+                dt.Columns.Add("empData");
+                dt.Columns.Add("salData");
+                dt.Columns.Add("earningData");
+                dt.Columns.Add("deductionData");
+                dt.Columns.Add("unRecoveredData");
+
+                foreach (Employee_Data emp in _empData)
+                {
+                    var _earningDataResult = from payData in _earningData
+                                             join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                             into Earnings
+                                             where payData.epf == emp.epf
+                                             from defaultVal in Earnings.DefaultIfEmpty()
+                                             select new
+                                             {
+                                                 name = defaultVal.description,
+                                                 payCode = payData.payCode,
+                                                 amount = payData.amount,
+                                                 calCode = payData.calCode,
+                                             };
+
+                    var _deductionDataResult = from payData in _deductionData
+                                               join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                             into Deductions
+                                               where payData.epf == emp.epf && payData.payCode > 0
+                                               from defaultVal in Deductions.DefaultIfEmpty()
+                                               select new
+                                               {
+                                                   name = defaultVal.description,
+                                                   payCode = payData.payCode,
+                                                   amount = payData.amount,
+                                                   calCode = payData.calCode,
+                                               };
+
+                    var _empDisplayData = _empData.
+                               Where(o => o.period == period && o.epf == emp.epf).
+                               Select(e => new
+                               {
+                                   e.epf,
+                                   e.empName,
+                                   e.companyCode,
+                                   e.location,
+                                   e.costCenter,
+                                   e.empGrade,
+                                   e.gradeCode,
+                               });
+
+
+                    var _salData = _epfData.
+                   Where(o => o.period == period && o.epf == emp.epf).
+                   Select(e => new
+                   {
+                       e.epfGross,
+                       e.taxableGross,
+                       e.tax,
+                       e.emp_contribution,
+                       e.comp_contribution,
+                       e.etf,
+                   });
+
+                    var _unRecData = _unrecoveredData.
+                    Where(o => o.period == period && o.epf == emp.epf).
+                    Select(e => new
+                    {
+                        e?.payCode,
+                        e?.calCode,
+                        e?.amount
+                    });
+
+
+                    dt.Rows.Add(JsonConvert.SerializeObject(_empDisplayData), JsonConvert.SerializeObject(_salData), JsonConvert.SerializeObject(_earningDataResult), JsonConvert.SerializeObject(_deductionDataResult), JsonConvert.SerializeObject(_unRecData));
+                }
+
+                _msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
+                _msg.MsgCode = 'S';
+                _msg.Message = "Success";
+                return _msg;
+            }
+            catch (Exception ex)
             {
                 _logger.LogError("Error");
                 _msg.MsgCode = 'E';
