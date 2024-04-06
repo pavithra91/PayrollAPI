@@ -84,6 +84,7 @@ try
     builder.Services.AddScoped<IDatatransfer, DataRepository>();
     builder.Services.AddScoped<IPayroll, PayrollReporsitory>();
     builder.Services.AddScoped<IAdmin, AdminRepository>();
+    builder.Services.AddScoped<IHelp, HelpRepository>();
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();

@@ -27,6 +27,9 @@ namespace PayrollAPI.Data
         public DbSet<Unrecovered> Unrecovered { get; set; }
         public DbSet<User> User { get; set; }
 
+        public DbSet<Category> Category { get; set; }
+        public DbSet<Article> Article { get; set; }
+
         public DbSet<LoginInfo> LoginInfo { get; set; }
 
         public DbSet<SysLog> SysLog { get; set; }
@@ -126,6 +129,14 @@ namespace PayrollAPI.Data
                     .ForMySQLHasDefaultValueSql("(CURDATE())");
 
             modelBuilder.Entity<User>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Article>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Article>()
                     .Property(s => s.createdTime)
                     .ForMySQLHasDefaultValueSql("(CURTIME())");
 

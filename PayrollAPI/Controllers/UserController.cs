@@ -18,6 +18,7 @@ namespace PayrollAPI.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUsers _usr;

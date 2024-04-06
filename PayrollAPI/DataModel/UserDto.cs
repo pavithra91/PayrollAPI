@@ -12,6 +12,7 @@ namespace PayrollAPI.DataModel
         public string? costCenter { get; set; }
         public string? password { get; set; }
         public string? role { get; set; }
+        public bool? isAccountLocked { get; set; }
         public string? createdBy { get; set; }
         public DateTime? createdDate { get; set; }
         public string? lastUpdateBy { get; set; }

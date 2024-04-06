@@ -156,6 +156,7 @@ namespace PayrollAPI.Repository
                     _user.costCenter = userDto.costCenter ?? _user.costCenter;
                     _user.empName = userDto.empName ?? _user.empName;
                     _user.role = userDto.role ?? _user.role;
+                    _user.isAccountLocked = userDto.isAccountLocked ?? _user.isAccountLocked;
 
                     _user.lastUpdateBy = userDto.lastUpdateBy;
                     _user.lastUpdateDate = DateTime.Now;
@@ -196,6 +197,7 @@ namespace PayrollAPI.Repository
                 if (_user != null)
                 {
                     _user.status = false;
+                    _user.isAccountLocked = true;
                     _user.lastUpdateBy = userDto.lastUpdateBy;
                     _user.lastUpdateDate = DateTime.Now;
 
