@@ -103,6 +103,14 @@ namespace PayrollAPI.Repository
                 };
 
                 _context.Add(_article);
+
+                var _category = _context.Category.FirstOrDefault(o => o.id == articleDto.categoryID);
+
+                if(_category != null) {
+                    _category.articleCount += 1;
+                    _context.Entry(_category).State = EntityState.Modified;
+                }   
+
                 await _context.SaveChangesAsync();
 
                 transaction.Commit();
