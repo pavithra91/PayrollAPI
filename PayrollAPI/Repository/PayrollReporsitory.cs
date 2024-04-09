@@ -214,6 +214,8 @@ namespace PayrollAPI.Repository
                             break;
                         }
 
+                        decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).Sum(w => w.amount);
+
                         EPF_ETF ePF_ETF = new EPF_ETF();
                         ePF_ETF.epf = emp.epf;
                         ePF_ETF.period = emp.period;
@@ -223,6 +225,7 @@ namespace PayrollAPI.Repository
                         ePF_ETF.grade = emp.empGrade;
                         ePF_ETF.epfGross = _epfTot;
                         ePF_ETF.taxableGross = _taxTot;
+                        ePF_ETF.deductionGross = _grossDed;
                         ePF_ETF.emp_contribution = _empPayrollData.Where(x => x.calCode == "EPFEM").Select(x => x.amount).FirstOrDefault(0);
                         ePF_ETF.comp_contribution = _empPayrollData.Where(x => x.calCode == "EPFCO").Select(x => x.amount).FirstOrDefault(0);
                         ePF_ETF.etf = _empPayrollData.Where(x => x.calCode == "ETFCO").Select(x => x.amount).FirstOrDefault(0);
@@ -274,59 +277,73 @@ namespace PayrollAPI.Repository
             ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == approvalDto.companyCode).ToList();
             Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
 
-            foreach (Employee_Data emp in _emp)
+            if (_payRun == null)
             {
-                ICollection<Payroll_Data> _empPayrollData = _payrollData.Where(o => o.epf == emp.epf).OrderBy(o => o.payCode).ToList();
-
-                decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
-                decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).Sum(w => w.amount);
-
-                if (_grossDed > _grossTot)
+                _msg.MsgCode = 'E';
+                _msg.Message = $"No Data available for period - {approvalDto.period}. Payrun operation failed.";
+                return _msg;
+            }
+            else if (_payRun.payrunStatus == "EPF/TAX Calculated")
+            {
+                foreach (Employee_Data emp in _emp)
                 {
-                    ICollection<Payroll_Data> _empDeductions = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).OrderBy(o => o.payCode).ToList();
+                    ICollection<Payroll_Data> _empPayrollData = _payrollData.Where(o => o.epf == emp.epf).OrderBy(o => o.payCode).ToList();
 
-                    foreach (Payroll_Data deductionItem in _empDeductions)
+                    decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
+                    decimal _grossDed = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).Sum(w => w.amount);
+
+                    if (_grossDed > _grossTot)
                     {
-                        _grossTot -= deductionItem.amount;
+                        ICollection<Payroll_Data> _empDeductions = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).OrderBy(o => o.payCode).ToList();
 
-                        if (_grossTot < 0)
+                        foreach (Payroll_Data deductionItem in _empDeductions)
                         {
-                            // Add to unrecovered List
-                            Unrecovered _unRecoveredObj = new Unrecovered();
-                            _unRecoveredObj.companyCode = deductionItem.companyCode;
-                            _unRecoveredObj.location = deductionItem.location;
-                            _unRecoveredObj.period = deductionItem.period;
-                            _unRecoveredObj.epf = deductionItem.epf;
-                            _unRecoveredObj.payCategory = deductionItem.payCategory;
-                            _unRecoveredObj.payCode = deductionItem.payCode;
-                            _unRecoveredObj.calCode = deductionItem.calCode;
-                            _unRecoveredObj.costCenter = deductionItem.costCenter;
-                            _unRecoveredObj.amount = deductionItem.amount;
-                            _context.Unrecovered.Add(_unRecoveredObj);
+                            _grossTot -= deductionItem.amount;
+
+                            if (_grossTot < 0)
+                            {
+                                // Add to unrecovered List
+                                Unrecovered _unRecoveredObj = new Unrecovered();
+                                _unRecoveredObj.companyCode = deductionItem.companyCode;
+                                _unRecoveredObj.location = deductionItem.location;
+                                _unRecoveredObj.period = deductionItem.period;
+                                _unRecoveredObj.epf = deductionItem.epf;
+                                _unRecoveredObj.payCategory = deductionItem.payCategory;
+                                _unRecoveredObj.payCode = deductionItem.payCode;
+                                _unRecoveredObj.calCode = deductionItem.calCode;
+                                _unRecoveredObj.costCenter = deductionItem.costCenter;
+                                _unRecoveredObj.amount = deductionItem.amount;
+                                _context.Unrecovered.Add(_unRecoveredObj);
 
 
-                            Payroll_Data _payItem = _empPayrollData.Where(o => o.calCode == deductionItem.calCode).FirstOrDefault();
-                            _payItem.amount = deductionItem.amount + _grossTot;
-                            _context.Attach(_payItem);
-                            _context.Entry(_payItem).Property(p => p.amount).IsModified = true;
-                            _grossTot = 0;
+                                Payroll_Data _payItem = _empPayrollData.Where(o => o.calCode == deductionItem.calCode).FirstOrDefault();
+                                _payItem.amount = deductionItem.amount + _grossTot;
+                                _context.Attach(_payItem);
+                                _context.Entry(_payItem).Property(p => p.amount).IsModified = true;
+                                _grossTot = 0;
+                            }
                         }
                     }
                 }
+
+                _payRun.payrunBy = approvalDto.approvedBy;
+                _payRun.payrunStatus = "Unrec File Created";
+                _payRun.payrunDate = DateTime.Now;
+                _payRun.payrunTime = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+                _msg.MsgCode = 'S';
+                _msg.Message = "Unrecovered File Created Successfully";
+                return _msg;
             }
-
-            _payRun.payrunBy = approvalDto.approvedBy;
-            _payRun.payrunStatus = "Unrec File Created";
-            _payRun.payrunDate = DateTime.Now;
-            _payRun.payrunTime = DateTime.Now;
-
-            await _context.SaveChangesAsync();
-
-            transaction.Commit();
-            _msg.MsgCode = 'S';
-            _msg.Message = "Unrecovered File Created Successfully";
-            return _msg;
-
+            else
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Unrecovered File Already Ccalculated. Operation Failed!";
+                return _msg;
+            }
         }
 
         public async Task<MsgDto> ProcessPayrollbyEPF(string epf, int period, int companyCode)
@@ -612,6 +629,7 @@ namespace PayrollAPI.Repository
                                          from defaultVal in Earnings.DefaultIfEmpty()
                                          select new
                                          {
+                                             id = defaultVal.id,
                                              name = defaultVal.description,
                                              payCode = payData.payCode,
                                              amount = payData.amount,
@@ -627,6 +645,7 @@ namespace PayrollAPI.Repository
                                            from defaultVal in Deductions.DefaultIfEmpty()
                                            select new
                                            {
+                                               id = defaultVal.id,
                                                name = defaultVal.description,
                                                payCode = payData.payCode,
                                                amount = payData.amount,
@@ -650,18 +669,21 @@ namespace PayrollAPI.Repository
                    Where(o => o.period == period && o.epf == epf).
                    Select(e => new
                    {
+                       e.id,
                        e.epfGross,
                        e.taxableGross,
                        e.tax,
                        e.emp_contribution,
                        e.comp_contribution,
                        e.etf,
+                       e.deductionGross,
                    }).ToListAsync();
 
                 var _unrecovered = await _context.Unrecovered.
                     Where(o => o.period == period && o.epf == epf).
                     Select(e => new
                     {
+                        e.id,
                         e.payCode,
                         e.calCode,
                         e.amount
