@@ -8,7 +8,7 @@ namespace PayrollAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class AdminController : ControllerBase
     {
         private readonly IAdmin _admin;
@@ -485,6 +485,18 @@ namespace PayrollAPI.Controllers
             {
                 return BadRequest(_msg);
             }
+        }
+
+        [Route("get-ot-details")]
+        [HttpGet]
+        public async Task<ActionResult> GetOTDetails()
+        {
+            MsgDto _msg = await _admin.GetOTDetails();
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
         }
 
     }

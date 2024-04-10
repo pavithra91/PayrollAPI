@@ -34,8 +34,16 @@ namespace PayrollAPI.Data
 
         public DbSet<SysLog> SysLog { get; set; }
 
+        public IQueryable<OTHours_View> GetEmployeeOvertime()
+        {
+            var val = Database.SqlQuery<OTHours_View>($"SELECT * FROM payrolldb.OTHours_View");
+            return val;
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Ignore<OTHours_View>();
+
             modelBuilder.Entity<Calculation>()
                     .Property(s => s.createdDate)
                     .ForMySQLHasDefaultValueSql("(CURDATE())");

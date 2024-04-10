@@ -1032,5 +1032,37 @@ namespace PayrollAPI.Repository
                 return _msg;
             }
         }
+
+        public async Task<MsgDto> GetOTDetails()
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _othoursList = _context.GetEmployeeOvertime().ToList();
+                 //   await _context.GetEmployeeOvertime().ToListAsync();
+
+                if (_othoursList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_othoursList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
     }
 }

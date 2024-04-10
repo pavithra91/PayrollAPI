@@ -31,5 +31,8 @@ namespace PayrollAPI.Interfaces
         public Task<MsgDto> CreateSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto);
         public Task<MsgDto> UpdateSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto);
         public Task<MsgDto> DeleteSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto);
+
+
+        public Task<MsgDto> GetOTDetails();
     }
 }
