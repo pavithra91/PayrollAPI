@@ -1033,13 +1033,12 @@ namespace PayrollAPI.Repository
             }
         }
 
-        public async Task<MsgDto> GetOTDetails()
+        public async Task<MsgDto> GetOTDetails(int period, int companyCode)
         {
             MsgDto _msg = new MsgDto();
             try
             {
-                var _othoursList = _context.GetEmployeeOvertime().ToList();
-                 //   await _context.GetEmployeeOvertime().ToListAsync();
+                var _othoursList = _context.GetOTDetails.FromSqlRaw("SELECT * FROM payrolldb.OTHours_View WHERE period= " + period + ";").ToList();
 
                 if (_othoursList.Count > 0)
                 {

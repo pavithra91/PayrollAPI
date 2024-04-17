@@ -489,9 +489,9 @@ namespace PayrollAPI.Controllers
 
         [Route("get-ot-details")]
         [HttpGet]
-        public async Task<ActionResult> GetOTDetails()
+        public async Task<ActionResult> GetOTDetails(int period, int companyCode)
         {
-            MsgDto _msg = await _admin.GetOTDetails();
+            MsgDto _msg = await _admin.GetOTDetails(period, companyCode);
 
             if (_msg.MsgCode == 'S')
                 return Ok(_msg);

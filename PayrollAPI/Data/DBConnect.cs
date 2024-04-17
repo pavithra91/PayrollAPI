@@ -34,15 +34,12 @@ namespace PayrollAPI.Data
 
         public DbSet<SysLog> SysLog { get; set; }
 
-        public IQueryable<OTHours_View> GetEmployeeOvertime()
-        {
-            var val = Database.SqlQuery<OTHours_View>($"SELECT * FROM payrolldb.OTHours_View");
-            return val;
-        }
+        public DbSet<OTHours_View> GetOTDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Ignore<OTHours_View>();
+           // modelBuilder.Entity<OTHours_View>().HasNoKey();
+            modelBuilder.Ignore<OTHours_View>().Entity<OTHours_View>().HasNoKey();
 
             modelBuilder.Entity<Calculation>()
                     .Property(s => s.createdDate)

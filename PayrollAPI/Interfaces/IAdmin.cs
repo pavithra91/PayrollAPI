@@ -33,6 +33,6 @@ namespace PayrollAPI.Interfaces
         public Task<MsgDto> DeleteSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto);
 
 
-        public Task<MsgDto> GetOTDetails();
+        public Task<MsgDto> GetOTDetails(int period, int companyCode);
     }
 }
