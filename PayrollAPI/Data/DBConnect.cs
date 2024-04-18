@@ -35,11 +35,12 @@ namespace PayrollAPI.Data
         public DbSet<SysLog> SysLog { get; set; }
 
         public DbSet<OTHours_View> GetOTDetails { get; set; }
+        public DbSet<Payroll_Summary_View> GetSummaryDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-           // modelBuilder.Entity<OTHours_View>().HasNoKey();
             modelBuilder.Ignore<OTHours_View>().Entity<OTHours_View>().HasNoKey();
+            modelBuilder.Ignore<Payroll_Summary_View>().Entity<Payroll_Summary_View>().HasNoKey();
 
             modelBuilder.Entity<Calculation>()
                     .Property(s => s.createdDate)

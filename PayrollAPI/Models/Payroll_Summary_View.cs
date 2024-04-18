@@ -3,11 +3,11 @@
 namespace PayrollAPI.Models
 {
     [Keyless]
-    public class OTHours_View
+    public class Payroll_Summary_View
     {
         public int companyCode { get; set; }
-        public string? costCenter { get; set; }
         public int period { get; set; }
-        public float othours { get; set; }
+        public float Gross { get; set; }
+        public int Employees { get; set; }
     }
 }

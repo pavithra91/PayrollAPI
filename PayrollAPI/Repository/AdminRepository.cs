@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Ocsp;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -1039,10 +1040,16 @@ namespace PayrollAPI.Repository
             try
             {
                 var _othoursList = _context.GetOTDetails.FromSqlRaw("SELECT * FROM payrolldb.OTHours_View WHERE period= " + period + ";").ToList();
+                var _summaryList = _context.GetSummaryDetails.FromSqlRaw("SELECT * FROM payrolldb.Payroll_Summary_View WHERE period= " + period + ";").ToList();
+
+                DataTable dt = new DataTable();
+                dt.Columns.Add("overTimeData");
+                dt.Columns.Add("summaryData");
 
                 if (_othoursList.Count > 0)
                 {
-                    _msg.Data = JsonConvert.SerializeObject(_othoursList);
+                    dt.Rows.Add(JsonConvert.SerializeObject(_othoursList), JsonConvert.SerializeObject(_summaryList));
+                    _msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
                     _msg.MsgCode = 'S';
                     _msg.Message = "Success";
                     return _msg;
