@@ -21,9 +21,11 @@ namespace PayrollAPI.Repository
     public class DataRepository : IDatatransfer
     {
         private readonly DBConnect _context;
-        public DataRepository(DBConnect db)
+        private readonly ILogger _logger;
+        public DataRepository(DBConnect db, ILogger<PayrollReporsitory> logger)
         {
             _context = db;
+            _logger = logger;
         }
 
         public IDbTransaction BeginTransaction()
@@ -151,6 +153,8 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 transaction.Rollback();
+                _logger.LogError($"DataTransfer : {ex.Message}");
+                _logger.LogError($"DataTransfer : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -238,7 +242,8 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 transaction.Rollback();
-
+                _logger.LogError($"confirm-data-transfer : {ex.Message}");
+                _logger.LogError($"confirm-data-transfer : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -248,11 +253,10 @@ namespace PayrollAPI.Repository
 
         public async Task<MsgDto> PreparePayrun(ApprovalDto approvalDto)
         {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
             try
             {
-                using var transaction = BeginTransaction();
-
-                MsgDto _msg = new MsgDto();
                 ICollection<EmpSpecialRate> _empSpecialRates = _context.EmpSpecialRate.Where(o => o.status == true).ToList();
                 ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period).ToList();
 
@@ -278,7 +282,9 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
-                MsgDto _msg = new MsgDto();
+                transaction.Rollback();
+                _logger.LogError($"PreparePayrun : {ex.Message}");
+                _logger.LogError($"PreparePayrun : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -320,6 +326,8 @@ namespace PayrollAPI.Repository
             }
             catch(Exception ex)
             {
+                _logger.LogError($"GetDataTransferStatistics : {ex.Message}");
+                _logger.LogError($"GetDataTransferStatistics : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -368,6 +376,8 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 transaction.Rollback();
+                _logger.LogError($"temp-data-rollback : {ex.Message}");
+                _logger.LogError($"temp-data-rollback : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;

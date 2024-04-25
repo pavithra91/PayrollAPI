@@ -81,7 +81,7 @@ namespace PayrollAPI.Controllers
         /// </summary>
         /// <param name="usrDto"></param>
         /// <returns></returns>
-        [Route("CreateUser")]
+        [Route("create-user")]
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] UserDto usrDto)
         {
@@ -142,7 +142,7 @@ namespace PayrollAPI.Controllers
         /// </summary>
         /// <param name="usrDto"></param>
         /// <returns></returns>
-        [Route("ResetPassword")]
+        [Route("reset-password")]
         [HttpPost]
         public IActionResult ResetPassword([FromBody] UserDto usrDto)
         {
@@ -159,7 +159,7 @@ namespace PayrollAPI.Controllers
         /// Used to get all users in the system
         /// </summary>
         /// <returns></returns>
-        [Route("GetUsers")]
+        [Route("get-users")]
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {

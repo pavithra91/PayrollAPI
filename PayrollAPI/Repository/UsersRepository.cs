@@ -21,12 +21,14 @@ namespace PayrollAPI.Repository
         private readonly JWTSetting setting;
         private readonly PasswordHasher passwordHasher;
         private readonly IRefreshTokenGenerator tokenGenerator;
-        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken) 
+        private readonly ILogger _logger;
+        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken, ILogger<PayrollReporsitory> logger) 
         {
             _context = dB;
             this.setting = options.Value;
             passwordHasher = new PasswordHasher();
             tokenGenerator = _refreshToken;
+            _logger = logger;
         }
 
         public IDbTransaction BeginTransaction()
@@ -60,6 +62,8 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError($"get-users : {ex.Message}");
+                _logger.LogError($"get-users : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -91,6 +95,8 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError($"get-user-id : {ex.Message}");
+                _logger.LogError($"get-user-id : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -100,6 +106,8 @@ namespace PayrollAPI.Repository
 
         public async Task<MsgDto> CreateUser(UserDto user) 
         {
+            MsgDto _msg = new MsgDto();
+
             try
             {
                 using var transaction = BeginTransaction();
@@ -128,14 +136,14 @@ namespace PayrollAPI.Repository
 
                 transaction.Commit();
 
-                MsgDto _msg = new MsgDto();
                 _msg.MsgCode = 'S';
                 _msg.Message = "User Created";
                 return _msg;
             }
             catch(Exception ex)
             {
-                MsgDto _msg = new MsgDto();
+                _logger.LogError($"create-user : {ex.Message}");
+                _logger.LogError($"create-user : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -146,10 +154,9 @@ namespace PayrollAPI.Repository
         public async Task<MsgDto> UpdateUser(UserDto userDto)
         {
             MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
             try
             {
-                using var transaction = BeginTransaction();
-
                 var _user = _context.User.FirstOrDefault(o => o.id == Convert.ToInt32(userDto.id));
                 if (_user != null)
                 {
@@ -180,6 +187,9 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
+                _logger.LogError($"update-user : {ex.Message}");
+                _logger.LogError($"update-user : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -218,6 +228,8 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 transaction.Rollback();
+                _logger.LogError($"delete-user : {ex.Message}");
+                _logger.LogError($"delete-user : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -318,6 +330,8 @@ namespace PayrollAPI.Repository
             }
             catch(Exception ex)
             {
+                _logger.LogError($"Authenticate : {ex.Message}");
+                _logger.LogError($"Authenticate : {ex.InnerException}");
                 status = 0;
                 msg = ex.Message;
                 return null;
@@ -373,14 +387,23 @@ namespace PayrollAPI.Repository
 
         public bool ResetPassword(string username, string password)
         {
-            var _user = _context.User.FirstOrDefault(o => o.userID == username);
+            try
+            {
+                var _user = _context.User.FirstOrDefault(o => o.userID == username);
 
-            string pwdHash = passwordHasher.Hash(password, _user.epf.ToString());
+                string pwdHash = passwordHasher.Hash(password, _user.epf.ToString());
 
-            _user.pwdHash = pwdHash;
+                _user.pwdHash = pwdHash;
 
-            _context.Update(_user);
-            return Save();
+                _context.Update(_user);
+                return Save();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"reset-password : {ex.Message}");
+                _logger.LogError($"reset-password : {ex.InnerException}");
+                return false;
+            }
         }
 
 

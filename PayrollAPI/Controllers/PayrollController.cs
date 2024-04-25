@@ -22,7 +22,7 @@ namespace PayrollAPI.Controllers
         /// </summary>
         /// <param name="approvalDto"></param>
         /// <returns></returns>
-        [Route("ProcessPayroll")]
+        [Route("process-payroll")]
         [HttpPost]
         public async Task<IActionResult> ProcessPayroll([FromBody] ApprovalDto approvalDto)
         {

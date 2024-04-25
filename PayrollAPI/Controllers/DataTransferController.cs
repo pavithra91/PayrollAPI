@@ -67,7 +67,7 @@ namespace PayrollAPI.Controllers
         /// </summary>
         /// <param name="approvalDto"></param>
         /// <returns></returns>
-        [Route("ConfirmDataTransfer")]
+        [Route("confirm-data-transfer")]
         [HttpPost]
         public async Task<IActionResult> ConfirmDataTransfer([FromBody] ApprovalDto approvalDto)
         {
