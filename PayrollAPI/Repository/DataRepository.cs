@@ -1,8 +1,6 @@
 ﻿using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
 using PayrollAPI.Data;
@@ -11,10 +9,6 @@ using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
 using System.Collections;
 using System.Data;
-using System.ServiceModel.Channels;
-using Z.BulkOperations;
-using static LinqToDB.Common.Configuration;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace PayrollAPI.Repository
 {

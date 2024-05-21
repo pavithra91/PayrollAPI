@@ -9,7 +9,7 @@ namespace PayrollAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class PayrollController : ControllerBase
     {
         private readonly IPayroll _payroll;

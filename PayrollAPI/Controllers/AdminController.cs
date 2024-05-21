@@ -8,7 +8,7 @@ namespace PayrollAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class AdminController : ControllerBase
     {
         private readonly IAdmin _admin;
@@ -135,7 +135,7 @@ namespace PayrollAPI.Controllers
         /// <returns></returns>
         [Route("create-paycode")]
         [HttpPost]
-        public async Task<ActionResult> CreatePayCode([FromBody] PayCodeDto payCodeDto)
+        public async Task<IActionResult> CreatePayCode([FromBody] PayCodeDto payCodeDto)
         {
             MsgDto _msg = await _admin.CreatePayCode(payCodeDto);
 
@@ -499,5 +499,16 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
         }
 
+        [Route("reset-data")]
+        [HttpPost]
+        public async Task<ActionResult> ResetData(ResetDto resetDto)
+        {
+            MsgDto _msg = await _admin.ResetData(resetDto);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
     }
 }

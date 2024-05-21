@@ -244,7 +244,7 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _tax = await _context.PayCode.Where(o => o.id == id).Select(o => new {
+                var _payCode = await _context.PayCode.Where(o => o.id == id).Select(o => new {
                     o.id,
                     o.companyCode,
                     o.payCode,
@@ -261,9 +261,9 @@ namespace PayrollAPI.Repository
                     o.lastUpdateTime
                 }).ToListAsync();
 
-                if (_tax != null)
+                if (_payCode.Count > 0)
                 {
-                    _msg.Data = JsonConvert.SerializeObject(_tax);
+                    _msg.Data = JsonConvert.SerializeObject(_payCode);
                     _msg.MsgCode = 'S';
                     _msg.Message = "Success";
                     return _msg;
@@ -296,6 +296,14 @@ namespace PayrollAPI.Repository
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = "Pay Code already exists";
+                    return _msg;
+                }
+
+                if(payCodeDto.payCode == 0 || payCodeDto.companyCode == 0)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Please enter Valid Pay Code";
+                    return _msg;
                 }
 
                 var _payCode = new PayCode
@@ -1061,6 +1069,50 @@ namespace PayrollAPI.Repository
                     _msg.Message = "No Data Available";
                     return _msg;
                 }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> ResetData(ResetDto resetDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                var _payrollData = _context.Payroll_Data.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+                var _empData = _context.Employee_Data.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+                var _unrecoevered = _context.Unrecovered.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+                var _epf = _context.EPF_ETF.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+
+                if (resetDto.resetTempData)
+                {
+                    var _totPayCodes = _context.TotPayCode.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+                    var _sapPayCodes = _context.SAPTotPayCode.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+                    var _payrun = _context.Payrun.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+                    var _tempEmp = _context.Temp_Employee.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+                    var _tempPayroll = _context.Temp_Payroll.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).DeleteFromQuery();
+                }
+                else
+                {
+                    Payrun _payrun = _context.Payrun.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).FirstOrDefault();
+                    _payrun.payrunStatus = "Transfer Complete";
+                    _payrun.approvedBy = string.Empty;
+                    _payrun.payrunBy = string.Empty;
+                }
+
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Success";
+                return _msg;
             }
             catch (Exception ex)
             {

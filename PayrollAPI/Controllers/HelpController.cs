@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -7,6 +8,7 @@ namespace PayrollAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class HelpController : ControllerBase
     {
         private readonly IHelp _help;

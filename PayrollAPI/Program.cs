@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NLog;
@@ -36,9 +37,12 @@ try
     // Add services to the container.
 
     builder.Services.AddDbContext<PayrollAPI.Data.DBConnect>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DevConnection")));
+    options.UseMySQL(builder.Configuration.GetConnectionString("DevLocalConnection")));
 
     var _dbContext = builder.Services.BuildServiceProvider().GetService<DBConnect>();
+
+    // Add health check
+    builder.Services.AddHealthChecks().AddDbContextCheck<PayrollAPI.Data.DBConnect>();
 
     builder.Services.AddSingleton<IRefreshTokenGenerator>(provider => new RefreshTokenGenerator(_dbContext));
 
@@ -119,6 +123,16 @@ try
     }
 
     app.UseHttpsRedirection();
+
+    app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        ResultStatusCodes =
+        {
+            [HealthStatus.Healthy] = StatusCodes.Status200OK,
+            [HealthStatus.Degraded] = StatusCodes.Status200OK,
+            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+        }
+    });
 
     // Disable Cors
     app.UseCors(MyAllowSpecificOrigins);

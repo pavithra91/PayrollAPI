@@ -34,5 +34,6 @@ namespace PayrollAPI.Interfaces
 
 
         public Task<MsgDto> GetOTDetails(int period, int companyCode);
+        public Task<MsgDto> ResetData(ResetDto resetDto);
     }
 }
