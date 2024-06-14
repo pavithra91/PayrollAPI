@@ -22,5 +22,7 @@ namespace PayrollAPI.Interfaces
         public Task<MsgDto> DeleteUser(UserDto userDto);
 
         public bool ResetPassword(string username, string password);
+
+        public Task<MsgDto> SignOut(string userID);
     }
 }

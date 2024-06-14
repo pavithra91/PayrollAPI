@@ -165,6 +165,11 @@ namespace PayrollAPI.Repository
                         _tax.range = taxCalDto.range;
                     }
 
+                    if(_tax.status != taxCalDto.status)
+                    {
+                        _tax.status = taxCalDto.status;
+                    }
+
                     _tax.lastUpdateBy = taxCalDto.lastUpdateBy;
                     _tax.lastUpdateDate = DateTime.Now;
 
@@ -290,7 +295,7 @@ namespace PayrollAPI.Repository
             using var transaction = BeginTransaction();
             try
             {
-                var _ePayCode = _context.PayCode.FirstOrDefault(o => o.payCode == payCodeDto.payCode);
+                var _ePayCode = _context.PayCode.Where(o => o.payCode == payCodeDto.payCode && o.companyCode == payCodeDto.companyCode).FirstOrDefault();
 
                 if (_ePayCode != null)
                 {
@@ -462,7 +467,7 @@ namespace PayrollAPI.Repository
                     o.lastUpdateTime
                 }).ToListAsync();
 
-                if (_calculation != null)
+                if (_calculation.Count > 0)
                 {
                     _msg.Data = JsonConvert.SerializeObject(_calculation);
                     _msg.MsgCode = 'S';
@@ -497,6 +502,14 @@ namespace PayrollAPI.Repository
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = "Cal Code already exists";
+                    return _msg;
+                }
+
+                if(calDto.companyCode == 0 || calDto.sequence == 0 || calDto.calFormula == null || calDto.calCode == null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Payload have Null Values";
+                    return _msg;
                 }
 
                 var _cal = new Calculation
@@ -566,6 +579,7 @@ namespace PayrollAPI.Repository
                 {
                     _msg.MsgCode = 'N';
                     _msg.Message = "No Calculation Formula Found";
+                    return _msg;
                 }
 
                 await _context.SaveChangesAsync();
@@ -602,6 +616,7 @@ namespace PayrollAPI.Repository
                 {
                     _msg.MsgCode = 'N';
                     _msg.Message = "No Calculation Formula Found";
+                    return _msg;
                 }
 
                 await _context.SaveChangesAsync();

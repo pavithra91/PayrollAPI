@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PayrollAPI.Authentication;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -19,6 +20,7 @@ namespace PayrollAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class UserController : ControllerBase
     {
         private readonly IUsers _usr;
@@ -62,8 +64,9 @@ namespace PayrollAPI.Controllers
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        [Route("Refresh")]
+        [Route("refresh")]
         [HttpPost]
+        [AllowAnonymous]
         public IActionResult Refresh([FromBody] TokenResponse token)
         {
             var _refreshToken = _usr.RefreshToken(token);
@@ -176,6 +179,20 @@ namespace PayrollAPI.Controllers
         public async Task<IActionResult> GetUserById(int id)
         {
             MsgDto _msg = await _usr.GetUserbyId(id);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("sign-out")]
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<ActionResult> SignOut([FromBody] UserDto usrDto)
+        {
+
+            MsgDto _msg = await _usr.SignOut(usrDto.userID);
 
             if (_msg.MsgCode == 'S')
                 return Ok(_msg);

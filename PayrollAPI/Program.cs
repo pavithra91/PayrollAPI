@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NLog;
 using NLog.Web;
+using PayrollAPI.Authentication;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Repository;
@@ -87,6 +88,8 @@ try
     builder.Services.AddScoped<IPayroll, PayrollReporsitory>();
     builder.Services.AddScoped<IAdmin, AdminRepository>();
     builder.Services.AddScoped<IHelp, HelpRepository>();
+
+    builder.Services.AddScoped<ApiKeyAuthFilter>();
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();

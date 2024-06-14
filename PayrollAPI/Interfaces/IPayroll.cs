@@ -5,6 +5,7 @@ namespace PayrollAPI.Interfaces
 {
     public interface IPayroll
     {
+        public Task<MsgDto> SimulatePayroll(ApprovalDto approvalDto);
         public Task<MsgDto> ProcessPayroll(ApprovalDto approvalDto);
         public Task<MsgDto> CreateUnrecoveredFile(ApprovalDto approvalDto);
         public Task<MsgDto> ProcessPayrollbyEPF(string epf, int period, int companyCode);

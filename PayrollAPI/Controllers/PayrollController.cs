@@ -17,6 +17,24 @@ namespace PayrollAPI.Controllers
         { 
             _payroll = payroll;
         }
+
+
+        [Route("simulate-payroll")]
+        [HttpPost]
+        public async Task<IActionResult> SimulatePayroll(ApprovalDto approvalDto)
+        {
+            MsgDto _msg = await _payroll.SimulatePayroll(approvalDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         /// <summary>
         /// Method used to start the payroll process
         /// </summary>
@@ -85,7 +103,7 @@ namespace PayrollAPI.Controllers
             }
             else
             {
-                return BadRequest(_msg);
+                return NoContent();
             }
         }
 

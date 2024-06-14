@@ -7,6 +7,7 @@ namespace PayrollAPI.Interfaces
 {
     public interface IDatatransfer
     {
+        public Task<MsgDto> PayCodeCheck(int companyCode, int period);
         public Task<MsgDto> ConfirmDataTransfer(ApprovalDto approvalDto);
 
         public Task<MsgDto> PreparePayrun(ApprovalDto approvalDto);

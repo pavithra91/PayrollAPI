@@ -33,6 +33,87 @@ namespace PayrollAPI.Repository
             return transaction.GetDbTransaction();
         }
 
+        public async Task<MsgDto> SimulatePayroll(ApprovalDto approvalDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+
+            try
+            {
+                ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).OrderBy(o => o.epf).ToList();
+                ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).ToList();
+                ICollection<Calculation> _calculation = _context.Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
+
+                // int _previousPeriod = GetPreviousPeriod(approvalDto.period.ToString());
+                int _previousPeriod = GetPreviousPeriod("202401");
+
+                var _summaryList = _context.GetSummaryDetails.FromSqlRaw("SELECT * FROM payrolldb.Payroll_Summary_View WHERE period= " + _previousPeriod + ";").ToList();
+
+                Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
+
+                if (_payRun == null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"No Data available for period - {approvalDto.period}. Payrun operation failed.";
+                    return _msg;
+                }
+                else if (_payRun.payrunStatus == "Confirmed")
+                {
+                    decimal _grossTot = _payrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
+                    decimal _epfTot = _payrollData.Where(o => o.epfConRate > 0).Sum(w => w.epfContribution);
+                    decimal _taxTot = _payrollData.Where(o => o.taxConRate > 0 && o.paytype != 'A').Sum(w => w.taxContribution);
+
+                    Dictionary<string, decimal> calCodeList = new Dictionary<string, decimal>();
+                    calCodeList.Add("EPFTO", _epfTot);
+                    calCodeList.Add("TGROS", _grossTot);
+
+                    foreach (Calculation cal in _calculation)
+                    {
+                        Expression expression = new Expression();
+                        expression.SetFomular(cal.calFormula);
+                        List<String> variables = expression.getVariables();
+                        foreach (String variable in variables)
+                        {
+                            var _val = calCodeList.Where(o => o.Key == variable).FirstOrDefault();
+                            if (_val.Key != null)
+                            {
+                                expression.Bind(variable, _val.Value);
+                            }
+                            // Console.WriteLine(variable);
+                        }
+
+                        Decimal _result = expression.Eval<Decimal>();
+
+                        calCodeList.Add(cal.calCode, _result);
+                    };
+
+                    calCodeList.Add("EMPCount", _emp.Count);
+
+                    Dictionary<string, string> result = new Dictionary<string, string>();
+
+                    result.Add("Current", JsonConvert.SerializeObject(calCodeList));
+                    result.Add("Previous", JsonConvert.SerializeObject(_summaryList));
+
+                    _msg.MsgCode = 'S';
+                    _msg.Data = JsonConvert.SerializeObject(result);
+                    _msg.Message = "Simulate Ready";
+                    return _msg;
+
+                }
+                else
+                {
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "EPF/TAX Calculated Successfully";
+                    return _msg;
+                }
+            }
+            catch
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error";
+                return _msg;
+            }
+        }
         public async Task<MsgDto> ProcessPayroll(ApprovalDto approvalDto)
         {
             MsgDto _msg = new MsgDto();
@@ -950,6 +1031,26 @@ namespace PayrollAPI.Repository
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
+            }
+        }
+
+        private int GetPreviousPeriod(string period)
+        {
+            string month = period[^2..];
+            string year = period[0..4];
+            int _month = Convert.ToInt32(month);
+            int _year = Convert.ToInt32(year);
+
+            if ( _month == 1 )
+            {
+                _month = 12;
+                _year -= 1;
+                return Convert.ToInt32(_year.ToString() + _month.ToString());
+            }
+            else
+            {
+                _month -= 1;
+                return Convert.ToInt32(_year.ToString() + _month.ToString());
             }
         }
     }

@@ -22,7 +22,7 @@ namespace PayrollAPI.Repository
         private readonly PasswordHasher passwordHasher;
         private readonly IRefreshTokenGenerator tokenGenerator;
         private readonly ILogger _logger;
-        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken, ILogger<PayrollReporsitory> logger) 
+        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken, ILogger<UsersRepository> logger) 
         {
             _context = dB;
             this.setting = options.Value;
@@ -244,8 +244,6 @@ namespace PayrollAPI.Repository
             {
                 var _user = _context.User.FirstOrDefault(o => o.userID == usr.UserId);
 
-                bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString());
-
                 if (_user == null)
                 {
                     status = -1;
@@ -257,10 +255,11 @@ namespace PayrollAPI.Repository
                 {
                     status = -2;
                     msg = "Account Locked";
-                    _context.SaveChangesAsync();
 
                     return null;
                 }
+
+                bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString());
 
                 if (!pwd)
                 {
@@ -285,10 +284,10 @@ namespace PayrollAPI.Repository
                     Subject = new ClaimsIdentity(
                         new Claim[]
                         {
-                        new Claim(ClaimTypes.Name, "Pavithra"),
+                        new Claim(ClaimTypes.Name, _user.userID),
                         }
                     ),
-                    Expires = DateTime.Now.AddMinutes(5),
+                    Expires = DateTime.Now.AddMinutes(10),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256)
                 };
 
@@ -351,10 +350,10 @@ namespace PayrollAPI.Repository
             }, out securityToken);
 
             var _token = securityToken as JwtSecurityToken;
-            if (_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
-            {
-                return null;
-            }
+           // if (_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
+         ////   {
+         //       return null;
+         //   }
 
             var username = principle.Identity.Name;
             var _reftable = _context.LoginInfo.FirstOrDefault(o => o.userID == username && o.refreshToken == token.RefreshToken);
@@ -375,7 +374,7 @@ namespace PayrollAPI.Repository
             var tokenkey = Encoding.UTF8.GetBytes(setting.securitykey);
             var tokenhandler = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(5),
+                expires: DateTime.Now.AddMinutes(10),
                  signingCredentials: new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
 
                 );
@@ -406,6 +405,43 @@ namespace PayrollAPI.Repository
             }
         }
 
+        public async Task<MsgDto> SignOut(string userID)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                var _user = _context.LoginInfo.FirstOrDefault(o => o.userID == userID && o.isActive == true);
+
+                if (_user != null)
+                {
+                    _user.isActive = false;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = $"User {_user.userID} Sign out Successfully";
+                }
+                else
+                {
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No User LoginInfo Found";
+                }
+
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _logger.LogError($"signout-user : {ex.Message}");
+                _logger.LogError($"signout-user : {ex.InnerException}");
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
 
         public bool Save()
         {
