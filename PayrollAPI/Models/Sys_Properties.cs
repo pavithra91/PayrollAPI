@@ -1,32 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
 namespace PayrollAPI.Models
 {
-    public class PayCode
+    public class Sys_Properties
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
 
         public int companyCode { get; set; }
-        public int payCode { get; set; }
 
-        [Column(TypeName = "varchar(5)")]
-        public string? calCode { get; set; }
+        [Column(TypeName = "varchar(50)")]
+        public string category_name { get; set; }
 
-        [Column(TypeName = "varchar(2)")]
-        public string? payCategory { get; set; }
-
-        [Column(TypeName = "varchar(100)")]
-        public string? description { get; set; }
-
-        [Column(TypeName = "varchar(2)")]
-        public string? taxationType { get; set; }
-
-        [Column(TypeName = "decimal(3, 2)")]
-        public decimal rate { get; set; }
+        [Column(TypeName = "varchar(50)")]
+        public string variable_name { get; set; }
+        
+        [Column(TypeName = "varchar(500)")]
+        public string variable_value { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public string? createdBy { get; set; }

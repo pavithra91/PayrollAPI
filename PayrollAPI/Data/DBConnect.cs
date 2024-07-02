@@ -34,6 +34,8 @@ namespace PayrollAPI.Data
 
         public DbSet<SysLog> SysLog { get; set; }
 
+        public DbSet<Sys_Properties> Sys_Properties { get; set; }
+
         public DbSet<OTHours_View> GetOTDetails { get; set; }
         public DbSet<Payroll_Summary_View> GetSummaryDetails { get; set; }
 
@@ -143,6 +145,14 @@ namespace PayrollAPI.Data
                     .ForMySQLHasDefaultValueSql("(CURDATE())");
 
             modelBuilder.Entity<Article>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Sys_Properties>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Sys_Properties>()
                     .Property(s => s.createdTime)
                     .ForMySQLHasDefaultValueSql("(CURTIME())");
 

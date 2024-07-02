@@ -499,6 +499,30 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
         }
 
+        [Route("get-unrecovered-details")]
+        [HttpGet]
+        public async Task<ActionResult> GetUnrecoveredDetails(int period, int companyCode)
+        {
+            MsgDto _msg = await _admin.GetUnrecoveredDetails(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("get-lumpsumtax-details")]
+        [HttpGet]
+        public async Task<ActionResult> GetLumpSumTaxDetails(int period, int companyCode)
+        {
+            MsgDto _msg = await _admin.GetLumpSumTaxDetails(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
         [Route("reset-data")]
         [HttpPost]
         public async Task<ActionResult> ResetData(ResetDto resetDto)
@@ -509,6 +533,54 @@ namespace PayrollAPI.Controllers
                 return Ok(_msg);
             else
                 return BadRequest(_msg);
+        }
+
+        [Route("get-system-variables")]
+        [HttpGet]
+        public async Task<ActionResult> GetSystemVariables()
+        {
+            MsgDto _msg = await _admin.GetSystemVariables();
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("create-system-variable")]
+        [HttpPost]
+        public async Task<ActionResult> CreateSystemVariable([FromBody] SysVariableDto sysVariableDto)
+        {
+            MsgDto _msg = await _admin.CreateSystemVariable(sysVariableDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("update-system-variable")]
+        [HttpPut]
+        public async Task<ActionResult> UpdateSystemVariable([FromBody] SysVariableDto sysVariableDto)
+        {
+            MsgDto _msg = await _admin.UpdateSystemVariable(sysVariableDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else if (_msg.MsgCode == 'N')
+            {
+                return NotFound(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
         }
     }
 }

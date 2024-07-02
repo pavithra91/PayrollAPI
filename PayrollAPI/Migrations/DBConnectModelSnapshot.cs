@@ -61,7 +61,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Article");
+                    b.ToTable("Article", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Calculation", b =>
@@ -121,7 +121,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Calculation");
+                    b.ToTable("Calculation", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Category", b =>
@@ -138,7 +138,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Category");
+                    b.ToTable("Category", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.EPF_ETF", b =>
@@ -208,7 +208,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("EPF_ETF");
+                    b.ToTable("EPF_ETF", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.EmpSpecialRate", b =>
@@ -266,7 +266,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("EmpSpecialRate");
+                    b.ToTable("EmpSpecialRate", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Employee_Data", b =>
@@ -330,7 +330,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Employee_Data");
+                    b.ToTable("Employee_Data", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.LoginInfo", b =>
@@ -365,7 +365,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("LoginInfo");
+                    b.ToTable("LoginInfo", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.OTHours_View", b =>
@@ -382,7 +382,7 @@ namespace PayrollAPI.Migrations
                     b.Property<int>("period")
                         .HasColumnType("int");
 
-                    b.ToTable("GetOTDetails");
+                    b.ToTable("GetOTDetails", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.PayCode", b =>
@@ -436,7 +436,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("PayCode");
+                    b.ToTable("PayCode", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Payroll_Data", b =>
@@ -504,7 +504,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Payroll_Data");
+                    b.ToTable("Payroll_Data", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Payroll_Summary_View", b =>
@@ -521,7 +521,7 @@ namespace PayrollAPI.Migrations
                     b.Property<int>("period")
                         .HasColumnType("int");
 
-                    b.ToTable("GetSummaryDetails");
+                    b.ToTable("GetSummaryDetails", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Payrun", b =>
@@ -574,7 +574,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Payrun");
+                    b.ToTable("Payrun", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.SAPTotPayCode", b =>
@@ -619,7 +619,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("SAPTotPayCode");
+                    b.ToTable("SAPTotPayCode", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Special_Tax_Emp", b =>
@@ -671,7 +671,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Special_Tax_Emp");
+                    b.ToTable("Special_Tax_Emp", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.SysLog", b =>
@@ -697,7 +697,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("SysLog");
+                    b.ToTable("SysLog", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Tax_Calculation", b =>
@@ -748,7 +748,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Tax_Calculation");
+                    b.ToTable("Tax_Calculation", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Temp_Employee", b =>
@@ -809,7 +809,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Temp_Employee");
+                    b.ToTable("Temp_Employee", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Temp_Payroll", b =>
@@ -876,7 +876,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Temp_Payroll");
+                    b.ToTable("Temp_Payroll", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.TotPayCode", b =>
@@ -915,7 +915,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("TotPayCode");
+                    b.ToTable("TotPayCode", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Unrecovered", b =>
@@ -964,7 +964,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Unrecovered");
+                    b.ToTable("Unrecovered", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.User", b =>
@@ -1034,7 +1034,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
                 });
 #pragma warning restore 612, 618
         }

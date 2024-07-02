@@ -9,5 +9,9 @@ namespace PayrollAPI.Models
         public int period { get; set; }
         public float Gross { get; set; }
         public int Employees { get; set; }
+        public float EPFEMP { get; set; }
+        public float EPFCOM { get; set; }
+        public float ETF { get; set; }
+
     }
 }

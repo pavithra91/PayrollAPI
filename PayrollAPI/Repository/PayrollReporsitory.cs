@@ -13,6 +13,7 @@ using static System.Runtime.CompilerServices.RuntimeHelpers;
 using Newtonsoft.Json;
 using PayrollAPI.Controllers;
 using Newtonsoft.Json.Linq;
+using Google.Protobuf.WellKnownTypes;
 
 namespace PayrollAPI.Repository
 {
@@ -91,11 +92,24 @@ namespace PayrollAPI.Repository
 
                     Dictionary<string, string> result = new Dictionary<string, string>();
 
-                    result.Add("Current", JsonConvert.SerializeObject(calCodeList));
-                    result.Add("Previous", JsonConvert.SerializeObject(_summaryList));
+                    double epfco = ((_summaryList[0].EPFCOM - Convert.ToDouble(calCodeList.Where(o => o.Key == "EPFCO").FirstOrDefault().Value)) / _summaryList[0].EPFCOM ) * 100;
+                    double gorss = ((_summaryList[0].Gross - Convert.ToDouble(calCodeList.Where(o => o.Key == "TGROS").FirstOrDefault().Value)) / _summaryList[0].Gross) * 100;
+                    double epfem = ((_summaryList[0].EPFEMP - Convert.ToDouble(calCodeList.Where(o => o.Key == "EPFEM").FirstOrDefault().Value)) / _summaryList[0].EPFEMP) * 100;
+                    double etf = ((_summaryList[0].ETF - Convert.ToDouble(calCodeList.Where(o => o.Key == "ETFCO").FirstOrDefault().Value)) / _summaryList[0].ETF) * 100;
+
+                    DataTable dt = new DataTable();
+                    dt.Columns.Add("ResultType");
+                    dt.Columns.Add("Percentage");
+                    dt.Columns.Add("CurrentValue");
+
+                    dt.Rows.Add("Gross Amount", gorss, Convert.ToDouble(calCodeList.Where(o => o.Key == "TGROS").FirstOrDefault().Value));
+                    dt.Rows.Add("EPF Employee Contribution", epfem, Convert.ToDouble(calCodeList.Where(o => o.Key == "EPFEM").FirstOrDefault().Value)); 
+                    dt.Rows.Add("EPF Company Contribution", epfco, Convert.ToDouble(calCodeList.Where(o => o.Key == "EPFCO").FirstOrDefault().Value));                   
+                    dt.Rows.Add("ETF Company Contribution", etf, Convert.ToDouble(calCodeList.Where(o => o.Key == "ETFCO").FirstOrDefault().Value));
+
 
                     _msg.MsgCode = 'S';
-                    _msg.Data = JsonConvert.SerializeObject(result);
+                    _msg.Data = JsonConvert.SerializeObject(dt);
                     _msg.Message = "Simulate Ready";
                     return _msg;
 
@@ -115,7 +129,7 @@ namespace PayrollAPI.Repository
             }
         }
         public async Task<MsgDto> ProcessPayroll(ApprovalDto approvalDto)
-        {
+        {       
             MsgDto _msg = new MsgDto();
             using var transaction = BeginTransaction();
 
@@ -123,8 +137,8 @@ namespace PayrollAPI.Repository
             {
                 ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).OrderBy(o => o.epf).ToList();
                 ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period && o.companyCode == approvalDto.companyCode).ToList();
-                ICollection<Calculation> _calculation = _context.Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
-                ICollection<Tax_Calculation> _taxCalculation = _context.Tax_Calculation.Where(o => o.companyCode == approvalDto.companyCode).ToList();
+                ICollection<Calculation> _calculation = _context.Calculation.Where(o => o.companyCode == approvalDto.companyCode && o.status == true).ToList();
+                ICollection<Tax_Calculation> _taxCalculation = _context.Tax_Calculation.Where(o => o.companyCode == approvalDto.companyCode && o.status == true && o.taxCategory == "IT").ToList();
                 ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == approvalDto.companyCode).ToList();
                 Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
 
@@ -311,6 +325,7 @@ namespace PayrollAPI.Repository
                         ePF_ETF.comp_contribution = _empPayrollData.Where(x => x.calCode == "EPFCO").Select(x => x.amount).FirstOrDefault(0);
                         ePF_ETF.etf = _empPayrollData.Where(x => x.calCode == "ETFCO").Select(x => x.amount).FirstOrDefault(0);
                         ePF_ETF.tax = _empPayrollData.Where(x => x.calCode == "APTAX").Select(x => x.amount).FirstOrDefault(0);
+                        ePF_ETF.createdBy = approvalDto.approvedBy;
 
                         await _context.EPF_ETF.AddAsync(ePF_ETF);
                     };
@@ -319,6 +334,10 @@ namespace PayrollAPI.Repository
                    _payRun.payrunStatus = "EPF/TAX Calculated";
                    _payRun.payrunDate = DateTime.Now;
                    _payRun.payrunTime = DateTime.Now;
+
+                    await _context.SaveChangesAsync();
+
+                    Calculate_lumpSumTax(approvalDto.companyCode, approvalDto.period, _payrollData);
 
                     await _context.SaveChangesAsync();
 
@@ -331,7 +350,7 @@ namespace PayrollAPI.Repository
                 else
                 {
                     _msg.MsgCode = 'E';
-                    _msg.Message = "EPF/TAX Already Ccalculated. Operation Failed!";
+                    _msg.Message = "EPF/TAX Already Calculated. Operation Failed!";
                     return _msg;
                 }
             }
@@ -418,13 +437,10 @@ namespace PayrollAPI.Repository
 
                             EPF_ETF ePF_ETF = _epfETF.Where(o => o.epf == emp.epf).FirstOrDefault();
                             ePF_ETF.unRecoveredTotal = unRecTotal;
-                            _context.Entry(ePF_ETF).State = EntityState.Modified;
                             unRecTotal = 0;
                         }
                     }
                     
-
-
                     _payRun.payrunBy = approvalDto.approvedBy;
                     _payRun.payrunStatus = "Unrec File Created";
                     _payRun.payrunDate = DateTime.Now;
@@ -465,7 +481,7 @@ namespace PayrollAPI.Repository
                 ICollection<Employee_Data> _emp = _context.Employee_Data.Where(o => o.period == period && o.companyCode == companyCode && o.epf == epf).OrderBy(o => o.epf).ToList();
                 ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == period && o.companyCode == companyCode && o.epf == epf).ToList();
                 ICollection<Calculation> _calculation = _context.Calculation.Where(o => o.companyCode == companyCode).ToList();
-                ICollection<Tax_Calculation> _taxCalculation = _context.Tax_Calculation.Where(o => o.companyCode == companyCode).ToList();
+                ICollection<Tax_Calculation> _taxCalculation = _context.Tax_Calculation.Where(o => o.companyCode == companyCode && o.status == true && o.taxCategory == "IT").ToList();
                 ICollection<Unrecovered> _unRecoveredList = _context.Unrecovered.Where(o => o.companyCode == companyCode).ToList();
 
                 // Calculate EPF and Tax
@@ -700,7 +716,21 @@ namespace PayrollAPI.Repository
         public async Task<MsgDto> GetPayrollSummary(int period, int companyCode)
         {
             MsgDto _msg = new MsgDto();
-            ICollection<EPF_ETF> ePF_ETFs = await _context.EPF_ETF.Where(o => o.period == period && o.companyCode == companyCode).OrderBy(o => o.epf).ToListAsync();
+            var ePF_ETFs = await _context.EPF_ETF.Where(o => o.period == period && o.companyCode == companyCode).OrderBy(o => o.epf).Select(o=> new { 
+                o.companyCode, 
+                o.location,
+                o.period,
+                o.epf,
+                o.empName,
+                o.grade,
+                o.emp_contribution,
+                o.comp_contribution,
+                o.etf,
+                o.epfGross,
+                o.taxableGross,
+                o.tax,
+                o.lumpsumTax,
+            }).ToListAsync();
            
             if (ePF_ETFs.Count > 0)
             {
@@ -1052,6 +1082,109 @@ namespace PayrollAPI.Repository
                 _month -= 1;
                 return Convert.ToInt32(_year.ToString() + _month.ToString());
             }
+        }
+
+        private void Calculate_lumpSumTax(int companyCode, int period, ICollection<Payroll_Data> _payrollData)
+        {
+            ICollection<Tax_Calculation> _taxCalculation = _context.Tax_Calculation.Where(o => o.companyCode == companyCode && o.status == true && o.taxCategory == "LT").ToList();
+            //ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.companyCode == companyCode && o.period == period).ToList();
+            ICollection<EPF_ETF> _epfETF = _context.EPF_ETF.Where(o => o.period == period && o.companyCode == companyCode).ToList();
+            var _taxYear = _context.Sys_Properties.Where(o => o.category_name == "System_Variable").Select(s=> new {s.variable_name, s.variable_value}).ToList();
+            var _lumpsumPayCodes = _context.Sys_Properties.Where(o => o.variable_name == "Lump_Sum_PayCode").Select(s => new { s.variable_value }).ToList();
+
+            List<int> allowedPayCodes = new List<int>();
+            int taxYearFrom = Convert.ToInt32(_taxYear.Where(o=>o.variable_name == "YearFrom").Select(s=>s.variable_value).FirstOrDefault());
+            int taxYearTo = Convert.ToInt32(_taxYear.Where(o => o.variable_name == "YearTo").Select(s => s.variable_value).FirstOrDefault());
+
+
+            if((period - taxYearFrom) < 0)
+            {
+                return;
+            }
+
+            foreach (var item in _lumpsumPayCodes)
+            {
+                allowedPayCodes.Add(Convert.ToInt32(item.variable_value));
+            }
+
+            var _payItem = _payrollData.Where(o=> o.paytype == 'A').ToList();
+
+            var _records = _payrollData.Where(o => allowedPayCodes.Contains(o.payCode) && o.paytype != 'A')
+                                       .GroupBy(employee => employee.epf)
+                                       .Select(group => new { EPF = group.Key, Amount = group.Sum(e => e.amount) })
+                                       .ToList();
+
+            var _epfetf = _context.EPF_ETF.Where(o => o.period >= taxYearFrom && o.period <= taxYearTo).Select(o=> new
+            {
+                o.epf,
+                o.taxableGross,
+                o.tax,
+                o.lumpsumTax,
+            }).ToList();
+
+            foreach(var item in _records)
+            {
+                decimal _arriesSum = _payItem.Where(o=>o.epf == item.EPF).Sum(s=>s.amount);
+                int count = _epfetf.Where(o => o.epf == item.EPF).Count();
+                double _pTaxableGross = Convert.ToDouble(_epfetf.Where(o => o.epf == item.EPF).Sum(s => s.taxableGross)) / count;
+                double _pTax = Convert.ToDouble(_epfetf.Where(o => o.epf == item.EPF).Sum(s => s.tax)) / count;
+                double _pLumsumpTax = Convert.ToDouble(_epfetf.Where(o => o.epf == item.EPF).Sum(s => s.lumpsumTax));
+
+                decimal A = (decimal)(_pTax + _pLumsumpTax) * 12;
+
+                decimal D = (decimal)(_pTaxableGross) * 12;
+                decimal _lumpSumGross = item.Amount + _arriesSum;
+                D = D + _lumpSumGross;
+
+                foreach (Tax_Calculation cal in _taxCalculation)
+                {
+                    if (D > cal.range)
+                    {
+                        continue;
+                    }
+                    Expression expression = new Expression();
+                    expression.SetFomular(cal.calFormula);
+                    expression.Bind("D", D);
+                    expression.Bind("A", A);
+                    Decimal _taxResult = expression.Eval<Decimal>();
+
+                    if(_taxResult < 0)
+                    {
+                        _lumpSumGross = 0;
+                        _taxResult = 0;
+                    }
+
+                    EPF_ETF ePF_ETF = _epfETF.Where(o => o.epf == item.EPF && o.period == period && o.companyCode == companyCode).FirstOrDefault();
+                    ePF_ETF.lumpsumTax = _taxResult;
+                    ePF_ETF.lumpSumGross = _lumpSumGross;
+
+                    Payroll_Data emp = _payrollData.Where(o => o.epf == item.EPF).FirstOrDefault();
+
+                    Payroll_Data _objTAXTOT = new Payroll_Data();
+                    _objTAXTOT.companyCode = companyCode;
+                    _objTAXTOT.location = emp.location;
+                    _objTAXTOT.period = period;
+                    _objTAXTOT.epf = emp.epf;
+                    _objTAXTOT.othours = 0;
+                    _objTAXTOT.payCategory = "1";
+                    _objTAXTOT.payCode = 328;
+                    _objTAXTOT.calCode = "LUMTX";
+                    _objTAXTOT.paytype = null;
+                    _objTAXTOT.costCenter = emp.costCenter;
+                    _objTAXTOT.payCodeType = cal.contributor;
+                    _objTAXTOT.amount = _taxResult;
+                    _objTAXTOT.balanceAmount = 0;
+                    _objTAXTOT.displayOnPaySheet = true;
+                    _objTAXTOT.epfConRate = 0;
+                    _objTAXTOT.epfContribution = 0;
+                    _objTAXTOT.taxConRate = 0;
+                    _objTAXTOT.taxContribution = 0;
+
+                    _context.Payroll_Data.Add(_objTAXTOT);
+
+                    break;
+                }
+                }
         }
     }
 }

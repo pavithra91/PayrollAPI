@@ -67,7 +67,7 @@ namespace PayrollAPI.Tests.Controller.Repository
                 description = "Basic Salary",
                 payCode = 111,
                 rate = 1,
-                isTaxableGross = true,
+                taxationType = "IT",
                 createdBy = "3021ITFI",
                 createdDate = new DateTime(),
             };
@@ -454,19 +454,19 @@ namespace PayrollAPI.Tests.Controller.Repository
             // Blank Object
             new object[] { new PayCodeDto { } },
             // No Company Code
-            new object[] { new PayCodeDto { payCode = 13, calCode = "_10", description = "Basic Salary", rate = 1, isTaxableGross = true, createdBy = "3021ITFI", createdDate = new DateTime() } },
+            new object[] { new PayCodeDto { payCode = 13, calCode = "_10", description = "Basic Salary", rate = 1, taxationType = "IT", createdBy = "3021ITFI", createdDate = new DateTime() } },
             // Same PayCode
-            new object[] { new PayCodeDto { companyCode = 3000, payCode = 10, calCode = "_10", description = "Basic Salary", rate = 1, isTaxableGross = true, createdBy = "3021ITFI", createdDate = new DateTime() } },
+            new object[] { new PayCodeDto { companyCode = 3000, payCode = 10, calCode = "_10", description = "Basic Salary", rate = 1, taxationType = "IT", createdBy = "3021ITFI", createdDate = new DateTime() } },
             // No Pay Code
-            new object[] { new PayCodeDto { companyCode = 3000, calCode = "_10", description = "Basic Salary", rate = 1, isTaxableGross = true, createdBy = "3021ITFI", createdDate = new DateTime() } },
+            new object[] { new PayCodeDto { companyCode = 3000, calCode = "_10", description = "Basic Salary", rate = 1, taxationType = "IT", createdBy = "3021ITFI", createdDate = new DateTime() } },
         };
 
         public static IEnumerable<object[]> UpdatePayCodeDataList => new List<object[]>
         {
-            new object[] { new PayCodeDto { id = 214, companyCode = 3000, payCode = 111, calCode = "_111", description = "Basic Salary", rate = 1, isTaxableGross = false, createdBy = "3021ITFI", createdDate = new DateTime() } },
+            new object[] { new PayCodeDto { id = 214, companyCode = 3000, payCode = 111, calCode = "_111", description = "Basic Salary", rate = 1, taxationType = "IT", createdBy = "3021ITFI", createdDate = new DateTime() } },
 
             // No Cal Code
-            new object[] { new PayCodeDto { id = 214, companyCode = 3000, payCode = 111, description = "Basic Salary", rate = 0.5m, isTaxableGross = true, createdBy = "3021ITFI", createdDate = new DateTime() } },
+            new object[] { new PayCodeDto { id = 214, companyCode = 3000, payCode = 111, description = "Basic Salary", rate = 0.5m, taxationType = "IT", createdBy = "3021ITFI", createdDate = new DateTime() } },
         };
 
         public static IEnumerable<object[]> UpdatePayCodeNotFoundDataList => new List<object[]>
@@ -474,16 +474,16 @@ namespace PayrollAPI.Tests.Controller.Repository
             // Blank Object
             new object[] { new PayCodeDto { } },
             // No Company Code
-            new object[] { new PayCodeDto { payCode = 999, companyCode = 3000, calCode = "_10", description = "Basic Salary", rate = 1, isTaxableGross = true, createdBy = "3021ITFI", createdDate = new DateTime() } },
+            new object[] { new PayCodeDto { payCode = 999, companyCode = 3000, calCode = "_10", description = "Basic Salary", rate = 1, taxationType = "IT", createdBy = "3021ITFI", createdDate = new DateTime() } },
         };
 
         public static IEnumerable<object[]> UpdatePayCodeErrorDataList => new List<object[]>
         {
             // Cal Code max characters exceeded
-            new object[] { new PayCodeDto { id = 214, companyCode = 3000, payCode = 111, calCode = "_111111", description = "Basic Salary", rate = 1, isTaxableGross = false, createdBy = "3021ITFI", createdDate = new DateTime() } },
+            new object[] { new PayCodeDto { id = 214, companyCode = 3000, payCode = 111, calCode = "_111111", description = "Basic Salary", rate = 1, taxationType = "IT", createdBy = "3021ITFI", createdDate = new DateTime() } },
 
             // payCategory max characters exceeded
-            new object[] { new PayCodeDto { id = 214, companyCode = 3000, payCode = 111, calCode = "_111", payCategory = "TEST", description = "Basic Salary", rate = 0.5m, isTaxableGross = true, createdBy = "3021ITFI", createdDate = new DateTime() } },
+            new object[] { new PayCodeDto { id = 214, companyCode = 3000, payCode = 111, calCode = "_111", payCategory = "TEST", description = "Basic Salary", rate = 0.5m, taxationType = "IT", createdBy = "3021ITFI", createdDate = new DateTime() } },
         };
 
         #endregion

@@ -1,16 +1,12 @@
 ﻿namespace PayrollAPI.DataModel
 {
-    public class TaxCalDto
+    public class SysVariableDto
     {
         public int id { get; set; }
-        public char flag { get; set; }
         public int companyCode { get; set; }
-        public decimal range { get; set; }
-        public string? calFormula { get; set; }
-        
-        public string? description { get; set; }
-        public string? taxCategory { get; set; }
-        public bool status { get; set; }
+        public string category_name { get; set; }
+        public string variable_name { get; set; }
+        public string variable_value { get; set; }
         public string? createdBy { get; set; }
         public DateTime createdDate { get; set; }
         public string? lastUpdateBy { get; set; }

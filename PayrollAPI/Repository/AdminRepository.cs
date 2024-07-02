@@ -36,6 +36,7 @@ namespace PayrollAPI.Repository
                 o.range,
                 o.calFormula,
                 o.description,
+                o.taxCategory,
                 o.contributor,
                 o.status,
                 o.createdBy,
@@ -79,6 +80,7 @@ namespace PayrollAPI.Repository
                     o.range,
                     o.calFormula,
                     o.description,
+                    o.taxCategory,
                     o.contributor,
                     o.status,
                     o.createdBy,
@@ -124,6 +126,7 @@ namespace PayrollAPI.Repository
                     companyCode = taxCalDto.companyCode,
                     calFormula = taxCalDto.calFormula,
                     description = taxCalDto.description,
+                    taxCategory = taxCalDto.taxCategory,
                     range = taxCalDto.range,
                     status = true,
                     createdBy = taxCalDto.createdBy,
@@ -159,8 +162,9 @@ namespace PayrollAPI.Repository
                 {
                     _tax.calFormula = taxCalDto.calFormula ?? _tax.calFormula;
                     _tax.description = taxCalDto.description ?? _tax.description;
+                    _tax.taxCategory = taxCalDto.taxCategory ?? _tax.taxCategory;
 
-                    if(taxCalDto.range > 0)
+                    if (taxCalDto.range > 0)
                     {
                         _tax.range = taxCalDto.range;
                     }
@@ -212,7 +216,7 @@ namespace PayrollAPI.Repository
                     o.description,
                     o.payCategory,
                     o.rate,
-                    o.isTaxableGross,
+                    o.taxationType,
                     o.createdBy,
                     o.createdDate,
                     o.createdTime,
@@ -257,7 +261,7 @@ namespace PayrollAPI.Repository
                     o.description,
                     o.payCategory,
                     o.rate,
-                    o.isTaxableGross,
+                    o.taxationType,
                     o.createdBy,
                     o.createdDate,
                     o.createdTime,
@@ -319,7 +323,7 @@ namespace PayrollAPI.Repository
                     payCode = payCodeDto.payCode,
                     payCategory = payCodeDto.payCategory,
                     rate = payCodeDto.rate,
-                    isTaxableGross = payCodeDto.isTaxableGross,
+                    taxationType = payCodeDto.taxationType,
                     createdBy = payCodeDto.createdBy,
                     createdDate = DateTime.Now
                 };
@@ -355,12 +359,13 @@ namespace PayrollAPI.Repository
                 {
                     _payCode.calCode = payCodeDto.calCode ?? _payCode.calCode;
                     _payCode.description = payCodeDto.description ?? _payCode.description;
-                    _payCode.payCategory = payCodeDto.payCategory ?? _payCode.payCategory;
+                    _payCode.payCategory = payCodeDto.payCategory ?? _payCode.payCategory; 
+                    _payCode.taxationType = payCodeDto.taxationType ?? _payCode.taxationType;
 
-                    if(_payCode.isTaxableGross != payCodeDto.isTaxableGross)
-                    {
-                        _payCode.isTaxableGross = payCodeDto.isTaxableGross;
-                    }
+                    //if (_payCode.isTaxableGross != payCodeDto.isTaxableGross)
+                    //{
+                    //    _payCode.isTaxableGross = payCodeDto.isTaxableGross;
+                    //}
 
                     if (payCodeDto.rate >= 0)
                     {
@@ -1063,7 +1068,9 @@ namespace PayrollAPI.Repository
             try
             {
                 var _othoursList = _context.GetOTDetails.FromSqlRaw("SELECT * FROM payrolldb.OTHours_View WHERE period= " + period + ";").ToList();
-                var _summaryList = _context.GetSummaryDetails.FromSqlRaw("SELECT * FROM payrolldb.Payroll_Summary_View WHERE period= " + period + ";").ToList();
+                var _summaryList = _context.GetSummaryDetails.FromSqlRaw("SELECT * FROM payrolldb.Payroll_Summary_View ORDER BY period DESC LIMIT 12;").ToList();
+
+                _summaryList.Reverse();
 
                 DataTable dt = new DataTable();
                 dt.Columns.Add("overTimeData");
@@ -1073,6 +1080,86 @@ namespace PayrollAPI.Repository
                 {
                     dt.Rows.Add(JsonConvert.SerializeObject(_othoursList), JsonConvert.SerializeObject(_summaryList));
                     _msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+
+        public async Task<MsgDto> GetUnrecoveredDetails(int period, int companyCode)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _unrecoveredList = await _context.Unrecovered.Where(o => o.companyCode == companyCode && o.period == period).Select(o=> new
+                {
+                    o.epf,
+                    o.costCenter,
+                    o.location,
+                    o.payCode,
+                    o.amount
+                }
+                ).ToListAsync();
+
+                if (_unrecoveredList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_unrecoveredList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> GetLumpSumTaxDetails(int period, int companyCode)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _lumpSumTaxList = await _context.EPF_ETF.Where(o => o.companyCode == companyCode && o.period == period && o.lumpSumGross > 0).Select(o => new
+                {
+                    o.epf,
+                    o.empName,
+                    o.grade,
+                    o.location,
+                    o.lumpSumGross,
+                    o.lumpsumTax,
+                }
+                ).ToListAsync();
+
+                if (_lumpSumTaxList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_lumpSumTaxList);
                     _msg.MsgCode = 'S';
                     _msg.Message = "Success";
                     return _msg;
@@ -1128,6 +1215,126 @@ namespace PayrollAPI.Repository
                 _msg.MsgCode = 'S';
                 _msg.Message = "Success";
                 return _msg;
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> GetSystemVariables()
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                var _systemVaiablesList = await _context.Sys_Properties.Select(o => new {
+                    o.id,
+                    o.companyCode,
+                    o.category_name,
+                    o.variable_name,
+                    o.variable_value,             
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
+
+                if (_systemVaiablesList.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(_systemVaiablesList);
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.Data = string.Empty;
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Available";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> CreateSystemVariable(SysVariableDto sysVariableDto)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                using var transaction = BeginTransaction();
+
+                var _sysVariable = new Sys_Properties
+                {
+                    companyCode = sysVariableDto.companyCode,
+                    category_name = sysVariableDto.category_name,
+                    variable_name = sysVariableDto.variable_name,
+                    variable_value = sysVariableDto.variable_value,
+                    createdBy = sysVariableDto.createdBy,
+                    createdDate = DateTime.Now
+                };
+
+                _context.Add(_sysVariable);
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "System Variable Created Successfully";
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+        public async Task<MsgDto> UpdateSystemVariable(SysVariableDto sysVariableDto)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                using var transaction = BeginTransaction();
+
+                var _sysVariable = _context.Sys_Properties.FirstOrDefault(o => o.id == sysVariableDto.id);
+                if (_sysVariable != null)
+                {
+                    _sysVariable.category_name = sysVariableDto.category_name ?? _sysVariable.category_name;
+                    _sysVariable.variable_name = sysVariableDto.variable_name ?? _sysVariable.variable_name;
+                    _sysVariable.variable_value = sysVariableDto.variable_value ?? _sysVariable.variable_value;
+
+                    _sysVariable.lastUpdateBy = sysVariableDto.lastUpdateBy;
+                    _sysVariable.lastUpdateDate = DateTime.Now;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "System Variable updated Successfully";
+
+                    _context.Entry(_sysVariable).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+
+                    transaction.Commit();
+
+                    return _msg;
+                }
+                else
+                {
+                    _msg.MsgCode = 'N';
+                    _msg.Message = $"System Variable {sysVariableDto.variable_name} Found";
+                    return _msg;
+                }
             }
             catch (Exception ex)
             {

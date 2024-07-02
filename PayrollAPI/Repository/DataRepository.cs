@@ -32,6 +32,7 @@ namespace PayrollAPI.Repository
 
         public async Task<MsgDto> DataTransfer(string json)
         {
+            int count = 0;
             MsgDto _msg = new MsgDto();
             using var transaction = BeginTransaction();
             try
@@ -69,9 +70,16 @@ namespace PayrollAPI.Repository
                         createdDate = DateTime.Now,
                     });
                 }
-
+                
                 foreach (DataRow _dataRow in _masterDataTable.Tables[1].AsEnumerable())
                 {
+                    count = count + 1;
+
+                    if(count == 1134)
+                    {
+
+                    }
+
                     _tempPayList.Add(new Temp_Payroll()
                     {
                         companyCode = Convert.ToInt32(_dataRow["company"]),
@@ -136,6 +144,7 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                Console.WriteLine(count);
                 transaction.Rollback();
                 _logger.LogError($"DataTransfer : {ex.Message}");
                 _logger.LogError($"DataTransfer : {ex.InnerException}");
@@ -191,6 +200,15 @@ namespace PayrollAPI.Repository
                 }
                 else if(_payRun.payrunStatus == "Transfer Complete")
                 {
+
+                    IEnumerable<PayCode> _paycode = _context.PayCode.Where(o => o.rate < 1).ToList();
+
+                    foreach (PayCode paycode in _paycode)
+                    {
+                        _context.Temp_Payroll.Where(x => x.payCode == paycode.payCode).UpdateFromQuery(x => new Temp_Payroll { taxConRate = (float)paycode.rate });
+                    }
+
+
                     _context.Temp_Employee
                 .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
                 .InsertFromQuery("Employee_Data", x => new {
@@ -207,6 +225,7 @@ namespace PayrollAPI.Repository
                     x.branchCode,
                     x.accountNo
                 });
+
 
                     _context.Temp_Payroll
                     .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)

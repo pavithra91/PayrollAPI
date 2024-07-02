@@ -46,6 +46,9 @@ namespace PayrollAPI.Models
         public decimal? lumpsumTax { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
+        public decimal? lumpSumGross { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? unRecoveredTotal { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
