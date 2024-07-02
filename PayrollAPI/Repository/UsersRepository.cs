@@ -21,12 +21,14 @@ namespace PayrollAPI.Repository
         private readonly JWTSetting setting;
         private readonly PasswordHasher passwordHasher;
         private readonly IRefreshTokenGenerator tokenGenerator;
-        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken) 
+        private readonly ILogger _logger;
+        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken, ILogger<UsersRepository> logger) 
         {
             _context = dB;
             this.setting = options.Value;
             passwordHasher = new PasswordHasher();
             tokenGenerator = _refreshToken;
+            _logger = logger;
         }
 
         public IDbTransaction BeginTransaction()
@@ -60,6 +62,8 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError($"get-users : {ex.Message}");
+                _logger.LogError($"get-users : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -91,6 +95,8 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError($"get-user-id : {ex.Message}");
+                _logger.LogError($"get-user-id : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -100,20 +106,26 @@ namespace PayrollAPI.Repository
 
         public async Task<MsgDto> CreateUser(UserDto user) 
         {
+            MsgDto _msg = new MsgDto();
+
             try
             {
                 using var transaction = BeginTransaction();
 
-                string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString(), user.costCenter);
+                string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString());
                 var _user = new User
                 {
                     userID = user.userID,
                     epf = user.epf,
                     empName = user.empName,
+                    companyCode = Convert.ToInt32(user.companyCode),
                     costCenter = user.costCenter,
                     role = user.role,
                     pwdHash = pwdHash,
                     status = true,
+                    isAccountLocked = false,
+                    failAttempts = 0,
+                    accountLockoutPolicy = 3,
                     createdBy = user.createdBy,
                     createdDate = DateTime.Now
                 };
@@ -124,14 +136,14 @@ namespace PayrollAPI.Repository
 
                 transaction.Commit();
 
-                MsgDto _msg = new MsgDto();
                 _msg.MsgCode = 'S';
                 _msg.Message = "User Created";
                 return _msg;
             }
             catch(Exception ex)
             {
-                MsgDto _msg = new MsgDto();
+                _logger.LogError($"create-user : {ex.Message}");
+                _logger.LogError($"create-user : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -142,22 +154,22 @@ namespace PayrollAPI.Repository
         public async Task<MsgDto> UpdateUser(UserDto userDto)
         {
             MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
             try
             {
-                using var transaction = BeginTransaction();
-
-                var _user = _context.User.FirstOrDefault(o => o.id == Convert.ToInt32(userDto.userID));
+                var _user = _context.User.FirstOrDefault(o => o.id == Convert.ToInt32(userDto.id));
                 if (_user != null)
                 {
                     _user.costCenter = userDto.costCenter ?? _user.costCenter;
                     _user.empName = userDto.empName ?? _user.empName;
                     _user.role = userDto.role ?? _user.role;
+                    _user.isAccountLocked = userDto.isAccountLocked ?? _user.isAccountLocked;
 
                     _user.lastUpdateBy = userDto.lastUpdateBy;
                     _user.lastUpdateDate = DateTime.Now;
 
                     _msg.MsgCode = 'S';
-                    _msg.Message = "Tax updated Successfully";
+                    _msg.Message = $"User {_user.userID} updated Successfully";
 
                     _context.Entry(_user).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
@@ -175,6 +187,9 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
+                _logger.LogError($"update-user : {ex.Message}");
+                _logger.LogError($"update-user : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -192,6 +207,7 @@ namespace PayrollAPI.Repository
                 if (_user != null)
                 {
                     _user.status = false;
+                    _user.isAccountLocked = true;
                     _user.lastUpdateBy = userDto.lastUpdateBy;
                     _user.lastUpdateDate = DateTime.Now;
 
@@ -201,7 +217,7 @@ namespace PayrollAPI.Repository
                 else
                 {
                     _msg.MsgCode = 'N';
-                    _msg.Message = "No Calculation Formula Found";
+                    _msg.Message = "No User Account Found";
                 }
 
                 await _context.SaveChangesAsync();
@@ -212,6 +228,8 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 transaction.Rollback();
+                _logger.LogError($"delete-user : {ex.Message}");
+                _logger.LogError($"delete-user : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -226,8 +244,6 @@ namespace PayrollAPI.Repository
             {
                 var _user = _context.User.FirstOrDefault(o => o.userID == usr.UserId);
 
-                bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString(), _user.costCenter);
-
                 if (_user == null)
                 {
                     status = -1;
@@ -235,10 +251,29 @@ namespace PayrollAPI.Repository
                     return null;
                 }
 
-                if(!pwd)
+                if (_user.isAccountLocked)
+                {
+                    status = -2;
+                    msg = "Account Locked";
+
+                    return null;
+                }
+
+                bool pwd = passwordHasher.Verify(_user.pwdHash, usr.Password, _user.epf.ToString());
+
+                if (!pwd)
                 {
                     status = -2;
                     msg = "Wrong Password";
+                    _user.failAttempts = _user.failAttempts + 1;
+                    
+                    if(_user.failAttempts == _user.accountLockoutPolicy)
+                    {
+                        _user.isAccountLocked = true;
+                    }
+                    _context.Entry(_user).State = EntityState.Modified;
+                    _context.SaveChangesAsync();
+
                     return null;
                 }
 
@@ -249,10 +284,10 @@ namespace PayrollAPI.Repository
                     Subject = new ClaimsIdentity(
                         new Claim[]
                         {
-                        new Claim(ClaimTypes.Name, "Pavithra"),
+                        new Claim(ClaimTypes.Name, _user.userID),
                         }
                     ),
-                    Expires = DateTime.Now.AddMinutes(5),
+                    Expires = DateTime.Now.AddMinutes(10),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256)
                 };
 
@@ -263,8 +298,18 @@ namespace PayrollAPI.Repository
                 tokenResponse.RefreshToken = tokenGenerator.GenerateToken(_user.userID);
 
                 UserDetails _userDetails = new UserDetails();
+                _userDetails.ID = _user.id;
                 _userDetails.EPF = _user.epf;
                 _userDetails.CostCenter = _user.costCenter;
+                if(_user.empName!=null)
+                {
+                    _userDetails.EmpName = _user.empName;
+                }
+                else
+                {
+                    _userDetails.EmpName = "";
+                }
+                _userDetails.UserID = _user.userID;
                 _userDetails.Role = _user.role;
 
                 tokenResponse._userDetails = _userDetails;
@@ -284,6 +329,8 @@ namespace PayrollAPI.Repository
             }
             catch(Exception ex)
             {
+                _logger.LogError($"Authenticate : {ex.Message}");
+                _logger.LogError($"Authenticate : {ex.InnerException}");
                 status = 0;
                 msg = ex.Message;
                 return null;
@@ -303,10 +350,10 @@ namespace PayrollAPI.Repository
             }, out securityToken);
 
             var _token = securityToken as JwtSecurityToken;
-            if (_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
-            {
-                return null;
-            }
+           // if (_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
+         ////   {
+         //       return null;
+         //   }
 
             var username = principle.Identity.Name;
             var _reftable = _context.LoginInfo.FirstOrDefault(o => o.userID == username && o.refreshToken == token.RefreshToken);
@@ -327,7 +374,7 @@ namespace PayrollAPI.Repository
             var tokenkey = Encoding.UTF8.GetBytes(setting.securitykey);
             var tokenhandler = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(5),
+                expires: DateTime.Now.AddMinutes(10),
                  signingCredentials: new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
 
                 );
@@ -339,16 +386,62 @@ namespace PayrollAPI.Repository
 
         public bool ResetPassword(string username, string password)
         {
-            var _user = _context.User.FirstOrDefault(o => o.userID == username);
+            try
+            {
+                var _user = _context.User.FirstOrDefault(o => o.userID == username);
 
-            string pwdHash = passwordHasher.Hash(password, _user.epf.ToString(), _user.costCenter);
+                string pwdHash = passwordHasher.Hash(password, _user.epf.ToString());
 
-            _user.pwdHash = pwdHash;
+                _user.pwdHash = pwdHash;
 
-            _context.Update(_user);
-            return Save();
+                _context.Update(_user);
+                return Save();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"reset-password : {ex.Message}");
+                _logger.LogError($"reset-password : {ex.InnerException}");
+                return false;
+            }
         }
 
+        public async Task<MsgDto> SignOut(string userID)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                var _user = _context.LoginInfo.FirstOrDefault(o => o.userID == userID && o.isActive == true);
+
+                if (_user != null)
+                {
+                    _user.isActive = false;
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = $"User {_user.userID} Sign out Successfully";
+                }
+                else
+                {
+                    _msg.MsgCode = 'N';
+                    _msg.Message = "No User LoginInfo Found";
+                }
+
+                await _context.SaveChangesAsync();
+                transaction.Commit();
+
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _logger.LogError($"signout-user : {ex.Message}");
+                _logger.LogError($"signout-user : {ex.InnerException}");
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
 
         public bool Save()
         {

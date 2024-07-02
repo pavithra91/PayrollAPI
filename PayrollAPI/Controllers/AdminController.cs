@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -7,6 +8,7 @@ namespace PayrollAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AdminController : ControllerBase
     {
         private readonly IAdmin _admin;
@@ -133,7 +135,7 @@ namespace PayrollAPI.Controllers
         /// <returns></returns>
         [Route("create-paycode")]
         [HttpPost]
-        public async Task<ActionResult> CreatePayCode([FromBody] PayCodeDto payCodeDto)
+        public async Task<IActionResult> CreatePayCode([FromBody] PayCodeDto payCodeDto)
         {
             MsgDto _msg = await _admin.CreatePayCode(payCodeDto);
 
@@ -485,5 +487,100 @@ namespace PayrollAPI.Controllers
             }
         }
 
+        [Route("get-ot-details")]
+        [HttpGet]
+        public async Task<ActionResult> GetOTDetails(int period, int companyCode)
+        {
+            MsgDto _msg = await _admin.GetOTDetails(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("get-unrecovered-details")]
+        [HttpGet]
+        public async Task<ActionResult> GetUnrecoveredDetails(int period, int companyCode)
+        {
+            MsgDto _msg = await _admin.GetUnrecoveredDetails(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("get-lumpsumtax-details")]
+        [HttpGet]
+        public async Task<ActionResult> GetLumpSumTaxDetails(int period, int companyCode)
+        {
+            MsgDto _msg = await _admin.GetLumpSumTaxDetails(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("reset-data")]
+        [HttpPost]
+        public async Task<ActionResult> ResetData(ResetDto resetDto)
+        {
+            MsgDto _msg = await _admin.ResetData(resetDto);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("get-system-variables")]
+        [HttpGet]
+        public async Task<ActionResult> GetSystemVariables()
+        {
+            MsgDto _msg = await _admin.GetSystemVariables();
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("create-system-variable")]
+        [HttpPost]
+        public async Task<ActionResult> CreateSystemVariable([FromBody] SysVariableDto sysVariableDto)
+        {
+            MsgDto _msg = await _admin.CreateSystemVariable(sysVariableDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("update-system-variable")]
+        [HttpPut]
+        public async Task<ActionResult> UpdateSystemVariable([FromBody] SysVariableDto sysVariableDto)
+        {
+            MsgDto _msg = await _admin.UpdateSystemVariable(sysVariableDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else if (_msg.MsgCode == 'N')
+            {
+                return NotFound(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
     }
 }

@@ -22,8 +22,8 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(100)")]
         public string? description { get; set; }
 
-        [Column(TypeName = "boolean")]
-        public bool isTaxableGross { get; set; }
+        [Column(TypeName = "varchar(2)")]
+        public string? taxationType { get; set; }
 
         [Column(TypeName = "decimal(3, 2)")]
         public decimal rate { get; set; }

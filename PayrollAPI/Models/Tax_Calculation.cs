@@ -21,6 +21,9 @@ namespace PayrollAPI.Models
         public string? description { get; set; }
 
         [Column(TypeName = "varchar(2)")]
+        public string? taxCategory { get; set; }
+
+        [Column(TypeName = "varchar(2)")]
         public string? contributor { get; set; }
 
         [Column(TypeName = "boolean")]

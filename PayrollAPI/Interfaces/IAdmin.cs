@@ -31,5 +31,15 @@ namespace PayrollAPI.Interfaces
         public Task<MsgDto> CreateSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto);
         public Task<MsgDto> UpdateSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto);
         public Task<MsgDto> DeleteSpecialTaxEmp(SpecialTaxEmpDto specialTaxEmpDto);
+
+        
+        public Task<MsgDto> GetOTDetails(int period, int companyCode);
+        public Task<MsgDto> GetUnrecoveredDetails(int period, int companyCode);
+        public Task<MsgDto> GetLumpSumTaxDetails(int period, int companyCode);
+        public Task<MsgDto> ResetData(ResetDto resetDto);
+
+        public Task<MsgDto> GetSystemVariables();
+        public Task<MsgDto> CreateSystemVariable(SysVariableDto sysVariableDto);
+        public Task<MsgDto> UpdateSystemVariable(SysVariableDto sysVariableDto);
     }
 }

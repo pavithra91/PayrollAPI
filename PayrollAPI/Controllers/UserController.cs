@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PayrollAPI.Authentication;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -18,6 +19,8 @@ namespace PayrollAPI.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class UserController : ControllerBase
     {
         private readonly IUsers _usr;
@@ -61,8 +64,9 @@ namespace PayrollAPI.Controllers
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        [Route("Refresh")]
+        [Route("refresh")]
         [HttpPost]
+        [AllowAnonymous]
         public IActionResult Refresh([FromBody] TokenResponse token)
         {
             var _refreshToken = _usr.RefreshToken(token);
@@ -80,7 +84,7 @@ namespace PayrollAPI.Controllers
         /// </summary>
         /// <param name="usrDto"></param>
         /// <returns></returns>
-        [Route("CreateUser")]
+        [Route("create-user")]
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] UserDto usrDto)
         {
@@ -95,13 +99,53 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-        
+
+        [Route("update-user")]
+        [HttpPut]
+        public async Task<ActionResult> UpdateUser([FromBody] UserDto usrDto)
+        {
+            MsgDto _msg = await _usr.UpdateUser(usrDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else if (_msg.MsgCode == 'N')
+            {
+                return NotFound(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("delete-user")]
+        [HttpPut]
+        public async Task<ActionResult> DeleteUser([FromBody] UserDto usrDto)
+        {
+            MsgDto _msg = await _usr.DeleteUser(usrDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else if (_msg.MsgCode == 'N')
+            {
+                return NotFound(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         /// <summary>
         /// Method used to Reset existing User's Password
         /// </summary>
         /// <param name="usrDto"></param>
         /// <returns></returns>
-        [Route("ResetPassword")]
+        [Route("reset-password")]
         [HttpPost]
         public IActionResult ResetPassword([FromBody] UserDto usrDto)
         {
@@ -118,7 +162,7 @@ namespace PayrollAPI.Controllers
         /// Used to get all users in the system
         /// </summary>
         /// <returns></returns>
-        [Route("GetUsers")]
+        [Route("get-users")]
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
@@ -135,6 +179,20 @@ namespace PayrollAPI.Controllers
         public async Task<IActionResult> GetUserById(int id)
         {
             MsgDto _msg = await _usr.GetUserbyId(id);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        [Route("sign-out")]
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<ActionResult> SignOut([FromBody] UserDto usrDto)
+        {
+
+            MsgDto _msg = await _usr.SignOut(usrDto.userID);
 
             if (_msg.MsgCode == 'S')
                 return Ok(_msg);

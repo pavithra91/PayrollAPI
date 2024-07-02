@@ -19,6 +19,51 @@ namespace PayrollAPI.Migrations
                 .HasAnnotation("ProductVersion", "7.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            modelBuilder.Entity("PayrollAPI.Models.Article", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("categoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("content")
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("createdBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<string>("lastUpdateBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("lastUpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("title")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int?>("viewCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Article", (string)null);
+                });
+
             modelBuilder.Entity("PayrollAPI.Models.Calculation", b =>
                 {
                     b.Property<int>("id")
@@ -76,7 +121,24 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Calculation");
+                    b.ToTable("Calculation", (string)null);
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Category", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("articleCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("categoryName")
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Category", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.EPF_ETF", b =>
@@ -103,6 +165,9 @@ namespace PayrollAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<decimal?>("deductionGross")
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<string>("empName")
                         .HasColumnType("varchar(200)");
@@ -138,9 +203,12 @@ namespace PayrollAPI.Migrations
                     b.Property<decimal>("taxableGross")
                         .HasColumnType("decimal(10, 2)");
 
+                    b.Property<decimal?>("unRecoveredTotal")
+                        .HasColumnType("decimal(10, 2)");
+
                     b.HasKey("id");
 
-                    b.ToTable("EPF_ETF");
+                    b.ToTable("EPF_ETF", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.EmpSpecialRate", b =>
@@ -198,7 +266,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("EmpSpecialRate");
+                    b.ToTable("EmpSpecialRate", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Employee_Data", b =>
@@ -262,7 +330,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Employee_Data");
+                    b.ToTable("Employee_Data", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.LoginInfo", b =>
@@ -297,7 +365,24 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("LoginInfo");
+                    b.ToTable("LoginInfo", (string)null);
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.OTHours_View", b =>
+                {
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("costCenter")
+                        .HasColumnType("longtext");
+
+                    b.Property<float>("othours")
+                        .HasColumnType("float");
+
+                    b.Property<int>("period")
+                        .HasColumnType("int");
+
+                    b.ToTable("GetOTDetails", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.PayCode", b =>
@@ -351,7 +436,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("PayCode");
+                    b.ToTable("PayCode", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Payroll_Data", b =>
@@ -419,7 +504,24 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Payroll_Data");
+                    b.ToTable("Payroll_Data", (string)null);
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Payroll_Summary_View", b =>
+                {
+                    b.Property<int>("Employees")
+                        .HasColumnType("int");
+
+                    b.Property<float>("Gross")
+                        .HasColumnType("float");
+
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<int>("period")
+                        .HasColumnType("int");
+
+                    b.ToTable("GetSummaryDetails", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Payrun", b =>
@@ -472,7 +574,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Payrun");
+                    b.ToTable("Payrun", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.SAPTotPayCode", b =>
@@ -517,7 +619,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("SAPTotPayCode");
+                    b.ToTable("SAPTotPayCode", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Special_Tax_Emp", b =>
@@ -569,7 +671,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Special_Tax_Emp");
+                    b.ToTable("Special_Tax_Emp", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.SysLog", b =>
@@ -595,7 +697,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("SysLog");
+                    b.ToTable("SysLog", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Tax_Calculation", b =>
@@ -646,7 +748,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Tax_Calculation");
+                    b.ToTable("Tax_Calculation", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Temp_Employee", b =>
@@ -707,7 +809,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Temp_Employee");
+                    b.ToTable("Temp_Employee", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Temp_Payroll", b =>
@@ -774,7 +876,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Temp_Payroll");
+                    b.ToTable("Temp_Payroll", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.TotPayCode", b =>
@@ -813,7 +915,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("TotPayCode");
+                    b.ToTable("TotPayCode", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Unrecovered", b =>
@@ -862,13 +964,16 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Unrecovered");
+                    b.ToTable("Unrecovered", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.User", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("accountLockoutPolicy")
                         .HasColumnType("int");
 
                     b.Property<int>("companyCode")
@@ -897,6 +1002,12 @@ namespace PayrollAPI.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(6)");
 
+                    b.Property<int>("failAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("isAccountLocked")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
@@ -923,7 +1034,7 @@ namespace PayrollAPI.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
                 });
 #pragma warning restore 612, 618
         }

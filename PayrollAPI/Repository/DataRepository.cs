@@ -1,9 +1,8 @@
 ﻿using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using MySqlX.XDevAPI.Common;
 using Newtonsoft.Json;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
@@ -11,19 +10,17 @@ using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
 using System.Collections;
 using System.Data;
-using System.ServiceModel.Channels;
-using Z.BulkOperations;
-using static LinqToDB.Common.Configuration;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace PayrollAPI.Repository
 {
     public class DataRepository : IDatatransfer
     {
         private readonly DBConnect _context;
-        public DataRepository(DBConnect db)
+        private readonly ILogger _logger;
+        public DataRepository(DBConnect db, ILogger<DataRepository> logger)
         {
             _context = db;
+            _logger = logger;
         }
 
         public IDbTransaction BeginTransaction()
@@ -35,6 +32,7 @@ namespace PayrollAPI.Repository
 
         public async Task<MsgDto> DataTransfer(string json)
         {
+            int count = 0;
             MsgDto _msg = new MsgDto();
             using var transaction = BeginTransaction();
             try
@@ -44,6 +42,13 @@ namespace PayrollAPI.Repository
                 IList<SAPTotPayCode> _tempSAPTot = new List<SAPTotPayCode>();
 
                 DataSet _masterDataTable = JsonConvert.DeserializeObject<DataSet>(json);
+
+                if(_masterDataTable == null || _masterDataTable.Tables.Count == 0)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Found";
+                    return _msg;
+                }    
 
                 foreach (DataRow _dataRow in _masterDataTable.Tables[0].AsEnumerable())
                 {
@@ -65,9 +70,16 @@ namespace PayrollAPI.Repository
                         createdDate = DateTime.Now,
                     });
                 }
-
+                
                 foreach (DataRow _dataRow in _masterDataTable.Tables[1].AsEnumerable())
                 {
+                    count = count + 1;
+
+                    if(count == 1134)
+                    {
+
+                    }
+
                     _tempPayList.Add(new Temp_Payroll()
                     {
                         companyCode = Convert.ToInt32(_dataRow["company"]),
@@ -103,24 +115,6 @@ namespace PayrollAPI.Repository
                         createdDate = DateTime.Now,
                     });
                 }
-                /* Parallel.ForEach(_masterDataTable.AsEnumerable(), _dataRow => {
-                     _tempEmpList.Add(new Temp_Employee()
-                     {
-                         company = Convert.ToInt32(_dataRow["company"]),
-                         plant = Convert.ToInt32(_dataRow["plant"]),
-                         epf = _dataRow["epf"].ToString(),
-                         period = Convert.ToInt32(_dataRow["period"]),
-                         empName = _dataRow["empName"].ToString(),
-                         costCenter = _dataRow["costCenter"].ToString(),
-                         empGrade = _dataRow["empGrade"].ToString(),
-                         gradeCode = Convert.ToInt32(_dataRow["gradeCode"]),
-                         paymentType = Convert.ToInt32(_dataRow["paymentType"]),
-                         bankCode = Convert.ToInt32(_dataRow["bankCode"]),
-                         branchCode = Convert.ToInt32(_dataRow["branchCode"]),
-                         accountNo = _dataRow["accountNo"].ToString(),
-                     });
-                 }); */
-
 
                 _context.BulkCopy(_tempEmpList);
                 _context.BulkCopy(_tempPayList);
@@ -150,10 +144,34 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
+                Console.WriteLine(count);
                 transaction.Rollback();
+                _logger.LogError($"DataTransfer : {ex.Message}");
+                _logger.LogError($"DataTransfer : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> PayCodeCheck(int companyCode, int period)
+        {
+            MsgDto _msg = new MsgDto();
+
+            var missingPayCodes = await _context.Temp_Payroll.Where(e1 => !_context.PayCode.Any(e2 => e1.payCode == e2.payCode)).Select(e2 => e2.payCode).Distinct().ToListAsync();
+
+            if(missingPayCodes.Count > 0)
+            {
+                _msg.MsgCode = 'S';
+                _msg.Data = JsonConvert.SerializeObject(missingPayCodes);
+                _msg.Message = $"Paycode Mismatch. The provided paycode does not match any records in the system. Please verify and update the correct paycode";
+                return _msg;
+            }
+            else
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = $"Bad Request";
                 return _msg;
             }
         }
@@ -164,6 +182,13 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
+                if(approvalDto.companyCode == 0 || approvalDto.period == 0 || approvalDto.approvedBy == null || approvalDto.approvedBy == "")
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"Bad Request";
+                    return _msg;
+                }
+
                 Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode
                         && x.period == approvalDto.period).FirstOrDefault();
 
@@ -175,6 +200,15 @@ namespace PayrollAPI.Repository
                 }
                 else if(_payRun.payrunStatus == "Transfer Complete")
                 {
+
+                    IEnumerable<PayCode> _paycode = _context.PayCode.Where(o => o.rate < 1).ToList();
+
+                    foreach (PayCode paycode in _paycode)
+                    {
+                        _context.Temp_Payroll.Where(x => x.payCode == paycode.payCode).UpdateFromQuery(x => new Temp_Payroll { taxConRate = (float)paycode.rate });
+                    }
+
+
                     _context.Temp_Employee
                 .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
                 .InsertFromQuery("Employee_Data", x => new {
@@ -191,6 +225,7 @@ namespace PayrollAPI.Repository
                     x.branchCode,
                     x.accountNo
                 });
+
 
                     _context.Temp_Payroll
                     .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
@@ -238,7 +273,8 @@ namespace PayrollAPI.Repository
             catch (Exception ex)
             {
                 transaction.Rollback();
-
+                _logger.LogError($"confirm-data-transfer : {ex.Message}");
+                _logger.LogError($"confirm-data-transfer : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -246,13 +282,128 @@ namespace PayrollAPI.Repository
             }              
         }
 
-        public async Task<MsgDto> PreparePayrun(ApprovalDto approvalDto)
+        public async Task<MsgDto> RollBackTempData(ApprovalDto approvalDto)
         {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
             try
             {
-                using var transaction = BeginTransaction();
+                if (approvalDto.companyCode == 0 || approvalDto.period == 0 || approvalDto.approvedBy == null || approvalDto.approvedBy == "")
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"Bad Request";
+                    return _msg;
+                }
 
-                MsgDto _msg = new MsgDto();
+                Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode
+                && x.period == approvalDto.period).FirstOrDefault();
+
+                if (_payRun == null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"No Data available for period - {approvalDto.period}. Rollback operation failed.";
+                    return _msg;
+                }
+
+                if (_payRun.payrunStatus == "Transfer Complete")
+                {
+                    _context.Temp_Employee.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+                    _context.Temp_Payroll.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+                    _context.Payrun.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
+                        DeleteFromQuery();
+
+                    await _context.SaveChangesAsync();
+
+                    transaction.Commit();
+
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Data Rollback Operation Completed Successfully";
+                    return _msg;
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"Payrun status - {_payRun.payrunStatus} - cannot be rollback.";
+                    return _msg;
+                }
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _logger.LogError($"temp-data-rollback : {ex.Message}");
+                _logger.LogError($"temp-data-rollback : {ex.InnerException}");
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public MsgDto GetDataTransferStatistics(int companyCode, int period)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+                if(companyCode == 0 || period == 0)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"Bad Request";
+                    return _msg;
+                }
+
+                int _empCount = _context.Temp_Employee.Where(o => o.companyCode == companyCode && o.period == period).ToList().Count();
+
+                IList _paySummaryList = _context.Temp_Payroll.Where(o => o.companyCode == companyCode && o.period == period).
+                    GroupBy(p => new { p.payCode }).
+                    Select(g => new {
+                        PayCode = g.Key.payCode,
+                        Amount = g.Sum(o => o.amount),
+                        Line_Item_Count = g.Count()
+                    }).OrderBy(p => p.PayCode).ToList();
+
+                IList _paySAPSummaryList = _context.SAPTotPayCode.Where(o => o.companyCode == companyCode && o.period == period).
+                    GroupBy(p => new { p.payCode }).
+                    Select(g => new {
+                        PayCode = g.Key.payCode,
+                        Amount = g.Sum(o => o.totalAmount),
+                        Line_Item_Count = g.Sum(o => o.totCount)
+                    }).OrderBy(p => p.PayCode).ToList();
+
+                if(_empCount == 0 && _paySummaryList.Count == 0 || _paySAPSummaryList.Count == 0)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Data Found";
+                    return _msg;
+                }
+
+                var result = new List<object>();
+                result.Add(new { empCount = _empCount, nonSAPPayData = _paySummaryList, SAPPayData = _paySAPSummaryList });
+
+                _msg.Data = JsonConvert.SerializeObject(result);
+                _msg.MsgCode = 'S';
+                _msg.Message = "Request executed Successfully";
+
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"GetDataTransferStatistics : {ex.Message}");
+                _logger.LogError($"GetDataTransferStatistics : {ex.InnerException}");
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> PreparePayrun(ApprovalDto approvalDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
                 ICollection<EmpSpecialRate> _empSpecialRates = _context.EmpSpecialRate.Where(o => o.status == true).ToList();
                 ICollection<Payroll_Data> _payrollData = _context.Payroll_Data.Where(o => o.period == approvalDto.period).ToList();
 
@@ -278,96 +429,9 @@ namespace PayrollAPI.Repository
             }
             catch (Exception ex)
             {
-                MsgDto _msg = new MsgDto();
-                _msg.MsgCode = 'E';
-                _msg.Message = "Error : " + ex.Message;
-                _msg.Description = "Inner Expection : " + ex.InnerException;
-                return _msg;
-            }
-        }
-
-        public MsgDto GetDataTransferStatistics(int companyCode, int period)
-        {
-            MsgDto _msg = new MsgDto();
-            try
-            {
-                int _empCount = _context.Temp_Employee.Where(o => o.companyCode == companyCode && o.period == period).ToList().Count();
-
-                IList _paySummaryList = _context.Temp_Payroll.Where(o => o.companyCode == companyCode && o.period == period).
-                    GroupBy(p => new { p.payCode }).
-                    Select(g => new {
-                        PayCode = g.Key.payCode,
-                        Amount = g.Sum(o => o.amount),
-                        Line_Item_Count = g.Count()
-                    }).OrderBy(p => p.PayCode).ToList();
-
-                IList _paySAPSummaryList = _context.SAPTotPayCode.Where(o => o.companyCode == companyCode && o.period == period).
-                    GroupBy(p => new { p.payCode }).
-                    Select(g => new {
-                        PayCode = g.Key.payCode,
-                        Amount = g.Sum(o => o.totalAmount),
-                        Line_Item_Count = g.Sum(o => o.totCount)
-                    }).OrderBy(p => p.PayCode).ToList();
-
-                var result = new List<object>();
-                result.Add(new { empCount = _empCount, nonSAPPayData = _paySummaryList, SAPPayData = _paySAPSummaryList });
-
-                _msg.Data = JsonConvert.SerializeObject(result);
-                _msg.MsgCode = 'S';
-                _msg.Message = "";
-                
-                return _msg;
-            }
-            catch(Exception ex)
-            {
-                _msg.MsgCode = 'E';
-                _msg.Message = "Error : " + ex.Message;
-                _msg.Description = "Inner Expection : " + ex.InnerException;
-                return _msg;
-            }
-        }
-
-        public async Task<MsgDto> RollBackTempData(ApprovalDto approvalDto)
-        {
-            MsgDto _msg = new MsgDto();
-            using var transaction = BeginTransaction();
-            try
-            {
-                Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode
-                && x.period == approvalDto.period).FirstOrDefault();
-
-                if (_payRun == null)
-                {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = $"No Data available for period - {approvalDto.period}. Rollback operation failed.";
-                    return _msg;
-                }
-
-                if (_payRun.payrunStatus == "Transfer Complete")
-                {
-                    _context.Employee_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
-                        DeleteFromQuery();
-                    _context.Payroll_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
-                        DeleteFromQuery();
-                    _context.Payrun.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode).
-                        DeleteFromQuery();
-
-                    transaction.Commit();
-
-                    _msg.MsgCode = 'S';
-                    _msg.Message = "Data Rollback Operation Completed Successfully";
-                    return _msg;
-                }
-                else
-                {
-                    _msg.MsgCode = 'E';
-                    _msg.Message = $"Payrun status - {_payRun.payrunStatus} - cannot be rollback.";
-                    return _msg;
-                }
-            }
-            catch (Exception ex)
-            {
                 transaction.Rollback();
+                _logger.LogError($"PreparePayrun : {ex.Message}");
+                _logger.LogError($"PreparePayrun : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;

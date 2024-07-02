@@ -40,6 +40,23 @@ namespace PayrollAPI.Controllers
             }
         }
 
+
+        [Route("paycode-check")]
+        [HttpGet]
+        public async Task<IActionResult> PayCodeCheck(int companyCode, int period)
+        {
+            MsgDto _msg = await _data.PayCodeCheck(companyCode, period);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -67,7 +84,7 @@ namespace PayrollAPI.Controllers
         /// </summary>
         /// <param name="approvalDto"></param>
         /// <returns></returns>
-        [Route("ConfirmDataTransfer")]
+        [Route("confirm-data-transfer")]
         [HttpPost]
         public async Task<IActionResult> ConfirmDataTransfer([FromBody] ApprovalDto approvalDto)
         {

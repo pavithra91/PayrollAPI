@@ -8,7 +8,7 @@ namespace PayrollAPI.Data
     {
         public DBConnect(DbContextOptions<DBConnect> options) : base(options)
         {
-
+            this.Database.SetCommandTimeout(180);
         }
 
         public DbSet<Calculation> Calculation { get; set; }
@@ -27,12 +27,23 @@ namespace PayrollAPI.Data
         public DbSet<Unrecovered> Unrecovered { get; set; }
         public DbSet<User> User { get; set; }
 
+        public DbSet<Category> Category { get; set; }
+        public DbSet<Article> Article { get; set; }
+
         public DbSet<LoginInfo> LoginInfo { get; set; }
 
         public DbSet<SysLog> SysLog { get; set; }
 
+        public DbSet<Sys_Properties> Sys_Properties { get; set; }
+
+        public DbSet<OTHours_View> GetOTDetails { get; set; }
+        public DbSet<Payroll_Summary_View> GetSummaryDetails { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Ignore<OTHours_View>().Entity<OTHours_View>().HasNoKey();
+            modelBuilder.Ignore<Payroll_Summary_View>().Entity<Payroll_Summary_View>().HasNoKey();
+
             modelBuilder.Entity<Calculation>()
                     .Property(s => s.createdDate)
                     .ForMySQLHasDefaultValueSql("(CURDATE())");
@@ -126,6 +137,22 @@ namespace PayrollAPI.Data
                     .ForMySQLHasDefaultValueSql("(CURDATE())");
 
             modelBuilder.Entity<User>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Article>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Article>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<Sys_Properties>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<Sys_Properties>()
                     .Property(s => s.createdTime)
                     .ForMySQLHasDefaultValueSql("(CURTIME())");
 
@@ -134,12 +161,12 @@ namespace PayrollAPI.Data
                     .ForMySQLHasDefaultValueSql("1");
 
             modelBuilder.Entity<Employee_Data>()
-        .Property(s => s.isPaysheetGenerated)
-        .ForMySQLHasDefaultValueSql("1");
+                    .Property(s => s.isPaysheetGenerated)
+                    .ForMySQLHasDefaultValueSql("1");
 
             modelBuilder.Entity<Payroll_Data>()
-        .Property(s => s.displayOnPaySheet)
-        .ForMySQLHasDefaultValueSql("1");
+                    .Property(s => s.displayOnPaySheet)
+                    .ForMySQLHasDefaultValueSql("1");
         }
     }
 }

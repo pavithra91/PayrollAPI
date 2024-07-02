@@ -40,9 +40,19 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal tax { get; set; }
+        
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? lumpsumTax { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? lumpSumGross { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? unRecoveredTotal { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? deductionGross { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public string? createdBy { get; set; }

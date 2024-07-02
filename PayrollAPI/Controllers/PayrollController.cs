@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PayrollAPI.DataModel;
@@ -8,6 +9,7 @@ namespace PayrollAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PayrollController : ControllerBase
     {
         private readonly IPayroll _payroll;
@@ -15,12 +17,30 @@ namespace PayrollAPI.Controllers
         { 
             _payroll = payroll;
         }
+
+
+        [Route("simulate-payroll")]
+        [HttpPost]
+        public async Task<IActionResult> SimulatePayroll(ApprovalDto approvalDto)
+        {
+            MsgDto _msg = await _payroll.SimulatePayroll(approvalDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         /// <summary>
         /// Method used to start the payroll process
         /// </summary>
         /// <param name="approvalDto"></param>
         /// <returns></returns>
-        [Route("ProcessPayroll")]
+        [Route("process-payroll")]
         [HttpPost]
         public async Task<IActionResult> ProcessPayroll([FromBody] ApprovalDto approvalDto)
         {
@@ -83,7 +103,7 @@ namespace PayrollAPI.Controllers
             }
             else
             {
-                return BadRequest(_msg);
+                return NoContent();
             }
         }
 
@@ -102,7 +122,23 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
-        
+
+        [Route("print-paysheet")]
+        [HttpGet]
+        public async Task<ActionResult> PrintPaySheets(int companyCode, int period)
+        {
+            MsgDto _msg = await _payroll.PrintPaySheets(companyCode, period);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
         [Route("get-payrun")]
         [HttpGet]
         public async Task<ActionResult> GetPayrunDetails()
@@ -124,6 +160,22 @@ namespace PayrollAPI.Controllers
         public async Task<ActionResult> GetPayrunDetails(int period, int companyCode)
         {
             MsgDto _msg = await _payroll.GetPayrunDetails(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("write-back")]
+        [HttpGet]
+        public async Task<ActionResult> Writeback(int period, int companyCode)
+        {
+            MsgDto _msg = await _payroll.Writeback(period, companyCode);
 
             if (_msg.MsgCode == 'S')
             {
