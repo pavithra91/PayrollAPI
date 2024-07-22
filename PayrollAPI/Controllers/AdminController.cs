@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -269,7 +268,7 @@ namespace PayrollAPI.Controllers
             {
                 return Ok(_msg);
             }
-            else if(_msg.MsgCode == 'N')
+            else if (_msg.MsgCode == 'N')
             {
                 return NotFound(_msg);
             }

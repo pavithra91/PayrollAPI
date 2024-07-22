@@ -2,7 +2,6 @@
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using MySqlX.XDevAPI.Common;
 using Newtonsoft.Json;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
@@ -43,12 +42,12 @@ namespace PayrollAPI.Repository
 
                 DataSet _masterDataTable = JsonConvert.DeserializeObject<DataSet>(json);
 
-                if(_masterDataTable == null || _masterDataTable.Tables.Count == 0)
+                if (_masterDataTable == null || _masterDataTable.Tables.Count == 0)
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = "No Data Found";
                     return _msg;
-                }    
+                }
 
                 foreach (DataRow _dataRow in _masterDataTable.Tables[0].AsEnumerable())
                 {
@@ -70,12 +69,12 @@ namespace PayrollAPI.Repository
                         createdDate = DateTime.Now,
                     });
                 }
-                
+
                 foreach (DataRow _dataRow in _masterDataTable.Tables[1].AsEnumerable())
                 {
                     count = count + 1;
 
-                    if(count == 1134)
+                    if (count == 1134)
                     {
 
                     }
@@ -133,7 +132,7 @@ namespace PayrollAPI.Repository
                     _objPay.payrunStatus = "Transfer Complete";
 
                     _context.Payrun.Add(_objPay);
-                    
+
                 }
                 await _context.SaveChangesAsync();
                 transaction.Commit();
@@ -161,7 +160,7 @@ namespace PayrollAPI.Repository
 
             var missingPayCodes = await _context.Temp_Payroll.Where(e1 => !_context.PayCode.Any(e2 => e1.payCode == e2.payCode)).Select(e2 => e2.payCode).Distinct().ToListAsync();
 
-            if(missingPayCodes.Count > 0)
+            if (missingPayCodes.Count > 0)
             {
                 _msg.MsgCode = 'S';
                 _msg.Data = JsonConvert.SerializeObject(missingPayCodes);
@@ -182,7 +181,7 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                if(approvalDto.companyCode == 0 || approvalDto.period == 0 || approvalDto.approvedBy == null || approvalDto.approvedBy == "")
+                if (approvalDto.companyCode == 0 || approvalDto.period == 0 || approvalDto.approvedBy == null || approvalDto.approvedBy == "")
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = $"Bad Request";
@@ -192,13 +191,13 @@ namespace PayrollAPI.Repository
                 Payrun? _payRun = _context.Payrun.Where(x => x.companyCode == approvalDto.companyCode
                         && x.period == approvalDto.period).FirstOrDefault();
 
-                if(_payRun == null )
+                if (_payRun == null)
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = $"No Data available for period - {approvalDto.period}. Operation failed.";
                     return _msg;
                 }
-                else if(_payRun.payrunStatus == "Transfer Complete")
+                else if (_payRun.payrunStatus == "Transfer Complete")
                 {
 
                     IEnumerable<PayCode> _paycode = _context.PayCode.Where(o => o.rate < 1).ToList();
@@ -211,7 +210,8 @@ namespace PayrollAPI.Repository
 
                     _context.Temp_Employee
                 .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
-                .InsertFromQuery("Employee_Data", x => new {
+                .InsertFromQuery("Employee_Data", x => new
+                {
                     x.companyCode,
                     x.location,
                     x.epf,
@@ -229,7 +229,8 @@ namespace PayrollAPI.Repository
 
                     _context.Temp_Payroll
                     .Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
-                    .InsertFromQuery("Payroll_Data", x => new {
+                    .InsertFromQuery("Payroll_Data", x => new
+                    {
                         x.companyCode,
                         x.location,
                         x.epf,
@@ -248,7 +249,7 @@ namespace PayrollAPI.Repository
                     });
 
                     _context.Payroll_Data.UpdateFromQuery(x => new Payroll_Data { epfContribution = x.amount * (decimal)x.epfConRate, taxContribution = x.amount * (decimal)x.taxConRate, calCode = "_" + x.payCode });
-                    
+
                     _payRun.approvedBy = approvalDto.approvedBy;
                     _payRun.approvedDate = DateTime.Today;
                     _payRun.approvedTime = DateTime.Now;
@@ -268,7 +269,7 @@ namespace PayrollAPI.Repository
                     _msg.MsgCode = 'E';
                     _msg.Message = $"Payrun already Confirmed for period - {approvalDto.period}.";
                     return _msg;
-                }               
+                }
             }
             catch (Exception ex)
             {
@@ -279,7 +280,7 @@ namespace PayrollAPI.Repository
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
-            }              
+            }
         }
 
         public async Task<MsgDto> RollBackTempData(ApprovalDto approvalDto)
@@ -346,7 +347,7 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                if(companyCode == 0 || period == 0)
+                if (companyCode == 0 || period == 0)
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = $"Bad Request";
@@ -357,7 +358,8 @@ namespace PayrollAPI.Repository
 
                 IList _paySummaryList = _context.Temp_Payroll.Where(o => o.companyCode == companyCode && o.period == period).
                     GroupBy(p => new { p.payCode }).
-                    Select(g => new {
+                    Select(g => new
+                    {
                         PayCode = g.Key.payCode,
                         Amount = g.Sum(o => o.amount),
                         Line_Item_Count = g.Count()
@@ -365,13 +367,14 @@ namespace PayrollAPI.Repository
 
                 IList _paySAPSummaryList = _context.SAPTotPayCode.Where(o => o.companyCode == companyCode && o.period == period).
                     GroupBy(p => new { p.payCode }).
-                    Select(g => new {
+                    Select(g => new
+                    {
                         PayCode = g.Key.payCode,
                         Amount = g.Sum(o => o.totalAmount),
                         Line_Item_Count = g.Sum(o => o.totCount)
                     }).OrderBy(p => p.PayCode).ToList();
 
-                if(_empCount == 0 && _paySummaryList.Count == 0 || _paySAPSummaryList.Count == 0)
+                if (_empCount == 0 && _paySummaryList.Count == 0 || _paySAPSummaryList.Count == 0)
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = "No Data Found";
@@ -441,7 +444,7 @@ namespace PayrollAPI.Repository
 
         public ICollection<Temp_Employee> GetTempEmployeeList(int companyCode, int period)
         {
-            ICollection<Temp_Employee> _tempEmpList = _context.Temp_Employee.Where(o=> o.companyCode == companyCode && o.period == period).ToList();
+            ICollection<Temp_Employee> _tempEmpList = _context.Temp_Employee.Where(o => o.companyCode == companyCode && o.period == period).ToList();
             return _tempEmpList;
         }
     }

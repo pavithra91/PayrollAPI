@@ -9,7 +9,7 @@ using System.Data;
 
 namespace PayrollAPI.Repository
 {
-    public class HelpRepository: IHelp
+    public class HelpRepository : IHelp
     {
         private readonly DBConnect _context;
         public HelpRepository(DBConnect context)
@@ -106,10 +106,11 @@ namespace PayrollAPI.Repository
 
                 var _category = _context.Category.FirstOrDefault(o => o.id == articleDto.categoryID);
 
-                if(_category != null) {
+                if (_category != null)
+                {
                     _category.articleCount += 1;
                     _context.Entry(_category).State = EntityState.Modified;
-                }   
+                }
 
                 await _context.SaveChangesAsync();
 

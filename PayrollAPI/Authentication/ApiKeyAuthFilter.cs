@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace PayrollAPI.Authentication
@@ -12,7 +11,7 @@ namespace PayrollAPI.Authentication
         {
             _configuration = configuration;
         }
-    
+
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             if (!context.HttpContext.Request.Headers.TryGetValue(AuthConstants.ApiKeyHeaderName, out var extractedApiKey))
@@ -23,7 +22,7 @@ namespace PayrollAPI.Authentication
 
             var apiKey = _configuration.GetValue<string>(AuthConstants.ApiKeySectionName);
 
-            if(!apiKey.Equals(extractedApiKey))
+            if (!apiKey.Equals(extractedApiKey))
             {
                 context.Result = new UnauthorizedObjectResult("Invalid Api Key");
                 return;

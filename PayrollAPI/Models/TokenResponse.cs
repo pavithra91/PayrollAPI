@@ -1,6 +1,4 @@
-﻿using PayrollAPI.DataModel;
-
-namespace PayrollAPI.Models
+﻿namespace PayrollAPI.Models
 {
     public class TokenResponse
     {
@@ -12,7 +10,7 @@ namespace PayrollAPI.Models
     public struct UserDetails
     {
         public int ID { get; set; }
-        
+
         public string EPF { get; set; }
         public string EmpName { get; set; }
         public string UserID { get; set; }

@@ -14,7 +14,7 @@ namespace PayrollAPI.Interfaces
 
         public Task<MsgDto> GetPaySheet(string epf, int period);
 
-        public Task<MsgDto> PrintPaySheets(int companyCode, int period); 
+        public Task<MsgDto> PrintPaySheets(int companyCode, int period);
 
         public Task<MsgDto> GetPayrunDetails();
 

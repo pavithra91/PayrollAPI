@@ -2,7 +2,7 @@
 {
     public class EmpMasterDto
     {
-        
+
         public string epf { get; set; }
         public int period { get; set; }
         public string empName { get; set; }
@@ -15,6 +15,6 @@
         public string? accountNo { get; set; }
         public string? createdBy { get; set; }
 
-        
+
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Ocsp;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
@@ -30,21 +29,23 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _taxList = await _context.Tax_Calculation.Select(o => new { 
-                o.id,
-                o.companyCode,
-                o.range,
-                o.calFormula,
-                o.description,
-                o.taxCategory,
-                o.contributor,
-                o.status,
-                o.createdBy,
-                o.createdDate,
-                o.createdTime,
-                o.lastUpdateBy,
-                o.lastUpdateDate,
-                o.lastUpdateTime }).ToListAsync();
+                var _taxList = await _context.Tax_Calculation.Select(o => new
+                {
+                    o.id,
+                    o.companyCode,
+                    o.range,
+                    o.calFormula,
+                    o.description,
+                    o.taxCategory,
+                    o.contributor,
+                    o.status,
+                    o.createdBy,
+                    o.createdDate,
+                    o.createdTime,
+                    o.lastUpdateBy,
+                    o.lastUpdateDate,
+                    o.lastUpdateTime
+                }).ToListAsync();
 
                 if (_taxList.Count > 0)
                 {
@@ -74,7 +75,8 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _tax = await _context.Tax_Calculation.Where(o=>o.id == id).Select(o => new {
+                var _tax = await _context.Tax_Calculation.Where(o => o.id == id).Select(o => new
+                {
                     o.id,
                     o.companyCode,
                     o.range,
@@ -169,7 +171,7 @@ namespace PayrollAPI.Repository
                         _tax.range = taxCalDto.range;
                     }
 
-                    if(_tax.status != taxCalDto.status)
+                    if (_tax.status != taxCalDto.status)
                     {
                         _tax.status = taxCalDto.status;
                     }
@@ -193,7 +195,7 @@ namespace PayrollAPI.Repository
                     _msg.Message = "No Tax Code Found";
                     return _msg;
                 }
-           }
+            }
             catch (Exception ex)
             {
                 _msg.MsgCode = 'E';
@@ -208,7 +210,8 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _payCodeList = await _context.PayCode.Select(o => new {
+                var _payCodeList = await _context.PayCode.Select(o => new
+                {
                     o.id,
                     o.companyCode,
                     o.payCode,
@@ -253,7 +256,8 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _payCode = await _context.PayCode.Where(o => o.id == id).Select(o => new {
+                var _payCode = await _context.PayCode.Where(o => o.id == id).Select(o => new
+                {
                     o.id,
                     o.companyCode,
                     o.payCode,
@@ -308,7 +312,7 @@ namespace PayrollAPI.Repository
                     return _msg;
                 }
 
-                if(payCodeDto.payCode == 0 || payCodeDto.companyCode == 0)
+                if (payCodeDto.payCode == 0 || payCodeDto.companyCode == 0)
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = "Please enter Valid Pay Code";
@@ -338,7 +342,7 @@ namespace PayrollAPI.Repository
 
                 return _msg;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 transaction.Rollback();
                 _msg.MsgCode = 'E';
@@ -346,7 +350,7 @@ namespace PayrollAPI.Repository
                 _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
-            
+
         }
         public async Task<MsgDto> UpdatePayCode(PayCodeDto payCodeDto)
         {
@@ -359,7 +363,7 @@ namespace PayrollAPI.Repository
                 {
                     _payCode.calCode = payCodeDto.calCode ?? _payCode.calCode;
                     _payCode.description = payCodeDto.description ?? _payCode.description;
-                    _payCode.payCategory = payCodeDto.payCategory ?? _payCode.payCategory; 
+                    _payCode.payCategory = payCodeDto.payCategory ?? _payCode.payCategory;
                     _payCode.taxationType = payCodeDto.taxationType ?? _payCode.taxationType;
 
                     //if (_payCode.isTaxableGross != payCodeDto.isTaxableGross)
@@ -406,7 +410,8 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _calculationList = await _context.Calculation.Select(o => new {
+                var _calculationList = await _context.Calculation.Select(o => new
+                {
                     o.id,
                     o.companyCode,
                     o.payCode,
@@ -453,7 +458,8 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _calculation = await _context.Calculation.Where(o => o.id == id).Select(o => new {
+                var _calculation = await _context.Calculation.Where(o => o.id == id).Select(o => new
+                {
                     o.id,
                     o.companyCode,
                     o.payCode,
@@ -510,7 +516,7 @@ namespace PayrollAPI.Repository
                     return _msg;
                 }
 
-                if(calDto.companyCode == 0 || calDto.sequence == 0 || calDto.calFormula == null || calDto.calCode == null)
+                if (calDto.companyCode == 0 || calDto.sequence == 0 || calDto.calFormula == null || calDto.calCode == null)
                 {
                     _msg.MsgCode = 'E';
                     _msg.Message = "Payload have Null Values";
@@ -565,12 +571,12 @@ namespace PayrollAPI.Repository
                     _cal.payCategory = calDto.payCategory ?? _cal.payCategory;
                     _cal.calFormula = calDto.calFormula ?? _cal.calFormula;
                     _cal.contributor = calDto.contributor ?? _cal.contributor;
-                                      
-                    if(_cal.payCode != calDto.payCode)
+
+                    if (_cal.payCode != calDto.payCode)
                     {
                         _cal.payCode = calDto.payCode;
                     }
-                    if(_cal.sequence != calDto.sequence)
+                    if (_cal.sequence != calDto.sequence)
                     {
                         _cal.sequence = calDto.sequence;
                     }
@@ -644,13 +650,14 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _empSplRateList = await _context.EmpSpecialRate.Select(o => new {
+                var _empSplRateList = await _context.EmpSpecialRate.Select(o => new
+                {
                     o.id,
                     o.epf,
                     o.companyCode,
                     o.payCode,
                     o.calCode,
-                    o.costCenter,        
+                    o.costCenter,
                     o.location,
                     o.rate,
                     o.status,
@@ -690,7 +697,8 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _empSplRate = await _context.EmpSpecialRate.Where(o => o.id == id).Select(o => new {
+                var _empSplRate = await _context.EmpSpecialRate.Where(o => o.id == id).Select(o => new
+                {
                     o.id,
                     o.epf,
                     o.companyCode,
@@ -786,9 +794,9 @@ namespace PayrollAPI.Repository
                 var _sRateEmp = _context.EmpSpecialRate.FirstOrDefault(o => o.id == specialRateEmpDto.id);
                 if (_sRateEmp != null)
                 {
-                    _sRateEmp.costCenter = specialRateEmpDto.costCenter ?? _sRateEmp.costCenter;                    
+                    _sRateEmp.costCenter = specialRateEmpDto.costCenter ?? _sRateEmp.costCenter;
                     _sRateEmp.calCode = specialRateEmpDto.calCode ?? _sRateEmp.calCode;
-                    
+
                     if (_sRateEmp.payCode != specialRateEmpDto.payCode)
                     {
                         _sRateEmp.payCode = specialRateEmpDto.payCode;
@@ -867,14 +875,15 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _empSplTaxList = await _context.Special_Tax_Emp.Select(o => new {
+                var _empSplTaxList = await _context.Special_Tax_Emp.Select(o => new
+                {
                     o.id,
                     o.epf,
                     o.companyCode,
                     o.costCenter,
                     o.location,
                     o.calFormula,
-                    o.status,                    
+                    o.status,
                     o.createdBy,
                     o.createdDate,
                     o.createdTime,
@@ -911,7 +920,8 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _empSplTax = await _context.Special_Tax_Emp.Where(o => o.id == id).Select(o => new {
+                var _empSplTax = await _context.Special_Tax_Emp.Where(o => o.id == id).Select(o => new
+                {
                     o.id,
                     o.epf,
                     o.companyCode,
@@ -1107,7 +1117,7 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _unrecoveredList = await _context.Unrecovered.Where(o => o.companyCode == companyCode && o.period == period).Select(o=> new
+                var _unrecoveredList = await _context.Unrecovered.Where(o => o.companyCode == companyCode && o.period == period).Select(o => new
                 {
                     o.epf,
                     o.costCenter,
@@ -1230,12 +1240,13 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                var _systemVaiablesList = await _context.Sys_Properties.Select(o => new {
+                var _systemVaiablesList = await _context.Sys_Properties.Select(o => new
+                {
                     o.id,
                     o.companyCode,
                     o.category_name,
                     o.variable_name,
-                    o.variable_value,             
+                    o.variable_value,
                     o.createdBy,
                     o.createdDate,
                     o.createdTime,

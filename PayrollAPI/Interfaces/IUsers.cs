@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PayrollAPI.DataModel;
+﻿using PayrollAPI.DataModel;
 using PayrollAPI.Models;
 using PayrollAPI.Repository;
 

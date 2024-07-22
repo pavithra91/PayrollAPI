@@ -1,18 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using PayrollAPI.Authentication;
-using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
 using PayrollAPI.Repository;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace PayrollAPI.Controllers
 {
@@ -24,9 +16,9 @@ namespace PayrollAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUsers _usr;
-        public UserController(IUsers users) 
+        public UserController(IUsers users)
         {
-             _usr = users;
+            _usr = users;
         }
 
         /// <summary>
@@ -43,9 +35,9 @@ namespace PayrollAPI.Controllers
 
             if (_user != null && status == 1)
             {
-                return Ok(_user); 
+                return Ok(_user);
             }
-            else if(status == -1)
+            else if (status == -1)
             {
                 return NotFound(msg);
             }
@@ -57,7 +49,7 @@ namespace PayrollAPI.Controllers
             {
                 return BadRequest(msg);
             }
-            
+
         }
         /// <summary>
         /// Method used to refresh the JWT token
@@ -70,7 +62,7 @@ namespace PayrollAPI.Controllers
         public IActionResult Refresh([FromBody] TokenResponse token)
         {
             var _refreshToken = _usr.RefreshToken(token);
-            if(_refreshToken == null)
+            if (_refreshToken == null)
             {
                 return Unauthorized();
             }

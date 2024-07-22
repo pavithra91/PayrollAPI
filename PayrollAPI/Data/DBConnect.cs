@@ -1,10 +1,10 @@
-﻿ using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MySql.EntityFrameworkCore.Extensions;
 using PayrollAPI.Models;
 
 namespace PayrollAPI.Data
 {
-    public class DBConnect: DbContext
+    public class DBConnect : DbContext
     {
         public DBConnect(DbContextOptions<DBConnect> options) : base(options)
         {
@@ -12,7 +12,7 @@ namespace PayrollAPI.Data
         }
 
         public DbSet<Calculation> Calculation { get; set; }
-        public DbSet<Employee_Data> Employee_Data { get; set; }  
+        public DbSet<Employee_Data> Employee_Data { get; set; }
         public DbSet<EmpSpecialRate> EmpSpecialRate { get; set; }
         public DbSet<EPF_ETF> EPF_ETF { get; set; }
         public DbSet<PayCode> PayCode { get; set; }

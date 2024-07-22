@@ -1,5 +1,4 @@
-﻿using LinqToDB.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -22,7 +21,7 @@ namespace PayrollAPI.Repository
         private readonly PasswordHasher passwordHasher;
         private readonly IRefreshTokenGenerator tokenGenerator;
         private readonly ILogger _logger;
-        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken, ILogger<UsersRepository> logger) 
+        public UsersRepository(DBConnect dB, IOptions<JWTSetting> options, IRefreshTokenGenerator _refreshToken, ILogger<UsersRepository> logger)
         {
             _context = dB;
             this.setting = options.Value;
@@ -42,7 +41,7 @@ namespace PayrollAPI.Repository
         {
             MsgDto _msg = new MsgDto();
             try
-            {                
+            {
                 ICollection<User> _userList = await _context.User.ToListAsync();
 
                 if (_userList.Count > 0)
@@ -76,7 +75,7 @@ namespace PayrollAPI.Repository
             MsgDto _msg = new MsgDto();
             try
             {
-                User? _user = await _context.User.Where(o=>o.id == id).FirstOrDefaultAsync();
+                User? _user = await _context.User.Where(o => o.id == id).FirstOrDefaultAsync();
 
                 if (_user != null)
                 {
@@ -104,7 +103,7 @@ namespace PayrollAPI.Repository
             }
         }
 
-        public async Task<MsgDto> CreateUser(UserDto user) 
+        public async Task<MsgDto> CreateUser(UserDto user)
         {
             MsgDto _msg = new MsgDto();
 
@@ -140,7 +139,7 @@ namespace PayrollAPI.Repository
                 _msg.Message = "User Created";
                 return _msg;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError($"create-user : {ex.Message}");
                 _logger.LogError($"create-user : {ex.InnerException}");
@@ -266,8 +265,8 @@ namespace PayrollAPI.Repository
                     status = -2;
                     msg = "Wrong Password";
                     _user.failAttempts = _user.failAttempts + 1;
-                    
-                    if(_user.failAttempts == _user.accountLockoutPolicy)
+
+                    if (_user.failAttempts == _user.accountLockoutPolicy)
                     {
                         _user.isAccountLocked = true;
                     }
@@ -275,6 +274,14 @@ namespace PayrollAPI.Repository
                     _context.SaveChangesAsync();
 
                     return null;
+                }
+
+                Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Session_Timeout").FirstOrDefault();
+                int SessionTimeOut = 5;
+
+                if (sys_Properties != null)
+                {
+                    SessionTimeOut = Convert.ToInt32(sys_Properties.variable_value);
                 }
 
                 var tokenhandler = new JwtSecurityTokenHandler();
@@ -287,7 +294,7 @@ namespace PayrollAPI.Repository
                         new Claim(ClaimTypes.Name, _user.userID),
                         }
                     ),
-                    Expires = DateTime.Now.AddMinutes(10),
+                    Expires = DateTime.Now.AddMinutes(SessionTimeOut),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256)
                 };
 
@@ -301,7 +308,7 @@ namespace PayrollAPI.Repository
                 _userDetails.ID = _user.id;
                 _userDetails.EPF = _user.epf;
                 _userDetails.CostCenter = _user.costCenter;
-                if(_user.empName!=null)
+                if (_user.empName != null)
                 {
                     _userDetails.EmpName = _user.empName;
                 }
@@ -327,7 +334,7 @@ namespace PayrollAPI.Repository
                 msg = "Success";
                 return tokenResponse;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError($"Authenticate : {ex.Message}");
                 _logger.LogError($"Authenticate : {ex.InnerException}");
@@ -350,14 +357,14 @@ namespace PayrollAPI.Repository
             }, out securityToken);
 
             var _token = securityToken as JwtSecurityToken;
-           // if (_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
-         ////   {
-         //       return null;
-         //   }
+            // if (_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
+            ////   {
+            //       return null;
+            //   }
 
             var username = principle.Identity.Name;
             var _reftable = _context.LoginInfo.FirstOrDefault(o => o.userID == username && o.refreshToken == token.RefreshToken);
-            if(_reftable==null) 
+            if (_reftable == null)
             {
                 return null;
             }
@@ -370,11 +377,13 @@ namespace PayrollAPI.Repository
 
         public TokenResponse Authenticate(string username, Claim[] claims)
         {
+            Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Session_Timeout").FirstOrDefault();
+
             TokenResponse tokenResponse = new TokenResponse();
             var tokenkey = Encoding.UTF8.GetBytes(setting.securitykey);
             var tokenhandler = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(10),
+                expires: DateTime.Now.AddMinutes(Convert.ToInt32(sys_Properties)),
                  signingCredentials: new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
 
                 );
@@ -446,7 +455,7 @@ namespace PayrollAPI.Repository
         public bool Save()
         {
             var saved = _context.SaveChanges();
-            return saved > 0 ? true: false;
+            return saved > 0 ? true : false;
         }
     }
 }

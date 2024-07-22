@@ -16,7 +16,7 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "varchar(10)")]
         public string level { get; set; }
-        
+
         [Column(TypeName = "TEXT")]
         public string message { get; set; }
 

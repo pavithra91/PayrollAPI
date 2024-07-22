@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 
@@ -13,8 +11,8 @@ namespace PayrollAPI.Controllers
     public class PayrollController : ControllerBase
     {
         private readonly IPayroll _payroll;
-        public PayrollController(IPayroll payroll) 
-        { 
+        public PayrollController(IPayroll payroll)
+        {
             _payroll = payroll;
         }
 

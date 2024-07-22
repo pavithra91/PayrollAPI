@@ -24,11 +24,11 @@ namespace PayrollAPI.Models
         public string? grade { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
-        public decimal emp_contribution  { get; set; }
-        
+        public decimal emp_contribution { get; set; }
+
         [Column(TypeName = "decimal(10, 2)")]
         public decimal comp_contribution { get; set; }
-        
+
         [Column(TypeName = "decimal(10, 2)")]
         public decimal etf { get; set; }
 
@@ -40,13 +40,19 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal tax { get; set; }
-        
+
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? lumpsumTax { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? lumpSumGross { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal grossAmount { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal netAmount { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? unRecoveredTotal { get; set; }

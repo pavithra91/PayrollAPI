@@ -1,10 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
-using PayrollAPI.Models;
 using PayrollAPI.Repository;
-using FluentAssertions;
 
 namespace PayrollAPI.Tests.Controller.Repository
 {
@@ -86,8 +85,8 @@ namespace PayrollAPI.Tests.Controller.Repository
             //Assert
             result.Should().NotBeNull();
             result.Should().BeOfType(typeof(PayrollAPI.DataModel.MsgDto));
-            result.MsgCode.Should().BeEquivalentTo('S'); 
-            result.Message.Should().BeEquivalentTo("Data Transered Confirmed"); 
+            result.MsgCode.Should().BeEquivalentTo('S');
+            result.Message.Should().BeEquivalentTo("Data Transered Confirmed");
         }
 
         [Theory]

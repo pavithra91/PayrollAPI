@@ -1,11 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace PayrollAPI.Data
 {
     public class PasswordHasher
     {
-        private const int _SaltSize = 128/8;
+        private const int _SaltSize = 128 / 8;
         private const int _KeySize = 256 / 8;
         private const int _Iterations = 15000;
         private static readonly HashAlgorithmName hashAlgorithmName = HashAlgorithmName.SHA256;

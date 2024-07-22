@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PayrollAPI.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
-using System.Collections;
 
 namespace PayrollAPI.Controllers
 {
@@ -127,13 +123,13 @@ namespace PayrollAPI.Controllers
         public IActionResult GetEmployeeList(int companyCode, int period)
         {
             MsgDto _msg = new MsgDto();
-            if (companyCode < 0 || period <0)
+            if (companyCode < 0 || period < 0)
             {
                 _msg.MsgCode = 'E';
                 _msg.Message = "Please enter Company Code & Period";
                 return BadRequest(_msg);
             }
-                ICollection<Temp_Employee> _empList = _data.GetTempEmployeeList(companyCode, period);
+            ICollection<Temp_Employee> _empList = _data.GetTempEmployeeList(companyCode, period);
 
             if (_empList != null)
                 return Ok(_empList);

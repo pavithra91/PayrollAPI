@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PayrollAPI.Models
 {
@@ -16,7 +16,7 @@ namespace PayrollAPI.Models
 
         [Column(TypeName = "varchar(50)")]
         public string variable_name { get; set; }
-        
+
         [Column(TypeName = "varchar(500)")]
         public string variable_value { get; set; }
 

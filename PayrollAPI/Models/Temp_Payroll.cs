@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PayrollAPI.Models
 {
@@ -23,8 +23,8 @@ namespace PayrollAPI.Models
         public float othours { get; set; }
 
         [Column(TypeName = "varchar(2)")]
-        public string? payCategory { get; set; } 
-        
+        public string? payCategory { get; set; }
+
         public int payCode { get; set; }
 
         [Column(TypeName = "varchar(5)")]

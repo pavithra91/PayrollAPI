@@ -1,16 +1,8 @@
 ﻿using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
-using PayrollAPI.Models;
 using PayrollAPI.Repository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace PayrollAPI.Tests.Controller.Repository
 {
@@ -25,15 +17,15 @@ namespace PayrollAPI.Tests.Controller.Repository
            .Options;
 
             _context = new DBConnect(options);
-           // _context.Database.EnsureDeleted();
-           // _context.Database.Migrate();
+            // _context.Database.EnsureDeleted();
+            // _context.Database.Migrate();
 
             _repository = new AdminRepository(_context);
 
             return _context;
         }
 
-#region Pay Codes
+        #region Pay Codes
         [Theory]
         [MemberData(nameof(PayCodeDataList))]
         public async void AdminRepositoryTests_Add_ReturnsBadRequest(PayCodeDto payCodeDto)
@@ -203,7 +195,7 @@ namespace PayrollAPI.Tests.Controller.Repository
 
         #endregion
 
-#region Calculation
+        #region Calculation
         [Fact]
         public async void AdminRepositoryTests_Get_Calculations_OK()
         {
@@ -412,7 +404,7 @@ namespace PayrollAPI.Tests.Controller.Repository
             //Arrange
             var dbContext = await GetDatabaseContext();
             var _adminRepo = new AdminRepository(dbContext);
-           
+
             //Act
             var result = await _adminRepo.GetOTDetails(period, companyCode);
 
@@ -494,7 +486,7 @@ namespace PayrollAPI.Tests.Controller.Repository
             // Blank Object
             new object[] { new CalDto { } },
             // No Company Code
-            new object[] { new CalDto { 
+            new object[] { new CalDto {
                 sequence = 10,
                 payCode = 111,
                 calCode = "_111",

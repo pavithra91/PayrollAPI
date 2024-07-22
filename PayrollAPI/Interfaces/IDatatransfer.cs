@@ -1,6 +1,5 @@
 ﻿using PayrollAPI.DataModel;
 using PayrollAPI.Models;
-using System.Collections;
 using System.Data;
 
 namespace PayrollAPI.Interfaces

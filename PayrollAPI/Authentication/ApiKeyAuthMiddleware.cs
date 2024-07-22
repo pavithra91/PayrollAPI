@@ -6,12 +6,12 @@
 
         public ApiKeyAuthMiddleware(RequestDelegate next)
         {
-            _next = next;   
+            _next = next;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if(!context.Request.Headers.TryGetValue(AuthConstants.ApiKeyHeaderName, out var extractedApiKey))
+            if (!context.Request.Headers.TryGetValue(AuthConstants.ApiKeyHeaderName, out var extractedApiKey))
             {
 
             }
