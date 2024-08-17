@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 
@@ -580,6 +581,28 @@ namespace PayrollAPI.Controllers
             {
                 return BadRequest(_msg);
             }
+        }
+
+        [Route("get-paycodewise-details")]
+        [HttpGet]
+        public async Task<ActionResult> GetPayCodeWiseData(int period, int companyCode)
+        {
+            MsgDto _msg = await _admin.GetPayCodeWiseData(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
+        // Just for checking
+        [Route("check-sms-gateway")]
+        [HttpGet]
+        public async Task<ActionResult> CheckSMSGateway(string number)
+        {
+            SMSSender sms = new SMSSender(number, "Working");
+            sms.sendSMS(sms);
+            return Ok();
         }
     }
 }

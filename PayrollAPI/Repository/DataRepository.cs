@@ -169,7 +169,8 @@ namespace PayrollAPI.Repository
             }
             else
             {
-                _msg.MsgCode = 'E';
+                _msg.MsgCode = 'S';
+                _msg.Data = JsonConvert.SerializeObject("[]");
                 _msg.Message = $"Bad Request";
                 return _msg;
             }

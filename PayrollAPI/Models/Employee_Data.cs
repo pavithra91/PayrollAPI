@@ -38,6 +38,12 @@ namespace PayrollAPI.Models
         [Column(TypeName = "boolean")]
         public bool? status { get; set; }
 
+        [Column(TypeName = "varchar(15)")]
+        public string? phoneNo { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
+        public string? email { get; set; }
+
 
         [Column(TypeName = "boolean")]
         public bool? isPaysheetGenerated { get; set; }

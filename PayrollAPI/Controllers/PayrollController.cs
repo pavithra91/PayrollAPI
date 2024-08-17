@@ -184,5 +184,21 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
+
+        [Route("create-bank-file")]
+        [HttpGet]
+        public async Task<ActionResult> CreateBankFile(int period, int companyCode)
+        {
+            MsgDto _msg = await _payroll.CreateBankFile(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
     }
 }

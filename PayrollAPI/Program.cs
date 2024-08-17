@@ -38,7 +38,7 @@ try
     // Add services to the container.
 
     builder.Services.AddDbContext<PayrollAPI.Data.DBConnect>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DevConnection")));
+    options.UseMySQL(builder.Configuration.GetConnectionString("DevLocalConnection")));
 
     var _dbContext = builder.Services.BuildServiceProvider().GetService<DBConnect>();
 

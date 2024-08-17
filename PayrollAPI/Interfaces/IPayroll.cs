@@ -21,6 +21,8 @@ namespace PayrollAPI.Interfaces
         public Task<MsgDto> GetPayrunDetails(int period, int CompanyCode);
 
         public Task<MsgDto> Writeback(int period, int companyCode);
+
+        public Task<MsgDto> CreateBankFile(int period, int companyCode);
         public IDbTransaction BeginTransaction();
     }
 }

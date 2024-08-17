@@ -33,6 +33,12 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(15)")]
         public string? accountNo { get; set; }
 
+        [Column(TypeName = "varchar(15)")]
+        public string? phoneNo { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
+        public string? email { get; set; }
+
         [Column(TypeName = "varchar(10)")]
         public string? createdBy { get; set; }
 

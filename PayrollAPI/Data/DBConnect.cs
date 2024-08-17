@@ -35,6 +35,7 @@ namespace PayrollAPI.Data
         public DbSet<SysLog> SysLog { get; set; }
 
         public DbSet<Sys_Properties> Sys_Properties { get; set; }
+        public DbSet<PaySheet_Log> PaySheet_Log { get; set; }
 
         public DbSet<OTHours_View> GetOTDetails { get; set; }
         public DbSet<Payroll_Summary_View> GetSummaryDetails { get; set; }

@@ -41,5 +41,7 @@ namespace PayrollAPI.Interfaces
         public Task<MsgDto> GetSystemVariables();
         public Task<MsgDto> CreateSystemVariable(SysVariableDto sysVariableDto);
         public Task<MsgDto> UpdateSystemVariable(SysVariableDto sysVariableDto);
+
+        public Task<MsgDto> GetPayCodeWiseData(int period, int companyCode);
     }
 }

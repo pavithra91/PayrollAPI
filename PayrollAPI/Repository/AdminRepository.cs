@@ -1,11 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using NReco.PivotData;
+using Org.BouncyCastle.Ocsp;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models;
+using PdfSharp.Charting;
+using PdfSharp.Pdf.Content.Objects;
 using System.Data;
+using static LinqToDB.Common.Configuration;
 
 namespace PayrollAPI.Repository
 {
@@ -1346,6 +1352,80 @@ namespace PayrollAPI.Repository
                     _msg.Message = $"System Variable {sysVariableDto.variable_name} Found";
                     return _msg;
                 }
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> GetPayCodeWiseData(int period, int companyCode)
+        {
+            MsgDto _msg = new MsgDto();
+            try
+            {
+
+                ICollection<Payroll_Data> payItemList = _context.Payroll_Data.Where(x => x.companyCode == companyCode && x.period == period).OrderBy(x=>x.epf).ToList();
+                ICollection<Employee_Data> emp = _context.Employee_Data.Where(x => x.companyCode == companyCode && x.period == period).OrderBy(x => x.epf).ToList();
+
+
+                var _resultList = from payData in payItemList
+                                           join empData in emp on payData.epf equals empData.epf
+                                         into Deductions
+                                           from defaultVal in Deductions.DefaultIfEmpty()
+                                           orderby payData.epf
+                                           select new
+                                           {
+                                               epf = payData.epf,
+                                               empName = defaultVal.empName,
+                                               payCode = payData.payCode,
+                                               amount = payData.amount,
+                                           };
+
+                var _payItemList = _resultList.GroupBy(i => new { i.payCode, i.epf, i.empName }).Select(g => new
+                {
+                    payCode = g.Key.payCode,
+                    epf = g.Key.epf,
+                    empName = g.Key.empName,
+                    amount = g.Sum(i => i.amount)
+                });
+
+                DataTable dt = new DataTable();
+                dt.Columns.Add("epf");
+                dt.Columns.Add("empName");
+                dt.Columns.Add("payCode");
+                dt.Columns.Add("amount");
+
+                 foreach (var item in _payItemList) {
+                    dt.Rows.Add(item.epf, item.empName, item.payCode.ToString(), item.amount);
+                 }
+
+                var _pvtData = new PivotData(new[] { "epf", "empName", "payCode", "amount" }, new SumAggregatorFactory("amount"));
+                _pvtData.ProcessData(new DataTableReader(dt));
+
+                var _pvtTbl = new PivotTable(
+                    new[] { "epf", "empName" }, //rows
+                    new[] { "payCode" }, //columns
+                    _pvtData);
+
+                var dataTableWr = new NReco.PivotData.Output.PivotTableDataTableWriter("PaycodeWiseData");
+                dataTableWr.GrandTotal = false;
+                dataTableWr.TotalsRow = false;
+                dataTableWr.TotalsColumn = false;
+                DataTable tbl = dataTableWr.Write(_pvtTbl);
+
+                tbl.Columns.RemoveAt(2);
+                
+                tbl.Columns["epf[trial]"].ColumnName = "EPF";
+                tbl.Columns["empname[trial]"].ColumnName = "Employee Name";
+
+                _msg.Data = JsonConvert.SerializeObject(tbl);
+                _msg.MsgCode = 'S';
+                _msg.Message = "Success";
+                return _msg;
             }
             catch (Exception ex)
             {
