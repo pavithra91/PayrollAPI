@@ -35,5 +35,11 @@ namespace PayrollAPI.Models
         public string? payrunBy { get; set; }
         public DateTime? payrunDate { get; set; }
         public DateTime? payrunTime { get; set; }
+
+
+        [Column(TypeName = "varchar(10)")]
+        public string? bankFileCreatedBy { get; set; }
+        public DateTime? bankFileCreatedDate { get; set; }
+        public DateTime? bankFileCreatedTime { get; set; }
     }
 }

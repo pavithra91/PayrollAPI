@@ -22,7 +22,7 @@ namespace PayrollAPI.Interfaces
 
         public Task<MsgDto> Writeback(int period, int companyCode);
 
-        public Task<MsgDto> CreateBankFile(int period, int companyCode);
+        public Task<MsgDto> CreateBankFile(ApprovalDto approvalDto);
         public IDbTransaction BeginTransaction();
     }
 }

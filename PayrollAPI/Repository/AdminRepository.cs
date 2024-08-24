@@ -1219,9 +1219,12 @@ namespace PayrollAPI.Repository
                 else
                 {
                     Payrun _payrun = _context.Payrun.Where(o => o.companyCode == resetDto.companyCode && o.period == resetDto.period).FirstOrDefault();
-                    _payrun.payrunStatus = "Transfer Complete";
-                    _payrun.approvedBy = string.Empty;
-                    _payrun.payrunBy = string.Empty;
+                    if(_payrun != null )
+                    {
+                        _payrun.payrunStatus = "Transfer Complete";
+                        _payrun.approvedBy = string.Empty;
+                        _payrun.payrunBy = string.Empty;
+                    }
                 }
 
                 await _context.SaveChangesAsync();

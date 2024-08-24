@@ -410,8 +410,6 @@ namespace PayrollAPI.Repository
         }
         public async Task<MsgDto> CreateUnrecoveredFile(ApprovalDto approvalDto)
         {
-            // TODO : Check _payrun Status
-
             MsgDto _msg = new MsgDto();
             using var transaction = BeginTransaction();
             try
@@ -791,10 +789,33 @@ namespace PayrollAPI.Repository
         public async Task<MsgDto> GetPaySheet(string epf, int period)
         {
             MsgDto _msg = new MsgDto();
+            int _paysheetCounter = 6000;
+            Random random = new Random();
+            int randomNumber = random.Next(1, 11);
+            DataTable dt = new DataTable();
+
             try
             {
-                PaySheet_Log _paysheetLog = _context.PaySheet_Log.Where(o => o.epf == epf && period == period).FirstOrDefault();
-                
+                PaySheet_Log _paysheetLog = _context.PaySheet_Log.Where(o => o.epf == epf && o.period == period).FirstOrDefault();
+
+                Employee_Data? _selectedEmpData = _context.Employee_Data.
+        Where(o => o.period == period && o.epf == epf).FirstOrDefault();
+
+                if (_paysheetLog == null)
+                {
+                    _paysheetLog = new PaySheet_Log();
+                    _paysheetLog.epf = epf;
+                    _paysheetLog.period = period;
+                    _paysheetLog.companyCode = _selectedEmpData.companyCode;
+                    _paysheetLog.changeDate = DateTime.Now;
+                    _context.PaySheet_Log.Add(_paysheetLog);
+                    _context.SaveChanges();
+                }
+
+                Sys_Properties? _sendSMSSettings = _context.Sys_Properties.Where(o => o.variable_name == "Send_SMS_PaySheet_View").FirstOrDefault();
+                Sys_Properties? _S3UploadSettings = _context.Sys_Properties.Where(o => o.variable_name == "S3_Upload_PaySheet_View").FirstOrDefault();
+                Sys_Properties smsBody = _context.Sys_Properties.Where(o => o.variable_name == "SMS_Body").FirstOrDefault();
+
                 ICollection<Payroll_Data> _payData = await _context.Payroll_Data.
                     Where(o => o.period == period && o.epf == epf).
                     OrderBy(o => o.epf).ToListAsync();
@@ -835,6 +856,7 @@ namespace PayrollAPI.Repository
                                                amount = payData.amount,
                                                balanceAmount = payData.balanceAmount,
                                                calCode = payData.calCode,
+                                               payCodeType = payData.payCodeType,
                                            };
 
                 var _empData = await _context.Employee_Data.
@@ -895,7 +917,7 @@ namespace PayrollAPI.Repository
                                           calCode = payData.calCode,
                                       };
 
-                DataTable dt = new DataTable();
+
                 dt.Columns.Add("empData");
                 dt.Columns.Add("salData");
                 dt.Columns.Add("earningData");
@@ -906,33 +928,55 @@ namespace PayrollAPI.Repository
 
                 _msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
 
-                EPF_ETF _epfData = await _context.EPF_ETF.
+                EPF_ETF? _epfData = await _context.EPF_ETF.
                     Where(o => o.period == period && o.epf == epf).FirstOrDefaultAsync();
 
-                Employee_Data _selectedEmpData = _context.Employee_Data.
-                        Where(o => o.period == period && o.epf == epf).FirstOrDefault();
 
-                if(_paysheetLog != null && !_paysheetLog.isPaysheetUploaded)
+
+                if(_S3UploadSettings.variable_value == "True")
                 {
-                    var pdfData = GeneratePayslipsForEmployee(_payData, _selectedEmpData, _epfData, period);
+                    _paysheetCounter += randomNumber;
 
-                    var fileName = $"{epf}.pdf";
-                    await UploadPdfToS3(pdfData, fileName, period.ToString());
-                }
-
-                if (_paysheetLog != null && !_paysheetLog.isSMSSend)
-                {
-                    Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Send_SMS_PaySheet_View").FirstOrDefault();
-                    Sys_Properties smsBody = _context.Sys_Properties.Where(o => o.variable_name == "SMS_Body").FirstOrDefault();
-                    string _endPoint = "https://cpstl-poc-main-s3.s3.ap-southeast-1.amazonaws.com/public/" + period + "/" + _selectedEmpData.epf + ".pdf";
-
-                    if (sys_Properties.variable_value == "True")
+                    if (!_paysheetLog.isPaysheetUploaded)
                     {
-                        SMSSender sms = new SMSSender(_selectedEmpData.phoneNo, string.Format(smsBody.variable_value.Replace("{break}", "\n"), _selectedEmpData.epf, period) + _endPoint);
-                        sms.sendSMS(sms);
-                    }
+                        var pdfData = GeneratePayslipsForEmployee(_payData, _selectedEmpData, _epfData, period);
 
+                        var fileName = $"{_paysheetCounter}.pdf";
+                        await UploadPdfToS3(pdfData, fileName, period.ToString());
+                        _paysheetLog.paysheetID = fileName;
+                        _paysheetLog.isPaysheetUploaded = true;
+                    }
                 }
+            
+                string _endPoint = "https://cpstl-poc-main-s3.s3.ap-southeast-1.amazonaws.com/public/" + period + "/" + _paysheetLog.paysheetID;
+
+                if (_sendSMSSettings?.variable_value == "True")
+                {
+                    if (!_paysheetLog.isSMSSend)
+                    {
+                        if(_selectedEmpData?.phoneNo != null)
+                        {
+                            SMSSender sms = new SMSSender(_selectedEmpData.phoneNo, string.Format(smsBody.variable_value.Replace("{break}", "\n"), period, _endPoint));
+                            bool respose = await sms.sendSMS(sms);
+
+                            if (respose)
+                            {
+                                _paysheetLog.isSMSSend = true;
+                            }
+                        }
+                        else
+                        {
+                            _paysheetLog.message = "Employee Phone Number Not found";
+                        }
+                    }
+                }
+
+                if (_paysheetLog != null)
+                {
+                    _context.Entry(_paysheetLog).State = EntityState.Modified;
+                }
+
+                _context.SaveChangesAsync();
 
                 _msg.MsgCode = 'S';
                 _msg.Message = "Success";
@@ -943,248 +987,278 @@ namespace PayrollAPI.Repository
             {
                 _logger.LogError($"get-paysheet : {ex.Message}");
                 _logger.LogError($"get-paysheet : {ex.InnerException}");
-                _msg.MsgCode = 'E';
-                //_msg.Message = "Error : " + ex.Message;
-                _msg.Description = "Inner Expection : " + ex.InnerException;
-                return _msg;
+
+                if (dt.Rows.Count > 0)
+                {
+                    _msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+
+                    return _msg;
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Error : " + ex.Message;
+                    _msg.Description = "Inner Expection : " + ex.InnerException;
+                    return _msg;
+                }
             }
         }
 
         private byte[] GeneratePayslipsForEmployee(ICollection<Payroll_Data> _payData, Employee_Data _empData, EPF_ETF _epfData, int period)
         {
-            //Employee_Data _empData = _empData2.FirstOrDefault();
-
-            /*ICollection<Payroll_Data> _payData = _context.Payroll_Data.
-                    Where(o => o.period == period && o.epf == epf).
-                    OrderBy(o => o.epf).ToList();*/
-
-            ICollection<PayCode> _payCodes = _context.PayCode.ToList();
-
-            ICollection<Payroll_Data> _earningData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "0").OrderBy(o => o.epf).ToList();
-
-            var _earningDataResult = from payData in _earningData
-                                     join payCode in _payCodes on payData.payCode equals payCode.payCode
-                                     into Earnings
-                                     where payData.epf == _empData.epf
-                                     from defaultVal in Earnings.DefaultIfEmpty()
-                                     orderby payData.payCode
-                                     select new
-                                     {
-                                         id = defaultVal.id,
-                                         name = defaultVal.description,
-                                         payCode = payData.payCode,
-                                         amount = payData.amount,
-                                         othours = payData.othours,
-                                         calCode = payData.calCode,
-                                     };
-
-            ICollection<Payroll_Data> _deductionData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "1").OrderBy(o => o.epf).ToList();
-
-            var _deductionDataResult = from payData in _deductionData
-                                       join payCode in _payCodes on payData.payCode equals payCode.payCode
-                                     into Deductions
-                                       where payData.epf == _empData.epf && payData.payCode > 0
-                                       from defaultVal in Deductions.DefaultIfEmpty()
-                                       orderby payData.payCode
-                                       select new
-                                       {
-                                           id = payData.id,
-                                           name = defaultVal.description,
-                                           payCode = payData.payCode,
-                                           paytype = payData.paytype,
-                                           amount = payData.amount,
-                                           balanceAmount = payData.balanceAmount,
-                                           othours = payData.othours,
-                                           calCode = payData.calCode,
-                                       };
-
-
-            PdfDocument document= new PdfDocument();
-            PdfPage page = document.AddPage();
-            page.Size = PdfSharp.PageSize.A4;
-            XGraphics gfx = XGraphics.FromPdfPage(page);
-
-            XPen pen = new XPen(XColors.Black);
-            XPen lineGrey = new XPen(XColors.Gray);
-            
-            var width = page.Width.Millimeter;
-            var height = page.Height.Millimeter;
-
-            XFont normalFont = new XFont("courier", 10);
-
-            double y = 100;
-            double x = 0;
-            double lineY = 120;
-            double lineX = 140;
-
-            gfx = DrawHeader(gfx, x, y, _empData, normalFont, pen, period);
-
-            y = 150;
-
-            foreach (var item in _earningDataResult)
+            try
             {
-                if(item.othours > 0)
+                ICollection<PayCode> _payCodes = _context.PayCode.ToList();
+
+                ICollection<Payroll_Data> _earningData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "0").OrderBy(o => o.epf).ToList();
+
+                var _earningDataResult = from payData in _earningData
+                                         join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                         into Earnings
+                                         where payData.epf == _empData.epf
+                                         from defaultVal in Earnings.DefaultIfEmpty()
+                                         orderby payData.payCode
+                                         select new
+                                         {
+                                             id = defaultVal.id,
+                                             name = defaultVal.description,
+                                             payCode = payData.payCode,
+                                             amount = payData.amount,
+                                             othours = payData.othours,
+                                             calCode = payData.calCode,
+                                         };
+
+                ICollection<Payroll_Data> _deductionData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "1").OrderBy(o => o.epf).ToList();
+
+                var _deductionDataResult = from payData in _deductionData
+                                           join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                         into Deductions
+                                           where payData.epf == _empData.epf && payData.payCode > 0
+                                           from defaultVal in Deductions.DefaultIfEmpty()
+                                           orderby payData.payCode
+                                           select new
+                                           {
+                                               id = payData.id,
+                                               name = defaultVal.description,
+                                               payCode = payData.payCode,
+                                               paytype = payData.paytype,
+                                               amount = payData.amount,
+                                               balanceAmount = payData.balanceAmount,
+                                               othours = payData.othours,
+                                               calCode = payData.calCode,
+                                               payCodeType = payData.payCodeType,
+                                           };
+
+
+                PdfDocument document = new PdfDocument();
+                PdfPage page = document.AddPage();
+                page.Size = PdfSharp.PageSize.A4;
+                XGraphics gfx = XGraphics.FromPdfPage(page);
+
+                XPen pen = new XPen(XColors.Black);
+                XPen lineGrey = new XPen(XColors.Gray);
+
+                var width = page.Width.Millimeter;
+                var height = page.Height.Millimeter;
+
+                XFont normalFont = new XFont("courier", 10);
+
+                double y = 100;
+                double x = 0;
+                double lineY = 120;
+                double lineX = 140;
+
+                gfx = DrawHeader(gfx, x, y, _empData, normalFont, pen, period);
+
+                y = 150;
+
+                foreach (var item in _earningDataResult)
                 {
-                    gfx.DrawString(item.othours.ToString("N") + "*", normalFont, XBrushes.Black,
-                        new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
-                }
+                    if (item.othours > 0)
+                    {
+                        gfx.DrawString(item.othours.ToString("N") + "*", normalFont, XBrushes.Black,
+                            new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
+                    }
 
-                gfx.DrawString(item.payCode.ToString(), normalFont, XBrushes.Black,
-                    new XRect(145, y, 50, 0));
-                gfx.DrawString(item.name, normalFont, XBrushes.Black,
-                    new XRect(175, y, 50, 0));
+                    gfx.DrawString(item.payCode.ToString(), normalFont, XBrushes.Black,
+                        new XRect(145, y, 50, 0));
+                    gfx.DrawString(item.name, normalFont, XBrushes.Black,
+                        new XRect(175, y, 50, 0));
 
-                gfx.DrawString(item.amount.ToString("N"), normalFont, XBrushes.Black,
-                    new XRect(400, y, 50, 0), XStringFormats.BaseLineRight);
-
-                y += 15;
-            }
-
-            gfx.DrawString("GROSS PAY", normalFont, XBrushes.Black,
-                new XRect(145, y + 8, 50, 0));
-            gfx.DrawString(_epfData.grossAmount.ToString("N"), normalFont, XBrushes.Black,
-                new XRect(400, y + 8, 50, 0));
-
-            y += 30;
-
-            foreach (var item in _deductionDataResult)
-            {
-                if (item.othours > 0)
-                {
-                    gfx.DrawString(item.othours.ToString("N"), normalFont, XBrushes.Black,
-                        new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
-                }
-
-                if (item.balanceAmount > 0)
-                {
-                    gfx.DrawString(item.balanceAmount.ToString("N"), normalFont, XBrushes.Black,
-                        new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
-                    gfx.DrawString((item.balanceAmount - item.amount).ToString("N"), normalFont, XBrushes.Black,
-                        new XRect(520, y, 50, 0), XStringFormats.BaseLineRight);
-                }
-
-                gfx.DrawString(item.payCode.ToString(), normalFont, XBrushes.Black,
-                    new XRect(145, y, 50, 0));
-                gfx.DrawString(item.name, normalFont, XBrushes.Black,
-                    new XRect(175, y, 50, 0));
-
-                if(item.paytype == 'U')
-                {
-                    gfx.DrawString(item.amount.ToString("N"), normalFont, XBrushes.Red,
-                        new XRect(400, y, 50, 0), XStringFormats.BaseLineRight);
-                }
-                else
-                {
                     gfx.DrawString(item.amount.ToString("N"), normalFont, XBrushes.Black,
                         new XRect(400, y, 50, 0), XStringFormats.BaseLineRight);
+
+                    y += 15;
                 }
 
-                y += 15;
+                gfx.DrawString("GROSS PAY", normalFont, XBrushes.Black,
+                    new XRect(145, y + 8, 50, 0));
+                gfx.DrawString(_epfData.grossAmount.ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(400, y + 8, 50, 0));
+
+                y += 30;
+
+                int count = 0;
+
+                foreach (var item in _deductionDataResult)
+                {
+                    if(count == 15)
+                    {
+
+                    }
+                    count++;
+
+                    if (item.othours > 0)
+                    {
+                        gfx.DrawString(item.othours.ToString("N"), normalFont, XBrushes.Black,
+                            new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
+                    }
+
+                    if (item.balanceAmount > 0)
+                    {
+                        gfx.DrawString(item.balanceAmount.ToString("N"), normalFont, XBrushes.Black,
+                            new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
+                        if (item.payCodeType == "P")
+                        {
+                            gfx.DrawString((item.balanceAmount + item.amount).ToString("N"), normalFont, XBrushes.Black,
+                                new XRect(520, y, 50, 0), XStringFormats.BaseLineRight);
+                        }
+                        else
+                        {
+                            gfx.DrawString((item.balanceAmount - item.amount).ToString("N"), normalFont, XBrushes.Black,
+                                new XRect(520, y, 50, 0), XStringFormats.BaseLineRight);
+                        }
+                    }
+
+                    gfx.DrawString(item.payCode.ToString(), normalFont, XBrushes.Black,
+                        new XRect(145, y, 50, 0));
+                    gfx.DrawString(item.name, normalFont, XBrushes.Black,
+                        new XRect(175, y, 50, 0));
+
+                    if (item.paytype == 'U')
+                    {
+                        gfx.DrawString(item.amount.ToString("N"), normalFont, XBrushes.Red,
+                            new XRect(400, y, 50, 0), XStringFormats.BaseLineRight);
+                    }
+                    else
+                    {
+                        gfx.DrawString(item.amount.ToString("N"), normalFont, XBrushes.Black,
+                            new XRect(400, y, 50, 0), XStringFormats.BaseLineRight);
+                    }
+
+                    y += 15;
+
+                    if (y > 700)
+                    {
+                        gfx.DrawLine(lineGrey, 130, lineY, 130, y + 15);
+                        gfx.DrawLine(lineGrey, 367, lineY, 367, y + 15);
+                        gfx.DrawLine(lineGrey, 490, lineY, 490, y + 15);
+
+                        //gfx.DrawLine(lineGrey, 130, y, 490, y);
+                        gfx.DrawLine(lineGrey, 130, y + 15, 490, y + 15);
+
+                        page = document.AddPage();
+                        gfx = XGraphics.FromPdfPage(page);
+                        gfx = DrawHeader(gfx, 0, 100, _empData, normalFont, pen, period);
+
+                        y = 150;
+                    }
+                }
+
+                gfx.DrawString("DEDUCTIONS", normalFont, XBrushes.Black,
+                    new XRect(145, y + 10, 50, 0));
+                gfx.DrawString(_epfData.deductionGross.GetValueOrDefault().ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(400, y + 10, 50, 0));
+
+                gfx.DrawLine(lineGrey, 130, lineY, 130, y + 15);
+                gfx.DrawLine(lineGrey, 367, lineY, 367, y + 15);
+                gfx.DrawLine(lineGrey, 490, lineY, 490, y + 15);
+
+                gfx.DrawLine(lineGrey, 130, y, 490, y);
+                gfx.DrawLine(lineGrey, 130, y + 15, 490, y + 15);
+
+                y += 30;
 
                 if (y > 700)
                 {
-                    gfx.DrawLine(lineGrey, 130, lineY, 130, y + 15);
-                    gfx.DrawLine(lineGrey, 367, lineY, 367, y + 15);
-                    gfx.DrawLine(lineGrey, 490, lineY, 490, y + 15);
-
-                    //gfx.DrawLine(lineGrey, 130, y, 490, y);
-                    gfx.DrawLine(lineGrey, 130, y + 15, 490, y + 15);
-
                     page = document.AddPage();
                     gfx = XGraphics.FromPdfPage(page);
                     gfx = DrawHeader(gfx, 0, 100, _empData, normalFont, pen, period);
-
                     y = 150;
                 }
+                // else
+                // {
+                //      y = 750;
+                // }
+
+                gfx.DrawRectangle(lineGrey, new XRect(130, y, 100, 30));
+                gfx.DrawString("NET PAY", normalFont, XBrushes.Black,
+                    new XRect(50, y + 8, 50, 0));
+                gfx.DrawString(_epfData.netAmount.ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(145, y + 15, 50, 0));
+
+
+                gfx.DrawRectangle(lineGrey, new XRect(240, y, 250, 30));
+                gfx.DrawString("EPF CORP.", normalFont, XBrushes.Black,
+                    new XRect(245, y + 12, 50, 0));
+                gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
+                    new XRect(245, y + 24, 50, 0));
+
+                gfx.DrawString(_epfData.comp_contribution.ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(250, y + 46, 50, 0));
+
+                gfx.DrawLine(lineGrey, 325, y, 325, y + 60);
+
+                gfx.DrawString("EPF TOTAL", normalFont, XBrushes.Black,
+                    new XRect(330, y + 12, 50, 0));
+                gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
+                    new XRect(330, y + 24, 50, 0));
+
+                gfx.DrawString((_epfData.emp_contribution + _epfData.comp_contribution).ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(335, y + 46, 50, 0));
+
+                gfx.DrawLine(lineGrey, 410, y, 410, y + 60);
+
+                gfx.DrawString("ETF", normalFont, XBrushes.Black,
+                    new XRect(415, y + 12, 50, 0));
+                gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
+                    new XRect(415, y + 24, 50, 0));
+
+                gfx.DrawString(_epfData.etf.ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(420, y + 46, 50, 0));
+
+                gfx.DrawRectangle(lineGrey, new XRect(240, y + 30, 250, 30));
+
+                //  gfx.DrawString("width : " + width + " height : " + height, normalFont, XBrushes.Black,
+                //       new XRect(200, 650, 50, 0));
+
+                //  y = 0;
+                //  for(int i= 0; i <=11; i++)
+                //   {
+                //     gfx.DrawString((i+1).ToString(), normalFont, XBrushes.Black,
+                //     new XRect(y, 800, 10, 0));
+
+                //      y += 50;
+                //   }
+
+                // Encryption
+                document.SecuritySettings.UserPassword = _empData.epf;
+                var securityHandler = document.SecurityHandler ?? NRT.ThrowOnNull<PdfStandardSecurityHandler>();
+                securityHandler.SetEncryptionToV5();
+
+
+                MemoryStream stream = new MemoryStream();
+                document.Save(stream, true);
+                //document.Save("202407/" + _empData.epf + ".pdf");     
+
+                return stream.ToArray();
             }
-
-            gfx.DrawString("DEDUCTIONS", normalFont, XBrushes.Black,
-                new XRect(145, y + 8, 50, 0));
-            gfx.DrawString(_epfData.deductionGross.ToString(), normalFont, XBrushes.Black,
-                new XRect(400, y + 8, 50, 0));
-
-            gfx.DrawLine(lineGrey, 130, lineY, 130, y + 15);
-            gfx.DrawLine(lineGrey, 367, lineY, 367, y + 15);
-            gfx.DrawLine(lineGrey, 490, lineY, 490, y + 15);
-
-            gfx.DrawLine(lineGrey, 130, y, 490, y);
-            gfx.DrawLine(lineGrey, 130, y+15, 490, y+15);
-
-            y += 30;
-
-            if(y > 700)
+            catch(Exception ex)
             {
-                page = document.AddPage();
-                gfx = XGraphics.FromPdfPage(page);
-                gfx = DrawHeader(gfx, 0, 100, _empData, normalFont, pen, period);
-                y = 150;
+                return null;
             }
-           // else
-           // {
-          //      y = 750;
-           // }
-
-            gfx.DrawRectangle(lineGrey, new XRect(130, y, 100, 30));
-            gfx.DrawString("NET PAY", normalFont, XBrushes.Black,
-                new XRect(50, y + 8, 50, 0));
-            gfx.DrawString(_epfData.netAmount.ToString("N"), normalFont, XBrushes.Black,
-                new XRect(145, y + 15, 50, 0));
-
-
-            gfx.DrawRectangle(lineGrey, new XRect(240, y, 250, 30));
-            gfx.DrawString("EPF CORP.", normalFont, XBrushes.Black,
-                new XRect(245, y + 12, 50, 0));
-            gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
-                new XRect(245, y + 24, 50, 0));
-
-            gfx.DrawString(_epfData.comp_contribution.ToString("N"), normalFont, XBrushes.Black,
-                new XRect(250, y + 46, 50, 0));
-
-            gfx.DrawLine(lineGrey, 325, y, 325, y + 60);
-
-            gfx.DrawString("EPF TOTAL", normalFont, XBrushes.Black,
-                new XRect(330, y + 12, 50, 0));
-            gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
-                new XRect(330, y + 24, 50, 0));
-
-            gfx.DrawString((_epfData.emp_contribution + _epfData.comp_contribution).ToString("N"), normalFont, XBrushes.Black,
-                new XRect(335, y + 46, 50, 0));
-
-            gfx.DrawLine(lineGrey, 410, y, 410, y + 60);
-
-            gfx.DrawString("ETF", normalFont, XBrushes.Black,
-                new XRect(415, y + 12, 50, 0));
-            gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
-                new XRect(415, y + 24, 50, 0));
-
-            gfx.DrawString(_epfData.etf.ToString("N"), normalFont, XBrushes.Black,
-                new XRect(420, y + 46, 50, 0));
-
-            gfx.DrawRectangle(lineGrey, new XRect(240, y + 30, 250, 30));
-
-            //  gfx.DrawString("width : " + width + " height : " + height, normalFont, XBrushes.Black,
-            //       new XRect(200, 650, 50, 0));
-
-            //  y = 0;
-            //  for(int i= 0; i <=11; i++)
-            //   {
-            //     gfx.DrawString((i+1).ToString(), normalFont, XBrushes.Black,
-            //     new XRect(y, 800, 10, 0));
-
-            //      y += 50;
-            //   }
-
-            // Encryption
-            document.SecuritySettings.UserPassword = _empData.epf;
-            var securityHandler = document.SecurityHandler ?? NRT.ThrowOnNull<PdfStandardSecurityHandler>();
-            securityHandler.SetEncryptionToV5();
-
-
-            MemoryStream stream = new MemoryStream();
-            document.Save(stream, true);
-            //document.Save(_empData.epf + ".pdf");     
-
-            return stream.ToArray();
         }
 
         private XGraphics DrawHeader(XGraphics gfx, double x, double y, Employee_Data _empData, XFont normalFont, XPen pen, int period)
@@ -1198,17 +1272,22 @@ namespace PayrollAPI.Repository
 
             XFont headerFont = new XFont("courier", 14);
 
-            gfx.DrawString("Ceylon Petroleum Storage Terminals Limited", headerFont, XBrushes.Black,
+            gfx.DrawString("CEYLON PETROLEUM STORAGE TERMINALS LIMITED", headerFont, XBrushes.Black,
                 new XRect(150, 30, 150, 0));
+
+            gfx.DrawString("EMPLOYEE PAY SHEET", headerFont, XBrushes.Black,
+                new XRect(250, 50, 150, 0));
 
             gfx.DrawRectangle(pen, new XRect(40, 88, 540, 20));
 
-            gfx.DrawString(_empData.epf, normalFont, XBrushes.Black,
+            gfx.DrawString("EPF : ", normalFont, XBrushes.Black,
                 new XRect(x + 50, y, 50, 0));
+            gfx.DrawString(_empData.epf, normalFont, XBrushes.Black,
+                new XRect(x + 85, y, 50, 0));
             gfx.DrawString(GetPeriod(period.ToString()), normalFont, XBrushes.Black,
-                new XRect(x + 100, y, 50, 0));
+                new XRect(x + 150, y, 50, 0));
             gfx.DrawString(_empData.empName, normalFont, XBrushes.Black,
-                new XRect(x + 200, y, 150, 0));
+                new XRect(x + 250, y, 150, 0));
 
             string _paymentType = "BANK";
             if (_empData.paymentType == 1)
@@ -1217,7 +1296,10 @@ namespace PayrollAPI.Repository
             }
 
             gfx.DrawString(_paymentType, normalFont, XBrushes.Black,
-                new XRect(x + 450, y, 50, 0));
+                new XRect(x + 430, y, 50, 0));
+
+            gfx.DrawString("GRADE :", normalFont, XBrushes.Black,
+                new XRect(x + 495, y, 50, 0));
 
             gfx.DrawString(_empData.empGrade.ToString(), normalFont, XBrushes.Black,
                 new XRect(x + 550, y, 50, 0));
@@ -1246,7 +1328,7 @@ namespace PayrollAPI.Repository
 
             Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Send_SMS_PaySheet_View").FirstOrDefault();
             Sys_Properties smsBody = _context.Sys_Properties.Where(o => o.variable_name == "SMS_Body").FirstOrDefault();
-
+            int count = 0;
             try
             {
                 ICollection<Payroll_Data> _payData = await _context.Payroll_Data.
@@ -1273,168 +1355,80 @@ namespace PayrollAPI.Repository
 
                 ICollection<PaySheet_Log> _paysheetLog = _context.PaySheet_Log.Where(o => o.companyCode == companyCode && o.period == period).OrderBy(o => o.epf).ToList();
 
-                //DataTable dt = new DataTable();
-                //dt.Columns.Add("empData");
-                //dt.Columns.Add("salData");
-                //dt.Columns.Add("earningData");
-                //dt.Columns.Add("deductionData");
-                //dt.Columns.Add("unRecoveredData");
-                //dt.Columns.Add("loanData");
-
-
                 var paysheetLogEpfs = _paysheetLog.Select(p => p.epf).ToHashSet();
                 _empData = _empData.Where(e => !paysheetLogEpfs.Contains(e.epf)).ToList();
 
-                int count = 0;
+                int _paysheetCounter = 3000;
+                Random random = new Random();
+                int randomNumber = random.Next(1, 11);
 
-
-                foreach (Employee_Data emp in _empData)
+                var tasks = _empData.Select(async emp =>
                 {
-
+                    _paysheetCounter += randomNumber;
                     ICollection<Payroll_Data> _payData2 = _payData.Where(o => o.epf == emp.epf).ToList();
                     EPF_ETF _epfData2 = _epfData.Where(o => o.epf == emp.epf).FirstOrDefault();
-
-                    /*var _earningDataResult = from payData in _earningData
-                                             join payCode in _payCodes on payData.payCode equals payCode.payCode
-                                             into Earnings
-                                             where payData.epf == emp.epf
-                                             from defaultVal in Earnings.DefaultIfEmpty()
-                                             orderby payData.payCode
-                                             select new
-                                             {
-                                                 name = defaultVal.description,
-                                                 payCode = payData.payCode,
-                                                 amount = payData.amount,
-                                                 calCode = payData.calCode,
-                                             };
-
-                    var _deductionDataResult = from payData in _deductionData
-                                               join payCode in _payCodes on payData.payCode equals payCode.payCode
-                                             into Deductions
-                                               where payData.epf == emp.epf && payData.payCode > 0
-                                               from defaultVal in Deductions.DefaultIfEmpty()
-                                               orderby payData.payCode
-                                               select new
-                                               {
-                                                   name = defaultVal.description,
-                                                   payCode = payData.payCode,
-                                                   paytype = payData.paytype,
-                                                   amount = payData.amount,
-                                                   balanceAmount = payData.balanceAmount,
-                                                   calCode = payData.calCode,
-                                               };
-
-                    var _loanData = from payData in _deductionData
-                                    join payCode in _payCodes on payData.payCode equals payCode.payCode
-                                  into Loans
-                                    where payData.epf == emp.epf && payData.payCode > 0 && payData.balanceAmount > 0
-                                    from defaultVal in Loans.DefaultIfEmpty()
-                                    orderby payData.payCode
-                                    select new
-                                    {
-                                        name = defaultVal.description,
-                                        payCode = payData.payCode,
-                                        balance = payData.balanceAmount,
-                                        amount = payData.amount,
-                                        calCode = payData.calCode,
-                                    };
-
-                    var _empDisplayData = _empData.
-                               Where(o => o.period == period && o.epf == emp.epf).
-                               Select(e => new
-                               {
-                                   e.epf,
-                                   e.empName,
-                                   e.companyCode,
-                                   e.location,
-                                   e.costCenter,
-                                   e.empGrade,
-                                   e.gradeCode,
-                               });
-
-
-                    var _salData = _epfData.
-                   Where(o => o.period == period && o.epf == emp.epf).
-                   Select(e => new
-                   {
-                       e.epfGross,
-                       e.taxableGross,
-                       e.tax,
-                       e.emp_contribution,
-                       e.comp_contribution,
-                       e.etf,
-                       e.deductionGross,
-                       e.unRecoveredTotal,
-                       e.grossAmount,
-                       e.netAmount,
-                       e.lumpsumTax,
-                   });
-
-                    var _unRecData = _unrecoveredData.
-                    Where(o => o.period == period && o.epf == emp.epf).
-                    Select(e => new
-                    {
-                        e?.payCode,
-                        e?.calCode,
-                        e?.amount
-                    });
-
-
-                    dt.Rows.Add(JsonConvert.SerializeObject(_empDisplayData), JsonConvert.SerializeObject(_salData), JsonConvert.SerializeObject(_earningDataResult), JsonConvert.SerializeObject(_deductionDataResult), JsonConvert.SerializeObject(_unRecData), JsonConvert.SerializeObject(_loanData));
-                    */
 
                     var _objLog = new PaySheet_Log
                     {
                         epf = emp.epf,
                         period = period,
-                        companyCode = companyCode,        
+                        companyCode = companyCode,
                     };
 
                     var pdfData = GeneratePayslipsForEmployee(_payData2, emp, _epfData2, period);
-                    var fileName = $"{emp.epf}.pdf";
+                    var fileName = $"{_paysheetCounter}.pdf";
                     await UploadPdfToS3(pdfData, fileName, period.ToString());
 
-                    string _endPoint = "https://cpstl-poc-main-s3.s3.ap-southeast-1.amazonaws.com/public/" + period + "/" + emp.epf + ".pdf";
+                    string _endPoint = "https://cpstl-poc-main-s3.s3.ap-southeast-1.amazonaws.com/public/" + period + "/" + _paysheetCounter + ".pdf";
                     if (sys_Properties.variable_value == "True")
                     {
                         if (emp.phoneNo != null)
                         {
-                            SMSSender sms = new SMSSender(emp.phoneNo, string.Format(smsBody.variable_value.Replace("{break}", "\n"), emp.epf, period) + _endPoint);
-                            sms.sendSMS(sms);
-                            _objLog.isSMSSend = true;
+                            SMSSender sms = new SMSSender(emp.phoneNo, string.Format(smsBody.variable_value.Replace("{break}", "\n"), period, _endPoint));
+                            bool respose = await sms.sendSMS(sms); sms.sendSMS(sms);
+                            _objLog.isSMSSend = respose;
                         }
                         else
                         {
-                            _objLog.isSMSSend= false;
+                            _objLog.isSMSSend = false;
                             _objLog.message = "Employee Phone Number not found";
                         }
                     }
 
                     count++;
 
+                    _objLog.paysheetID = fileName;
                     _objLog.isPaysheetUploaded = true;
                     objectsToSave.Add(_objLog);
 
-                    if (count >= 3)
+                    // TO DO: Used to only upload 3 paysheets to server
+                    /*if (count >= 3)
                     {
-                        //_msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
                         _context.PaySheet_Log.AddRange(objectsToSave);
                         _context.SaveChanges();
                         _msg.MsgCode = 'S';
                         _msg.Message = "Success";
                         return _msg;
-                    }
-                }
+                    }*/
+                });
+
+                //foreach (Employee_Data emp in _empData)
+                //{
+
+                //}
 
                 //_msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
                 _context.PaySheet_Log.AddRange(objectsToSave);
                 _context.SaveChanges();
                 _msg.MsgCode = 'S';
                 _msg.Message = "Success";
+
+                await Task.WhenAll(tasks);
                 return _msg;
             }
             catch (Exception ex)
             {
+                int c = count;
                 _context.PaySheet_Log.AddRange(objectsToSave);
                 _context.SaveChanges();
                 _logger.LogError($"print-paysheet : {ex.Message}");
@@ -1540,58 +1534,99 @@ namespace PayrollAPI.Repository
             }
         }
 
-        public async Task<MsgDto> CreateBankFile(int period, int companyCode)
+        public async Task<MsgDto> CreateBankFile(ApprovalDto approvalDto)
         {
             MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
             try
             {
-                ICollection<EPF_ETF> _payData = _context.EPF_ETF.Where(o=>o.companyCode == companyCode && o.period == period).ToList();
-                ICollection<Employee_Data> _empData = _context.Employee_Data.Where(o => o.companyCode == companyCode && o.period == period).ToList();
-                ICollection<Sys_Properties> _sysProperties = _context.Sys_Properties.Where(o => o.category_name == "System_Variable").ToList();
+                Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).FirstOrDefault();
 
-                var itemList = from epf_etf in _payData
-                               join empData in _empData on epf_etf.epf equals empData.epf
-                               orderby epf_etf.epf
-                               select new
-                               {
-                                   epf = epf_etf.epf,
-                                   name = epf_etf.empName,
-                                   netSalary = epf_etf.netAmount.ToString(),
-                                   bankCode = empData.bankCode.ToString(),
-                                   branchCode = empData.branchCode.ToString(),
-                                   accountNo = empData.accountNo.ToString(),
-                               };
-
-                string formattedString = "";
-                string _comp_BankCode = _sysProperties.Where(o => o.variable_name == "Bank_Code").FirstOrDefault().variable_value;
-                string _comp_Branch_Code = _sysProperties.Where(o => o.variable_name == "Branch_Code").FirstOrDefault().variable_value;
-                string _comp_Account_No = _sysProperties.Where(o => o.variable_name == "Account_No").FirstOrDefault().variable_value;
-                string _comp_Account_Name = _sysProperties.Where(o => o.variable_name == "Account_Name").FirstOrDefault().variable_value;
-
-                foreach (var item in itemList)
+                if(_payRun.payrunStatus == "Unrec File Created")
                 {
-                    string amount = item.netSalary.ToString().Replace(".", "");
-                    amount.Count();
+                    MsgDto _response = await PrintPaySheets(approvalDto.companyCode, approvalDto.period);
 
-                    DateTime now = DateTime.Now;
-                    string date = now.ToString("yyMMdd");
+                    if(_response.MsgCode == 'S')
+                     {
+                        ICollection<EPF_ETF> _payData = _context.EPF_ETF.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).ToList();
+                        ICollection<Employee_Data> _empData = _context.Employee_Data.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).ToList();
+                        ICollection<Sys_Properties> _sysProperties = _context.Sys_Properties.Where(o => o.category_name == "System_Variable").ToList();
 
-                    formattedString += string.Format(
-                    "{0,4}{1,4}{2:3}{3,-12}{4,-20}23{5,21}SLR{6,4}{7:3}{8, -12}{9, -50}{10, 6}{11,6}\n",
-                    "0000", item.bankCode, item.branchCode, item.accountNo.PadLeft(12,'0'), item.name.Trim(), amount.PadLeft(21, '0'), _comp_BankCode, _comp_Branch_Code, _comp_Account_No.PadLeft(12, '0'), _comp_Account_Name, date, "000000");
+                        var itemList = from epf_etf in _payData
+                                       join empData in _empData on epf_etf.epf equals empData.epf
+                                       orderby epf_etf.epf
+                                       select new
+                                       {
+                                           epf = epf_etf.epf,
+                                           name = epf_etf.empName,
+                                           netSalary = epf_etf.netAmount.ToString(),
+                                           bankCode = empData.bankCode.ToString(),
+                                           branchCode = empData.branchCode.ToString(),
+                                           accountNo = empData.accountNo.ToString(),
+                                       };
+
+                        string formattedString = "";
+                        string _comp_BankCode = _sysProperties.Where(o => o.variable_name == "Bank_Code").FirstOrDefault().variable_value;
+                        string _comp_Branch_Code = _sysProperties.Where(o => o.variable_name == "Branch_Code").FirstOrDefault().variable_value;
+                        string _comp_Account_No = _sysProperties.Where(o => o.variable_name == "Account_No").FirstOrDefault().variable_value;
+                        string _comp_Account_Name = _sysProperties.Where(o => o.variable_name == "Account_Name").FirstOrDefault().variable_value;
+
+                        foreach (var item in itemList)
+                        {
+                            string amount = item.netSalary.ToString().Replace(".", "");
+                            amount.Count();
+
+                            DateTime now = DateTime.Now;
+                            string date = now.ToString("yyMMdd");
+
+                            formattedString += string.Format(
+                            "{0,4}{1,4}{2:3}{3,-12}{4,-20}23{5,21}SLR{6,4}{7:3}{8, -12}{9, -50}{10, 6}{11,6}\n",
+                            "0000", item.bankCode, item.branchCode, item.accountNo.PadLeft(12, '0'), item.name.Trim(), amount.PadLeft(21, '0'), _comp_BankCode, _comp_Branch_Code, _comp_Account_No.PadLeft(12, '0'), _comp_Account_Name, date, "000000");
+                        }
+
+                        File.WriteAllText("output.txt", formattedString);
+
+                        // EmailSender _email = new EmailSender();
+                        // _email.SendEmail("pavi.dsscst@gmail.com", "Bank File", "Test Email");
+
+                        _context.SaveChanges();
+
+                        ICollection<PaySheet_Log> paySheet_Logs = _context.PaySheet_Log.Where(o => o.companyCode == approvalDto.companyCode && o.period == approvalDto.period).OrderBy(o => o.epf).ToList();
+
+                        _payRun.payrunStatus = "Bank File Created";
+                        _payRun.bankFileCreatedBy = approvalDto.approvedBy;
+                        _payRun.bankFileCreatedDate = DateTime.Now;
+                        _payRun.bankFileCreatedTime = DateTime.Now;
+
+                        _context.Entry(_payRun).State = EntityState.Modified;
+                        _context.SaveChanges();
+
+                        transaction.Commit();
+
+                        _msg.MsgCode = 'S';
+                        _msg.Data = JsonConvert.SerializeObject(paySheet_Logs);
+                        _msg.Message = "Success";
+                        return _msg;
+                    }
+                    else
+                    {
+                        _msg.MsgCode = 'E';
+                        _msg.Message = "Error";
+                        return _msg;
+                    }      
                 }
-
-                File.WriteAllText("output.txt", formattedString);
-
-                _msg.MsgCode = 'S';
-               // _msg.Data = JsonConvert.SerializeObject(_payData.OrderBy(o => o.epf));
-                _msg.Message = "Success";
-                return _msg;
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "To Create Bank Transfer File Payrun needs to be in Unrec File Created Status";
+                    return _msg;
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Writeback : {ex.Message}");
-                _logger.LogError($"Writeback : {ex.InnerException}");
+                transaction.Rollback();
+                _logger.LogError($"CreateBankFile : {ex.Message}");
+                _logger.LogError($"CreateBankFile : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;

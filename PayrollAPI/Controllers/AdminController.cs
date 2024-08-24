@@ -600,9 +600,16 @@ namespace PayrollAPI.Controllers
         [HttpGet]
         public async Task<ActionResult> CheckSMSGateway(string number)
         {
-            SMSSender sms = new SMSSender(number, "Working");
-            sms.sendSMS(sms);
-            return Ok();
+            try
+            {
+                SMSSender sms = new SMSSender(number, "Working");
+                sms.sendSMS(sms);
+                return Ok();
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

@@ -186,10 +186,10 @@ namespace PayrollAPI.Controllers
         }
 
         [Route("create-bank-file")]
-        [HttpGet]
-        public async Task<ActionResult> CreateBankFile(int period, int companyCode)
+        [HttpPost]
+        public async Task<ActionResult> CreateBankFile([FromBody] ApprovalDto approvalDto)
         {
-            MsgDto _msg = await _payroll.CreateBankFile(period, companyCode);
+            MsgDto _msg = await _payroll.CreateBankFile(approvalDto);
 
             if (_msg.MsgCode == 'S')
             {

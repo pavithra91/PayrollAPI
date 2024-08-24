@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.ServiceModel.Channels;
 using System.Text;
 
 namespace PayrollAPI.Data
@@ -14,15 +15,38 @@ namespace PayrollAPI.Data
             this._receiver = receiver;
             this._message = message;
         }
-        public async void sendSMS(SMSSender sms)
+        public async Task<bool> sendSMS(SMSSender sms)
         {
             using (var client = new HttpClient())
             {
-                string url = "https://msmsenterpriseapi.mobitel.lk/mSMSEnterpriseAPI/esmsproxy.php?u=esmsusr_s4u&p=600aon&a=CPSTL&m=" + sms._message + "&r=" + sms._receiver + "&t=0";
-                var request = await client.GetAsync(url);
-                var response = await request.Content.ReadAsStringAsync();
+                string url = "https://msmsenterpriseapi.mobitel.lk/EnterpriseSMSV3/esmsproxyURL.php";
 
-                Console.WriteLine(response);
+                // Create a dictionary to hold the request data
+                var requestData = new Dictionary<string, string>()
+                {
+                    { "username", "esmsusr_s4u" },
+                    { "password", "600aon" },
+                    { "from", "CPSTL" },
+                    { "text", sms._message },
+                    { "to", sms._receiver },
+                    { "messageType", "0" }
+                };
+
+                string jsonContent = JsonConvert.SerializeObject(requestData);
+
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
         }

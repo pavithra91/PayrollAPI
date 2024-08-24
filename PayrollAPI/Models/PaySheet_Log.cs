@@ -19,6 +19,9 @@ namespace PayrollAPI.Models
         [Column(TypeName = "boolean")]
         public bool isSMSSend { get; set; }
 
+        [Column(TypeName = "varchar(15)")]
+        public string? paysheetID { get; set; }
+        
         [Column(TypeName = "varchar(300)")]
         public string? message { get; set; }
 
