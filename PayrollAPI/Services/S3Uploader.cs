@@ -3,7 +3,7 @@ using Amazon.S3;
 using Org.BouncyCastle.Utilities.Zlib;
 using PdfSharp.Pdf;
 
-namespace PayrollAPI.Data
+namespace PayrollAPI.Services
 {
     public class S3Uploader
     {

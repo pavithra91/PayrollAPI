@@ -1,7 +1,7 @@
 ﻿using System.Net.Mail;
 using System.Net;
 
-namespace PayrollAPI.Data
+namespace PayrollAPI.Services
 {
     public class EmailSender
     {

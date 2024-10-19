@@ -1,14 +1,21 @@
+using Amazon;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using NLog;
 using NLog.Web;
 using PayrollAPI.Authentication;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Repository;
+using PayrollAPI.Services;
+using PdfSharp.Charting;
 using System.Reflection;
 using System.Text;
 
@@ -22,6 +29,8 @@ try
     var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
     var builder = WebApplication.CreateBuilder(args);
+
+    var env = builder.Environment.EnvironmentName;
 
     // Disable Cors
     builder.Services.AddCors(options =>
@@ -37,8 +46,36 @@ try
 
     // Add services to the container.
 
-    builder.Services.AddDbContext<PayrollAPI.Data.DBConnect>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DevLocalConnection")));
+    if(env == "Production")
+    {
+        IAmazonSecretsManager amazonSecretsManager = new AmazonSecretsManagerClient("AKIAV3CJE2DCBB7UZJDM", "oPvNVvN3U5e+MZwtmRK8/X+5kLDxNzXsCubr1XbT", RegionEndpoint.APSoutheast1);
+
+        var request = new GetSecretValueRequest
+        {
+            SecretId = $"{env}_PayrollAPI_ConnectionStrings__LocalConnection"
+        };
+
+        var result = await amazonSecretsManager.GetSecretValueAsync(request);
+
+        var connectionStringParts = JsonConvert.DeserializeObject<Dictionary<string, string>>(result.SecretString);
+        var username = connectionStringParts["username"];
+        var password = connectionStringParts["password"];
+        var engine = connectionStringParts["engine"];
+        var host = connectionStringParts["host"];
+        var port = int.Parse(connectionStringParts["port"]);
+        var dbClusterIdentifier = connectionStringParts["dbClusterIdentifier"];
+
+        var connectionStringTemplate = $"Server={host};Port={port};Database={dbClusterIdentifier};Uid={username};Pwd={password};";
+
+
+        builder.Services.AddDbContext<PayrollAPI.Data.DBConnect>(options =>
+        options.UseMySQL(connectionStringTemplate));
+    }
+    else
+    {
+        builder.Services.AddDbContext<PayrollAPI.Data.DBConnect>(options =>
+        options.UseMySQL(builder.Configuration.GetConnectionString("DevLocalConnection")));
+    }
 
     var _dbContext = builder.Services.BuildServiceProvider().GetService<DBConnect>();
 
@@ -46,6 +83,11 @@ try
     builder.Services.AddHealthChecks().AddDbContextCheck<PayrollAPI.Data.DBConnect>();
 
     builder.Services.AddSingleton<IRefreshTokenGenerator>(provider => new RefreshTokenGenerator(_dbContext));
+
+
+    builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+    builder.Services.AddHostedService<BackgroudService>();
+
 
     var _jwtsetting = builder.Configuration.GetSection("JWTSetting");
     builder.Services.Configure<JWTSetting>((IConfiguration)_jwtsetting);

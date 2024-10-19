@@ -6,7 +6,8 @@ RUN sed -i'.bak' 's/$/ contrib/' /etc/apt/sources.list
 RUN apt-get update; apt-get install -y ttf-mscorefonts-installer fontconfig
 
 WORKDIR /app
-
+COPY logo.jpg /app/
+COPY Draft.png /app/
 VOLUME /app/images
 
 EXPOSE 80
@@ -17,12 +18,17 @@ WORKDIR /src
 COPY ["PayrollAPI/PayrollAPI.csproj", "PayrollAPI/"]
 RUN dotnet restore "PayrollAPI/PayrollAPI.csproj"
 COPY . .
+COPY logo.jpg /app/
+COPY Draft.png /app/
 WORKDIR "/src/PayrollAPI"
+COPY logo.jpg /app/
+COPY Draft.png /app/
 RUN dotnet build "PayrollAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish
 RUN dotnet publish "PayrollAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
-COPY logo.jpg /app/images
+COPY logo.jpg /app/
+COPY Draft.png /app/
 
 FROM base AS final
 WORKDIR /app

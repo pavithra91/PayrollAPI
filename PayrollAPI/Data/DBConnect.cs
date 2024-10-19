@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EntityFramework.Exceptions.MySQL;
+using Microsoft.EntityFrameworkCore;
 using MySql.EntityFrameworkCore.Extensions;
 using PayrollAPI.Models;
 
@@ -40,6 +41,10 @@ namespace PayrollAPI.Data
         public DbSet<OTHours_View> GetOTDetails { get; set; }
         public DbSet<Payroll_Summary_View> GetSummaryDetails { get; set; }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder modelBuilder)
+        {
+            modelBuilder.UseExceptionProcessor();
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Ignore<OTHours_View>().Entity<OTHours_View>().HasNoKey();

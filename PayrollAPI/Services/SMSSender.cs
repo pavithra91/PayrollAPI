@@ -2,7 +2,7 @@
 using System.ServiceModel.Channels;
 using System.Text;
 
-namespace PayrollAPI.Data
+namespace PayrollAPI.Services
 {
     public class SMSSender
     {
@@ -12,8 +12,8 @@ namespace PayrollAPI.Data
 
         public SMSSender(string receiver, string message)
         {
-            this._receiver = receiver;
-            this._message = message;
+            _receiver = receiver;
+            _message = message;
         }
         public async Task<bool> sendSMS(SMSSender sms)
         {

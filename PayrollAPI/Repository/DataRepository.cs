@@ -1,4 +1,5 @@
-﻿using LinqToDB;
+﻿using EntityFramework.Exceptions.Common;
+using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -65,6 +66,7 @@ namespace PayrollAPI.Repository
                         bankCode = Convert.ToInt32(_dataRow["bankCode"]),
                         branchCode = Convert.ToInt32(_dataRow["branchCode"]),
                         accountNo = _dataRow["accountNo"].ToString(),
+                        phoneNo = _dataRow["phoneNo"].ToString(),
                         createdBy = _dataRow["createdBy"].ToString(),
                         createdDate = DateTime.Now,
                     });
@@ -72,13 +74,6 @@ namespace PayrollAPI.Repository
 
                 foreach (DataRow _dataRow in _masterDataTable.Tables[1].AsEnumerable())
                 {
-                    count = count + 1;
-
-                    if (count == 1134)
-                    {
-
-                    }
-
                     _tempPayList.Add(new Temp_Payroll()
                     {
                         companyCode = Convert.ToInt32(_dataRow["company"]),
@@ -149,6 +144,7 @@ namespace PayrollAPI.Repository
                 _logger.LogError($"DataTransfer : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
+                _msg.Data = ex.Data.ToString();
                 _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
@@ -224,7 +220,8 @@ namespace PayrollAPI.Repository
                     x.paymentType,
                     x.bankCode,
                     x.branchCode,
-                    x.accountNo
+                    x.accountNo,
+                    x.phoneNo
                 });
 
 

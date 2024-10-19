@@ -1,0 +1,511 @@
+﻿using Microsoft.EntityFrameworkCore;
+using PayrollAPI.DataModel;
+using PayrollAPI.Models;
+using PdfSharp.Diagnostics;
+using PdfSharp.Drawing.Layout;
+using PdfSharp.Drawing;
+using PdfSharp.Pdf.Security;
+using PdfSharp.Pdf;
+using PayrollAPI.Data;
+
+namespace PayrollAPI.Services
+{
+    public class PaysheetPrint
+    {
+        public async Task<MsgDto> PrintPaySheets(int companyCode, int period, string approvedBy, DBConnect _context)
+        {
+            MsgDto _msg = new MsgDto();
+            var objectsToSave = new List<PaySheet_Log>();
+            Common com = new Common();
+
+            Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Send_SMS_PaySheet_View").FirstOrDefault();
+            Sys_Properties smsBody = _context.Sys_Properties.Where(o => o.variable_name == "SMS_Body").FirstOrDefault();
+            Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == companyCode && o.period == period).FirstOrDefault();
+
+            try
+            {
+                ICollection<Payroll_Data> _payData = _context.Payroll_Data.
+                    Where(o => o.period == period && o.companyCode == companyCode).
+                    OrderBy(o => o.epf).ToList();
+
+                ICollection<Employee_Data> _empData = _context.Employee_Data.
+                    Where(o => o.period == period && o.companyCode == companyCode).
+                    OrderBy(o => o.epf).ToList();
+
+                ICollection<EPF_ETF> _epfData = _context.EPF_ETF.
+                    Where(o => o.period == period && o.companyCode == companyCode).
+                    OrderBy(o => o.epf).ToList();
+
+                ICollection<Unrecovered> _unrecoveredData = _context.Unrecovered.
+                    Where(o => o.period == period && o.companyCode == companyCode).
+                    OrderBy(o => o.epf).ToList();
+
+
+                ICollection<PayCode> _payCodes = _context.PayCode.ToList();
+
+                ICollection<Payroll_Data> _earningData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "0").OrderBy(o => o.epf).ToList();
+                ICollection<Payroll_Data> _deductionData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "1").OrderBy(o => o.epf).ToList();
+
+                ICollection<PaySheet_Log> _paysheetLog = _context.PaySheet_Log.Where(o => o.companyCode == companyCode && o.period == period).OrderBy(o => o.epf).ToList();
+
+                var paysheetLogEpfs = _paysheetLog.Select(p => p.epf).ToHashSet();
+                _empData = _empData.Where(e => !paysheetLogEpfs.Contains(e.epf)).ToList();
+
+                int _paysheetCounter = 3000;
+                Random random = new Random();
+                int randomNumber = random.Next(1, 11);
+
+                int count = 0;
+
+                foreach (var emp in _empData)
+                {
+                    count++;
+                    var _objLog = new PaySheet_Log
+                    {
+                        epf = emp.epf,
+                        period = period,
+                        companyCode = companyCode,
+                    };
+
+                    try
+                    {
+                        _paysheetCounter += randomNumber;
+                        _objLog.paysheetID = _paysheetCounter.ToString();
+
+                        ICollection<Payroll_Data> _SelectedPayData = _payData.Where(o => o.epf == emp.epf).ToList();
+                        EPF_ETF _selectedEPFData = _epfData.Where(o => o.epf == emp.epf).FirstOrDefault();
+
+                        var pdfData = GeneratePayslipsForEmployee(_SelectedPayData, emp, _selectedEPFData, period, _context);
+                        var fileName = $"{_paysheetCounter}.pdf";
+
+                        string _endPoint = "https://cpstl-poc-main-s3.s3.ap-southeast-1.amazonaws.com/public/" + period + "/" + _paysheetCounter + ".pdf";
+
+                        com.UploadPdfToS3(pdfData, fileName, period.ToString());
+
+                        Thread.Sleep(200);
+
+                        if (sys_Properties?.variable_value == "True")
+                        {
+                            if (emp.phoneNo != null)
+                            {
+                                SMSSender sms = new SMSSender(emp.phoneNo, string.Format(smsBody.variable_value.Replace("{break}", "\n"), period, _endPoint));
+                                bool respose = await sms.sendSMS(sms);
+                                _objLog.isSMSSend = respose;
+                            }
+                            else
+                            {
+                                _objLog.isSMSSend = false;
+                                _objLog.message = "Employee Phone Number not found";
+                            }
+                        }
+
+                        _objLog.paysheetID = fileName;
+                        _objLog.isPaysheetUploaded = true;
+                        objectsToSave.Add(_objLog);
+                    }
+                    catch (Exception ex)
+                    {
+                        _objLog.message = ex.Message;
+                        objectsToSave.Add(_objLog);
+                        continue;
+                    }
+                }
+
+                _context.PaySheet_Log.AddRange(objectsToSave);
+
+                if (_payRun != null)
+                {
+                    _payRun.bankFileCreatedBy = approvedBy;
+                    _payRun.bankFileCreatedDate = DateTime.Now;
+                    _payRun.bankFileCreatedTime = DateTime.Now;
+
+                    _context.Entry(_payRun).State = EntityState.Modified;
+                }
+
+                _context.SaveChanges();
+                _msg.MsgCode = 'S';
+                _msg.Message = "Success";
+
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        private byte[] GeneratePayslipsForEmployee(ICollection<Payroll_Data> _payData, Employee_Data _empData, EPF_ETF _epfData, int period, DBConnect _context)
+        {
+            try
+            {
+                ICollection<PayCode> _payCodes = _context.PayCode.ToList();
+
+                ICollection<Payroll_Data> _earningData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "0").OrderBy(o => o.epf).ToList();
+
+                var _earningDataResult = from payData in _earningData
+                                         join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                         into Earnings
+                                         where payData.epf == _empData.epf
+                                         from defaultVal in Earnings.DefaultIfEmpty()
+                                         orderby payData.payCode
+                                         select new
+                                         {
+                                             defaultVal.id,
+                                             name = defaultVal.description,
+                                             payData.payCode,
+                                             payData.amount,
+                                             payData.othours,
+                                             payData.calCode,
+                                         };
+
+                ICollection<Payroll_Data> _deductionData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "1").OrderBy(o => o.epf).ToList();
+
+                var _deductionDataResult = from payData in _deductionData
+                                           join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                         into Deductions
+                                           where payData.epf == _empData.epf && payData.payCode > 0
+                                           from defaultVal in Deductions.DefaultIfEmpty()
+                                           orderby payData.payCode
+                                           select new
+                                           {
+                                               payData.id,
+                                               name = defaultVal.description,
+                                               payData.payCode,
+                                               payData.paytype,
+                                               payData.amount,
+                                               payData.balanceAmount,
+                                               payData.othours,
+                                               payData.calCode,
+                                               payData.payCodeType,
+                                           };
+
+                PdfDocument document = new PdfDocument();
+                PdfPage page = document.AddPage();
+                page.Size = PdfSharp.PageSize.A4;
+
+                //XGraphics watermark = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Prepend);
+
+                XGraphics gfx = XGraphics.FromPdfPage(page);
+                XPen pen = new XPen(XColors.Black);
+                XPen lineGrey = new XPen(XColors.Gray);
+
+                var width = page.Width.Millimeter;
+                var height = page.Height.Millimeter;
+
+                XFont normalFont = new XFont("courier", 10);
+
+                double y = 100;
+                double x = 0;
+                double lineY = 120;
+                double lineX = 140;
+
+                gfx = DrawHeader(gfx, x, y, _empData, normalFont, pen, period);
+
+                y = 150;
+
+                foreach (var item in _earningDataResult)
+                {
+                    if (item.othours > 0)
+                    {
+                        gfx.DrawString(item.othours.ToString("N") + "*", normalFont, XBrushes.Black,
+                            new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
+                    }
+
+                    gfx.DrawString(item.payCode.ToString(), normalFont, XBrushes.Black,
+                        new XRect(145, y, 50, 0));
+                    gfx.DrawString(item.name, normalFont, XBrushes.Black,
+                        new XRect(175, y, 50, 0));
+
+                    gfx.DrawString(item.amount.ToString("N"), normalFont, XBrushes.Black,
+                        new XRect(400, y, 50, 0), XStringFormats.BaseLineRight);
+
+                    y += 15;
+                }
+
+                gfx.DrawString("GROSS PAY", normalFont, XBrushes.Black,
+                    new XRect(145, y + 8, 50, 0));
+                gfx.DrawString(_epfData.grossAmount.ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(400, y + 8, 50, 0));
+
+                y += 30;
+
+                int count = 0;
+
+                foreach (var item in _deductionDataResult)
+                {
+                    if (count == 15)
+                    {
+
+                    }
+                    count++;
+
+                    if (item.othours > 0)
+                    {
+                        gfx.DrawString(item.othours.ToString("N"), normalFont, XBrushes.Black,
+                            new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
+                    }
+
+                    if (item.balanceAmount > 0)
+                    {
+                        gfx.DrawString(item.balanceAmount.ToString("N"), normalFont, XBrushes.Black,
+                            new XRect(50, y, 50, 0), XStringFormats.BaseLineRight);
+                        if (item.payCodeType == "P")
+                        {
+                            gfx.DrawString((item.balanceAmount + item.amount).ToString("N"), normalFont, XBrushes.Black,
+                                new XRect(520, y, 50, 0), XStringFormats.BaseLineRight);
+                        }
+                        else
+                        {
+                            gfx.DrawString((item.balanceAmount - item.amount).ToString("N"), normalFont, XBrushes.Black,
+                                new XRect(520, y, 50, 0), XStringFormats.BaseLineRight);
+                        }
+                    }
+
+                    gfx.DrawString(item.payCode.ToString(), normalFont, XBrushes.Black,
+                        new XRect(145, y, 50, 0));
+                    gfx.DrawString(item.name, normalFont, XBrushes.Black,
+                        new XRect(175, y, 50, 0));
+
+                    if (item.paytype == 'U')
+                    {
+                        gfx.DrawString(item.amount.ToString("N"), normalFont, XBrushes.Red,
+                            new XRect(400, y, 50, 0), XStringFormats.BaseLineRight);
+                    }
+                    else
+                    {
+                        gfx.DrawString(item.amount.ToString("N"), normalFont, XBrushes.Black,
+                            new XRect(400, y, 50, 0), XStringFormats.BaseLineRight);
+                    }
+
+                    y += 15;
+
+                    if (y > 700)
+                    {
+                        gfx.DrawLine(lineGrey, 130, lineY, 130, y + 15);
+                        gfx.DrawLine(lineGrey, 367, lineY, 367, y + 15);
+                        gfx.DrawLine(lineGrey, 490, lineY, 490, y + 15);
+
+                        //gfx.DrawLine(lineGrey, 130, y, 490, y);
+                        gfx.DrawLine(lineGrey, 130, y + 15, 490, y + 15);
+
+                        page = document.AddPage();
+                        gfx = XGraphics.FromPdfPage(page);
+                        gfx = DrawHeader(gfx, 0, 100, _empData, normalFont, pen, period);
+
+                        y = 150;
+                    }
+                }
+
+                gfx.DrawString("DEDUCTIONS", normalFont, XBrushes.Black,
+                    new XRect(145, y + 10, 50, 0));
+                gfx.DrawString(_epfData.deductionGross.GetValueOrDefault().ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(400, y + 10, 50, 0));
+
+                gfx.DrawLine(lineGrey, 130, lineY, 130, y + 15);
+                gfx.DrawLine(lineGrey, 367, lineY, 367, y + 15);
+                gfx.DrawLine(lineGrey, 490, lineY, 490, y + 15);
+
+                gfx.DrawLine(lineGrey, 130, y, 490, y);
+                gfx.DrawLine(lineGrey, 130, y + 15, 490, y + 15);
+
+                y += 30;
+
+                if (y > 700)
+                {
+                    page = document.AddPage();
+                    gfx = XGraphics.FromPdfPage(page);
+                    gfx = DrawHeader(gfx, 0, 100, _empData, normalFont, pen, period);
+                    y = 150;
+                }
+                // else
+                // {
+                //      y = 750;
+                // }
+
+                gfx.DrawRectangle(lineGrey, new XRect(130, y, 100, 30));
+                gfx.DrawString("NET PAY", normalFont, XBrushes.Black,
+                    new XRect(50, y + 10, 50, 0));
+
+                decimal netPay = _epfData.netAmount;
+
+                if (netPay < 0)
+                {
+                    netPay = 0;
+                }
+
+                gfx.DrawString(netPay.ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(145, y + 15, 50, 0));
+
+
+                gfx.DrawRectangle(lineGrey, new XRect(240, y, 250, 30));
+                gfx.DrawString("EPF CORP.", normalFont, XBrushes.Black,
+                    new XRect(245, y + 12, 50, 0));
+                gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
+                    new XRect(245, y + 24, 50, 0));
+
+                gfx.DrawString(_epfData.comp_contribution.ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(250, y + 46, 50, 0));
+
+                gfx.DrawLine(lineGrey, 325, y, 325, y + 60);
+
+                gfx.DrawString("EPF TOTAL", normalFont, XBrushes.Black,
+                    new XRect(330, y + 12, 50, 0));
+                gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
+                    new XRect(330, y + 24, 50, 0));
+
+                gfx.DrawString((_epfData.emp_contribution + _epfData.comp_contribution).ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(335, y + 46, 50, 0));
+
+                gfx.DrawLine(lineGrey, 410, y, 410, y + 60);
+
+                gfx.DrawString("ETF", normalFont, XBrushes.Black,
+                    new XRect(415, y + 12, 50, 0));
+                gfx.DrawString("CONTRIBUTION", normalFont, XBrushes.Black,
+                    new XRect(415, y + 24, 50, 0));
+
+                gfx.DrawString(_epfData.etf.ToString("N"), normalFont, XBrushes.Black,
+                    new XRect(420, y + 46, 50, 0));
+
+                gfx.DrawRectangle(lineGrey, new XRect(240, y + 30, 250, 30));
+
+                y += 76;
+                double tempY = y + 60;
+
+                if (y > 700)
+                {
+                    page = document.AddPage();
+                    gfx = XGraphics.FromPdfPage(page);
+                    gfx = DrawHeader(gfx, 0, 100, _empData, normalFont, pen, period);
+                    y = 150;
+                }
+                else if (tempY > 725)
+                {
+                    page = document.AddPage();
+                    gfx = XGraphics.FromPdfPage(page);
+                    gfx = DrawHeader(gfx, 0, 100, _empData, normalFont, pen, period);
+                    y = 150;
+                }
+
+                XTextFormatter tf = new XTextFormatter(gfx);
+                tf.Alignment = XParagraphAlignment.Left;
+
+                tf.DrawString("DISCLAIMER", normalFont, XBrushes.Black,
+                    new XRect(94, y, 380, 50), XStringFormats.TopLeft);
+                tf.DrawString("\nThis message contains sensitive information that is intended solely for the recipient named. \nThis is an automatically generated payslip. Please direct any questions or concerns to the IS Function department. \n-Nilakshi Madanayake-: 864 \n-Pavithra Bhagya -: 865 \n-Gayani Jayasinghe-: 862 \n-Finance Section-: 270,271,483", normalFont, XBrushes.Black,
+                    new XRect(100, y, 380, 120), XStringFormats.TopLeft);
+
+                tf.DrawString("\n*\n\n*", normalFont, XBrushes.Black,
+                    new XRect(94, y, 10, 50), XStringFormats.TopLeft);
+
+                //  gfx.DrawString("width : " + width + " height : " + height, normalFont, XBrushes.Black,
+                //       new XRect(200, 650, 50, 0));
+
+                //  y = 0;
+                //  for(int i= 0; i <=11; i++)
+                //   {
+                //     gfx.DrawString((i+1).ToString(), normalFont, XBrushes.Black,
+                //     new XRect(y, 800, 10, 0));
+
+                //      y += 50;
+                //   }
+
+                // Encryption         
+                if (_empData.accountNo != null && _empData.accountNo != "")
+                {
+                    string last4Digits = _empData.accountNo.Trim().Substring(_empData.accountNo.Length - 4);
+                    document.SecuritySettings.UserPassword = _empData.epf.ToString() + last4Digits;
+                }
+                else
+                {
+                    document.SecuritySettings.UserPassword = _empData.epf;
+                }
+                document.SecuritySettings.OwnerPassword = "manthan";
+                var securityHandler = document.SecurityHandler ?? NRT.ThrowOnNull<PdfStandardSecurityHandler>();
+                securityHandler.SetEncryptionToV5();
+
+
+                MemoryStream stream = new MemoryStream();
+                document.Save(stream, true);
+                //document.Save("202407/" + _empData.epf + ".pdf");     
+
+                return stream.ToArray();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private XGraphics DrawHeader(XGraphics gfx, double x, double y, Employee_Data _empData, XFont normalFont, XPen pen, int period)
+        {
+            try
+            {
+                Common com = new Common();
+                //var imagePath = Path.Combine("/app", "logo.jpg");
+                var imagePath = Path.Combine("C:\\Users\\17532\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\logo.jpg");
+
+                var watermarkImagePath = Path.Combine("C:\\Users\\17532\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\Draft.png");
+                //var watermarkImagePath = Path.Combine("/app", "Draft.png");
+                XImage watermarkImage = XImage.FromFile(watermarkImagePath);
+                gfx.DrawImage(watermarkImage, 50, 130, 500, 500);
+
+                XImage image = XImage.FromFile(imagePath);
+
+                gfx.DrawImage(image, 90, 10, 50, 50);
+
+                XFont headerFont = new XFont("courier", 14);
+
+                gfx.DrawString("CEYLON PETROLEUM STORAGE TERMINALS LIMITED", headerFont, XBrushes.Black,
+                    new XRect(150, 30, 150, 0));
+
+                gfx.DrawString("EMPLOYEE PAY SHEET", headerFont, XBrushes.Black,
+                    new XRect(250, 50, 150, 0));
+
+                gfx.DrawRectangle(pen, new XRect(40, 88, 540, 20));
+
+                gfx.DrawString("EPF : ", normalFont, XBrushes.Black,
+                    new XRect(x + 50, y, 50, 0));
+                gfx.DrawString(_empData.epf, normalFont, XBrushes.Black,
+                    new XRect(x + 85, y, 50, 0));
+                gfx.DrawString(com.GetPeriod(period.ToString()), normalFont, XBrushes.Black,
+                    new XRect(x + 150, y, 50, 0));
+                gfx.DrawString(_empData.empName, normalFont, XBrushes.Black,
+                    new XRect(x + 250, y, 150, 0));
+
+                string _paymentType = "BANK";
+                if (_empData.paymentType == 1)
+                {
+                    _paymentType = "CASH";
+                }
+
+                gfx.DrawString(_paymentType, normalFont, XBrushes.Black,
+                    new XRect(x + 430, y, 50, 0));
+
+                gfx.DrawString("GRADE :", normalFont, XBrushes.Black,
+                    new XRect(x + 495, y, 50, 0));
+
+                gfx.DrawString(_empData.empGrade.ToString(), normalFont, XBrushes.Black,
+                    new XRect(x + 550, y, 50, 0));
+
+                gfx.DrawString("Opening Balance", normalFont, XBrushes.Black,
+                    new XRect(x + 30, y + 30, 50, 0));
+                gfx.DrawString("Pay Code", normalFont, XBrushes.Black,
+                    new XRect(x + 150, y + 30, 50, 0));
+                gfx.DrawString("Earnings/Deductions", normalFont, XBrushes.Black,
+                    new XRect(x + 370, y + 30, 50, 0));
+                gfx.DrawString("Closing Balance", normalFont, XBrushes.Black,
+                    new XRect(x + 495, y + 30, 50, 0));
+
+                return gfx;
+            }
+            catch (Exception ex)
+            {
+                return gfx;
+            }
+        }
+
+    }
+}

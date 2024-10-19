@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces;
+using PayrollAPI.Services;
 
 namespace PayrollAPI.Controllers
 {
