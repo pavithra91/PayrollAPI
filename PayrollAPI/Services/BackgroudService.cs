@@ -11,10 +11,13 @@ namespace PayrollAPI.Services
         private CancellationTokenSource _cts;
         private readonly IBackgroundTaskQueue _taskQueue;
         private readonly IServiceProvider _serviceProvider;
-        public BackgroudService(IServiceProvider serviceProvider, IBackgroundTaskQueue taskQueue)
+        private readonly ILogger<BackgroundService> _logger;
+
+        public BackgroudService(IServiceProvider serviceProvider, IBackgroundTaskQueue taskQueue, ILogger<BackgroundService> logger)
         {
             _serviceProvider = serviceProvider;
             _taskQueue = taskQueue;
+            _logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -36,19 +39,22 @@ namespace PayrollAPI.Services
                 }
                 catch (Exception ex)
                 {
-
+                    _logger.LogError(0, $"Error in Background Service : " + ex.Message);
                 }
             }
         }
 
         private Task BackgroundProcess(PaysheetBGParams workItem)
         {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                var dbConnect = scope.ServiceProvider.GetRequiredService<DBConnect>();
-                PaysheetPrint paysheet = new PaysheetPrint();
-                paysheet.PrintPaySheets(workItem.companyCode, workItem.period, workItem.approvedBy, dbConnect);
-            }
+            var scope = _serviceProvider.CreateScope();
+            
+            var dbConnect = scope.ServiceProvider.GetService<DBConnect>();
+
+            PaysheetPrint paysheet = new PaysheetPrint(dbConnect);
+
+
+
+            paysheet.PrintPaySheets(workItem.companyCode, workItem.period, workItem.approvedBy);
 
             return Task.CompletedTask;
         }

@@ -200,5 +200,22 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
             }
         }
+
+        // Just for checking
+        [AllowAnonymous]
+        [Route("checklogger")]
+        [HttpGet]
+        public async Task<ActionResult> CheckLogger()
+        {
+            try
+            {
+                _payroll.CheckLogger();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

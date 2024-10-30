@@ -9,7 +9,7 @@ namespace PayrollAPI.Data
     {
         public DBConnect(DbContextOptions<DBConnect> options) : base(options)
         {
-            this.Database.SetCommandTimeout(180);
+            this.Database.SetCommandTimeout(320);
         }
 
         public DbSet<Calculation> Calculation { get; set; }
@@ -37,6 +37,7 @@ namespace PayrollAPI.Data
 
         public DbSet<Sys_Properties> Sys_Properties { get; set; }
         public DbSet<PaySheet_Log> PaySheet_Log { get; set; }
+        public DbSet<BackgroudJobs> BackgroudJobs { get; set; }
 
         public DbSet<OTHours_View> GetOTDetails { get; set; }
         public DbSet<Payroll_Summary_View> GetSummaryDetails { get; set; }
@@ -159,6 +160,14 @@ namespace PayrollAPI.Data
                     .ForMySQLHasDefaultValueSql("(CURDATE())");
 
             modelBuilder.Entity<Sys_Properties>()
+                    .Property(s => s.createdTime)
+                    .ForMySQLHasDefaultValueSql("(CURTIME())");
+
+            modelBuilder.Entity<BackgroudJobs>()
+                    .Property(s => s.createdDate)
+                    .ForMySQLHasDefaultValueSql("(CURDATE())");
+
+            modelBuilder.Entity<BackgroudJobs>()
                     .Property(s => s.createdTime)
                     .ForMySQLHasDefaultValueSql("(CURTIME())");
 

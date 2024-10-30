@@ -1117,7 +1117,6 @@ namespace PayrollAPI.Repository
             }
         }
 
-
         public async Task<MsgDto> GetUnrecoveredDetails(int period, int companyCode)
         {
             MsgDto _msg = new MsgDto();

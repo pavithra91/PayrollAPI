@@ -595,21 +595,19 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
         }
 
-        // Just for checking
-        [Route("check-sms-gateway")]
-        [HttpGet]
-        public async Task<ActionResult> CheckSMSGateway(string number)
-        {
-            try
-            {
-                SMSSender sms = new SMSSender(number, "Working");
-                sms.sendSMS(sms);
-                return Ok();
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //// Just for checking
+        //[Route("checklogger")]
+        //[HttpGet]
+        //public async Task<ActionResult> CheckLogger()
+        //{
+        //    try
+        //    {      
+        //        return Ok();
+        //    }
+        //    catch(Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
     }
 }

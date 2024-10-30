@@ -24,5 +24,7 @@ namespace PayrollAPI.Interfaces
 
         public Task<MsgDto> CreateBankFile(ApprovalDto approvalDto);
         public IDbTransaction BeginTransaction();
+
+        public void CheckLogger();
     }
 }

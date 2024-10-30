@@ -12,11 +12,27 @@ namespace PayrollAPI.Services
 {
     public class PaysheetPrint
     {
-        public async Task<MsgDto> PrintPaySheets(int companyCode, int period, string approvedBy, DBConnect _context)
+        private readonly DBConnect _context;
+        public PaysheetPrint(DBConnect context)
+        {
+            _context = context;
+        }
+
+        public async Task<MsgDto> PrintPaySheets(int companyCode, int period, string approvedBy)
         {
             MsgDto _msg = new MsgDto();
+
+            BackgroudJobs bj = new BackgroudJobs
+            {
+                companyCode = companyCode,
+                period = period,
+                createdBy = approvedBy,
+                backgroudJobStatus = "Backgroud Job Started"
+            };
+
             var objectsToSave = new List<PaySheet_Log>();
             Common com = new Common();
+
 
             Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Send_SMS_PaySheet_View").FirstOrDefault();
             Sys_Properties smsBody = _context.Sys_Properties.Where(o => o.variable_name == "SMS_Body").FirstOrDefault();
@@ -75,14 +91,13 @@ namespace PayrollAPI.Services
                         ICollection<Payroll_Data> _SelectedPayData = _payData.Where(o => o.epf == emp.epf).ToList();
                         EPF_ETF _selectedEPFData = _epfData.Where(o => o.epf == emp.epf).FirstOrDefault();
 
-                        var pdfData = GeneratePayslipsForEmployee(_SelectedPayData, emp, _selectedEPFData, period, _context);
+                        var pdfData = GeneratePayslipsForEmployee(_SelectedPayData, emp, _selectedEPFData, period);
+
                         var fileName = $"{_paysheetCounter}.pdf";
 
                         string _endPoint = "https://cpstl-poc-main-s3.s3.ap-southeast-1.amazonaws.com/public/" + period + "/" + _paysheetCounter + ".pdf";
 
                         com.UploadPdfToS3(pdfData, fileName, period.ToString());
-
-                        Thread.Sleep(200);
 
                         if (sys_Properties?.variable_value == "True")
                         {
@@ -90,6 +105,7 @@ namespace PayrollAPI.Services
                             {
                                 SMSSender sms = new SMSSender(emp.phoneNo, string.Format(smsBody.variable_value.Replace("{break}", "\n"), period, _endPoint));
                                 bool respose = await sms.sendSMS(sms);
+                                Thread.Sleep(300);
                                 _objLog.isSMSSend = respose;
                             }
                             else
@@ -123,13 +139,36 @@ namespace PayrollAPI.Services
                 }
 
                 _context.SaveChanges();
-                _msg.MsgCode = 'S';
-                _msg.Message = "Success";
+
+                IEnumerable<Sys_Properties> email_configurations = _context.Sys_Properties.Where(o => o.variable_name.StartsWith("Email_")).ToList();
+
+                EmailSender email = new EmailSender();
+                bool status = await email.SendEmail(email_configurations);
+
+                if (status)
+                {
+                    _msg.MsgCode = 'S';
+                    _msg.Message = "Success";
+                }
+                else
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Fail to send Email";
+                }
+
+                bj.backgroudJobStatus = "Task Completed";
+                bj.finishedTime = DateTime.Now;
+
+                _context.BackgroudJobs.Add(bj);
+                _context.SaveChangesAsync();
 
                 return _msg;
             }
             catch (Exception ex)
             {
+                _context.BackgroudJobs.Add(bj);
+                _context.SaveChangesAsync();
+
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
@@ -137,7 +176,7 @@ namespace PayrollAPI.Services
             }
         }
 
-        private byte[] GeneratePayslipsForEmployee(ICollection<Payroll_Data> _payData, Employee_Data _empData, EPF_ETF _epfData, int period, DBConnect _context)
+        private byte[] GeneratePayslipsForEmployee(ICollection<Payroll_Data> _payData, Employee_Data _empData, EPF_ETF _epfData, int period)
         {
             try
             {
@@ -394,7 +433,7 @@ namespace PayrollAPI.Services
 
                 tf.DrawString("DISCLAIMER", normalFont, XBrushes.Black,
                     new XRect(94, y, 380, 50), XStringFormats.TopLeft);
-                tf.DrawString("\nThis message contains sensitive information that is intended solely for the recipient named. \nThis is an automatically generated payslip. Please direct any questions or concerns to the IS Function department. \n-Nilakshi Madanayake-: 864 \n-Pavithra Bhagya -: 865 \n-Gayani Jayasinghe-: 862 \n-Finance Section-: 270,271,483", normalFont, XBrushes.Black,
+                tf.DrawString("\nThis Document contains sensitive information that is intended solely for the recipient named. \nThis is an automatically generated payslip.", normalFont, XBrushes.Black,
                     new XRect(100, y, 380, 120), XStringFormats.TopLeft);
 
                 tf.DrawString("\n*\n\n*", normalFont, XBrushes.Black,

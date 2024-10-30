@@ -1,5 +1,6 @@
 ﻿using System.Net.Mail;
 using System.Net;
+using PayrollAPI.Models;
 
 namespace PayrollAPI.Services
 {
@@ -9,8 +10,18 @@ namespace PayrollAPI.Services
         {
             try
             {
+
+                //var client = new SmtpClient("smtp.office365.com", 587)
+                //{
+                //    Credentials = new NetworkCredential("rnd@cpstl.lk", "cgrflymtflttxbmy"),
+                //    EnableSsl = true,
+                //    UseDefaultCredentials = false
+                //};
+
+                //await client.SendMailAsync("rnd@cpstl.lk", "pavi.dsscst@gmail.com", "Subject", "Body");
+
                 var message = new MailMessage();
-                message.From = new MailAddress("bhagyaj@cpstl.lk");
+                message.From = new MailAddress("rnd@cpstl.lk");
                 message.To.Add(toEmail);
                 message.Subject = subject;
                 message.Body = body;
@@ -21,11 +32,41 @@ namespace PayrollAPI.Services
 
                 var smtpClient = new SmtpClient("smtp.office365.com");
                 smtpClient.Port = 587;
-                smtpClient.Credentials = new NetworkCredential("bhagyaj@cpstl.lk", "");
+                smtpClient.Credentials = new NetworkCredential("rnd@cpstl.lk", "cgrflymtflttxbmy");
                 smtpClient.EnableSsl = true;
 
+                await smtpClient.SendMailAsync(message);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> SendEmail(IEnumerable<Sys_Properties> email_configurations)
+        {
+            try
+            {
+                var message = new MailMessage();
+                message.From = new MailAddress(email_configurations.Where(o => o.variable_name == "Email_From").FirstOrDefault().variable_value);
+                message.To.Add(email_configurations.Where(o => o.variable_name == "Email_To").FirstOrDefault().variable_value);
+                message.Subject = email_configurations.Where(o => o.variable_name == "Email_Subject").FirstOrDefault().variable_value;
+                message.Body = email_configurations.Where(o => o.variable_name == "Email_Body").FirstOrDefault().variable_value;
+
+                // Attachment
+                var attachment = new Attachment("C:\\Users\\17532\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\output.txt");
+                message.Attachments.Add(attachment);
+
+                var smtpClient = new SmtpClient("smtp.office365.com");
+                smtpClient.Port = 587;
+                smtpClient.Credentials = new NetworkCredential(email_configurations.Where(o => o.variable_name == "Email_From").FirstOrDefault().variable_value, email_configurations.Where(o => o.variable_name == "Email_Password").FirstOrDefault().variable_value);
+                smtpClient.EnableSsl = true;
 
                 await smtpClient.SendMailAsync(message);
+                
+                Thread.Sleep(200);
+
                 return true;
             }
             catch (Exception ex)

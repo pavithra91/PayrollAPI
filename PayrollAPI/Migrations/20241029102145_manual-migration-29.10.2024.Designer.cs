@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PayrollAPI.Data;
 
@@ -10,9 +11,11 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations
 {
     [DbContext(typeof(DBConnect))]
-    partial class DBConnectModelSnapshot : ModelSnapshot
+    [Migration("20241029102145_manual-migration-29.10.2024")]
+    partial class manualmigration29102024
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,9 +73,6 @@ namespace PayrollAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("backgroudJobStatus")
-                        .HasColumnType("varchar(50)");
-
                     b.Property<int>("companyCode")
                         .HasColumnType("int");
 
@@ -89,11 +89,12 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("(CURTIME())");
 
-                    b.Property<DateTime?>("finishedTime")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int>("period")
                         .HasColumnType("int");
+
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("id");
 

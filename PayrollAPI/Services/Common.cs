@@ -7,7 +7,9 @@
             try
             {
                 var uploader = new S3Uploader("AKIAV3CJE2DCBB7UZJDM", "oPvNVvN3U5e+MZwtmRK8/X+5kLDxNzXsCubr1XbT", "cpstl-poc-main-s3", Amazon.RegionEndpoint.APSoutheast1);
-                await uploader.UploadFileAsync(pdfData, "public/" + period + "/01/" + fileName);
+                await uploader.UploadFileAsync(pdfData, "public/" + period + "/" + fileName);
+
+                Thread.Sleep(300);
             }
             catch (Exception ex)
             {
