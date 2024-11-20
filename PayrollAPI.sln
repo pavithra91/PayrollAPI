@@ -5,7 +5,9 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PayrollAPI", "PayrollAPI\PayrollAPI.csproj", "{91CFBBAF-A619-4E53-9F2E-8DCD47ECA252}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PayrollAPI.Tests", "PayrollAPI.Tests\PayrollAPI.Tests.csproj", "{08A0ADE3-E74C-4278-8EB1-78C28C700F4F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PayrollAPI.Tests", "PayrollAPI.Tests\PayrollAPI.Tests.csproj", "{08A0ADE3-E74C-4278-8EB1-78C28C700F4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leave.Contracts", "Leave.Contracts\Leave.Contracts.csproj", "{20F41034-7B34-437F-A312-EB0AEE3092DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{08A0ADE3-E74C-4278-8EB1-78C28C700F4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08A0ADE3-E74C-4278-8EB1-78C28C700F4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08A0ADE3-E74C-4278-8EB1-78C28C700F4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20F41034-7B34-437F-A312-EB0AEE3092DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20F41034-7B34-437F-A312-EB0AEE3092DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20F41034-7B34-437F-A312-EB0AEE3092DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20F41034-7B34-437F-A312-EB0AEE3092DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

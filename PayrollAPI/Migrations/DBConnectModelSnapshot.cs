@@ -1189,7 +1189,7 @@ namespace PayrollAPI.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("role")
-                        .HasColumnType("varchar(6)");
+                        .HasColumnType("varchar(20)");
 
                     b.Property<bool>("status")
                         .HasColumnType("boolean");

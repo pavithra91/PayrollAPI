@@ -22,7 +22,7 @@ namespace PayrollAPI.Models
         [Column(TypeName = "varchar(60)")]
         public string? empName { get; set; }
 
-        [Column(TypeName = "varchar(6)")]
+        [Column(TypeName = "varchar(20)")]
         public string? role { get; set; }
 
         [Column(TypeName = "varchar(50)")]

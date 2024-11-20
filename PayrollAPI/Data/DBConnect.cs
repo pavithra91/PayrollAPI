@@ -1,7 +1,9 @@
 ﻿using EntityFramework.Exceptions.MySQL;
 using Microsoft.EntityFrameworkCore;
 using MySql.EntityFrameworkCore.Extensions;
+using PayrollAPI.Data.EntityMapping.HRM;
 using PayrollAPI.Models;
+using PayrollAPI.Models.HRM;
 
 namespace PayrollAPI.Data
 {
@@ -183,5 +185,36 @@ namespace PayrollAPI.Data
                     .Property(s => s.displayOnPaySheet)
                     .ForMySQLHasDefaultValueSql("1");
         }
+    }
+
+    public class HRMDBConnect : DbContext
+    {
+        public HRMDBConnect(DbContextOptions<HRMDBConnect> options) : base(options)
+        {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfiguration(new EmpApprovalsMapping());
+            modelBuilder.ApplyConfiguration(new LeaveApprovalMappings());
+            modelBuilder.ApplyConfiguration(new LeaveBalanceMapping());
+            modelBuilder.ApplyConfiguration(new LeaveRequestMapping());
+            modelBuilder.ApplyConfiguration(new LeaveTypeMapping());
+            modelBuilder.ApplyConfiguration(new SupervisorMapping());
+            modelBuilder.ApplyConfiguration(new WorkflowTypesMapping()); 
+            modelBuilder.ApplyConfiguration(new NotificationMapping());
+            modelBuilder.ApplyConfiguration(new AdvancePaymentMapping());
+        }
+
+        public DbSet<EmpApprovals> EmpApprovals => Set<EmpApprovals>();
+        public DbSet<EmpApprovalWorkflow> EmpApprovalWorkflow => Set<EmpApprovalWorkflow>();
+        public DbSet<LeaveApproval> LeaveApproval => Set<LeaveApproval>();
+        public DbSet<LeaveBalance> LeaveBalance => Set<LeaveBalance>();
+        public DbSet<LeaveRequest> LeaveRequest => Set<LeaveRequest>();
+        public DbSet<LeaveType> LeaveType => Set<LeaveType>();
+        public DbSet<Supervisor> Supervisor => Set<Supervisor>();
+        public DbSet<WorkflowTypes> WorkflowTypes => Set<WorkflowTypes>();
+        public DbSet<Notification> Notification => Set<Notification>();
+        public DbSet<AdvancePayment> AdvancePayment => Set<AdvancePayment>();
     }
 }

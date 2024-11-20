@@ -178,6 +178,18 @@ namespace PayrollAPI.Controllers
                 return BadRequest(_msg);
         }
 
+        [Route("get-users-byCostCenter")]
+        [HttpGet]
+        public async Task<IActionResult> GetUserbyCostCenter(string costCenter)
+        {
+            MsgDto _msg = await _usr.GetUserbyCostCenter(costCenter);
+
+            if (_msg.MsgCode == 'S')
+                return Ok(_msg);
+            else
+                return BadRequest(_msg);
+        }
+
         [Route("sign-out")]
         [HttpPost]
         [AllowAnonymous]

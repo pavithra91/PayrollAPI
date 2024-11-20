@@ -1,4 +1,5 @@
-﻿using PayrollAPI.DataModel;
+﻿using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.DataModel;
 using PayrollAPI.Models;
 using PayrollAPI.Repository;
 
@@ -11,8 +12,9 @@ namespace PayrollAPI.Interfaces
         public TokenResponse RefreshToken(TokenResponse tokenResponse);
 
         public Task<MsgDto> GetUsers();
-
+        
         public Task<MsgDto> GetUserbyId(int id);
+        public Task<MsgDto> GetUserbyCostCenter(string costCenter);
 
         public Task<MsgDto> CreateUser(UserDto user);
 

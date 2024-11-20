@@ -1,0 +1,38 @@
+﻿using Leave.Contracts.Requests;
+using Leave.Contracts.Response;
+using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.Models.HRM;
+
+namespace PayrollAPI.Interfaces.HRM
+{
+    public interface ILeave
+    {
+        Task<IEnumerable<LeaveType>> GetAllLeaveTypes();
+        Task<LeaveType?> GetLeaveType(int id);
+        Task<bool> CreateLeaveType(LeaveType leaveType);
+        Task<bool> UpdateLeaveType(int id, LeaveType leaveType);
+
+
+        Task<IEnumerable<Supervisor>> GetAllSupervisors();
+        Task<Supervisor?> GetSupervisor(int id);
+        Task<bool> CreateSupervisor(Supervisor supervisor);
+        Task<bool> UpdateSupervisor(int id, Supervisor supervisor);
+
+
+        Task<ApprovalWorkflowResponse> GetApprovalWorkflow();
+
+        Task<bool> AssignSupervisor(string epf, int approvalLevel, List<int> approverNames, string updateBy);
+        public Task<bool> RequestLeave(RequestLeaveRequest request);
+        public Task<bool> ApproveLeave(ApproveLeaveRequest request);
+
+        Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id);
+        Task<LeaveRequest?> GetLeaveRequest(int id);
+
+        Task<IEnumerable<LeaveRequest>> GetLeaveRequestHistory(int epf);
+
+        Task<IEnumerable<LeaveBalance>> GetLeaveBalance(int epf);
+        Task<IEnumerable<Notification>> GetNotifications(int epf);
+
+        Task<bool> RequestAdvancePayment(AdvancePayment advancePayment);
+    }
+}

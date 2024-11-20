@@ -13,7 +13,9 @@ using NLog.Web;
 using PayrollAPI.Authentication;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
+using PayrollAPI.Interfaces.HRM;
 using PayrollAPI.Repository;
+using PayrollAPI.Repository.HRM;
 using PayrollAPI.Services;
 using PdfSharp.Charting;
 using System.Reflection;
@@ -75,6 +77,9 @@ try
     {
         builder.Services.AddDbContext<PayrollAPI.Data.DBConnect>(options =>
         options.UseMySQL(builder.Configuration.GetConnectionString("DevLocalConnection")));
+
+        builder.Services.AddDbContext<PayrollAPI.Data.HRMDBConnect>(options =>
+        options.UseMySQL(builder.Configuration.GetConnectionString("HRMLocalConnection")));
     }
 
     var _dbContext = builder.Services.BuildServiceProvider().GetService<DBConnect>();
@@ -85,6 +90,7 @@ try
     builder.Services.AddSingleton<IRefreshTokenGenerator>(provider => new RefreshTokenGenerator(_dbContext));
 
 
+    // Backgroud Services
     builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
     builder.Services.AddHostedService<BackgroudService>();
 
@@ -130,6 +136,8 @@ try
     builder.Services.AddScoped<IPayroll, PayrollReporsitory>();
     builder.Services.AddScoped<IAdmin, AdminRepository>();
     builder.Services.AddScoped<IHelp, HelpRepository>();
+
+    builder.Services.AddScoped<ILeave, LeaveRepository>();
 
     builder.Services.AddScoped<ApiKeyAuthFilter>();
 

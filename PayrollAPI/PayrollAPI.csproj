@@ -50,7 +50,10 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="202407\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Leave.Contracts\Leave.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
