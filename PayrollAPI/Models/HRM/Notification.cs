@@ -12,7 +12,14 @@ namespace PayrollAPI.Models.HRM
         public string? description { get; set; }
         public bool markAsRead { get; set; } = false;
         public int type { get; set; }
+
+        [Column(TypeName = "varchar(6)")]
+        public string? reference { get; set; }
+
+        [Column(TypeName = "varchar(10)")]
         public string? target { get; set; }
+        
+        [Column(TypeName = "varchar(10)")]
         public string? status { get; set; }
         public DateTime createdDate { get; set; }
     }

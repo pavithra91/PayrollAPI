@@ -285,7 +285,7 @@ namespace PayrollAPI.Repository.HRM
                 await _context.SaveChangesAsync();
                 return await Task.FromResult(false);
             }
-            else if(request.isDelegate && request.status == "Rejected")
+            else  if(request.isDelegate && request.status == "Rejected")
             {
                 leaveRequest.actingDelegateApprovalStatus = ApprovalStatus.Rejected;
                 await _context.SaveChangesAsync();
@@ -294,6 +294,7 @@ namespace PayrollAPI.Repository.HRM
             else
             {
                 List<LeaveApproval> leaveApprovals = _context.LeaveApproval
+                    .Include(x=>x.level)
                     .Include(x=>x.approver_id)
                     .Where(x=> x.requestId.leaveRequestId == request.requestId).ToList();
 

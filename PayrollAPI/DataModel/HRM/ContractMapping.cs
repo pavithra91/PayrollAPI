@@ -192,6 +192,7 @@ namespace PayrollAPI.DataModel.HRM
                 id = notification.id,
                 epf = notification.epf,
                 description = notification.description,
+                reference = notification.reference,
                 target = notification.target,
                 type = notification.type,
                 date = notification.createdDate,

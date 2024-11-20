@@ -5,6 +5,7 @@
         public int id { get; init; }
         public int epf { get; init; }
         public string? description { get; init; }
+        public string? reference { get; init; }
         public bool readed { get; init; } = false;
         public int type { get; init; }
         public string? target { get; init; }
