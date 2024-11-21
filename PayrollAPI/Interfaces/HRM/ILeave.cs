@@ -22,16 +22,18 @@ namespace PayrollAPI.Interfaces.HRM
         Task<ApprovalWorkflowResponse> GetApprovalWorkflow();
 
         Task<bool> AssignSupervisor(string epf, int approvalLevel, List<int> approverNames, string updateBy);
-        public Task<bool> RequestLeave(RequestLeaveRequest request);
-        public Task<bool> ApproveLeave(ApproveLeaveRequest request);
+        Task<bool> RequestLeave(RequestLeaveRequest request);
+        Task<bool> ApproveLeave(ApproveLeaveRequest request);
+        Task<bool> CancelLeave(CancelLeaveRequest request);
 
         Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id);
         Task<LeaveRequest?> GetLeaveRequest(int id);
 
         Task<IEnumerable<LeaveRequest>> GetLeaveRequestHistory(int epf);
 
-        Task<IEnumerable<LeaveBalance>> GetLeaveBalance(int epf);
+        Task<IEnumerable<LeaveBalance>> GetLeaveBalance(int epf); 
         Task<IEnumerable<Notification>> GetNotifications(int epf);
+        Task<bool> ReadNotification(int notificationId);
 
         Task<bool> RequestAdvancePayment(AdvancePayment advancePayment);
     }

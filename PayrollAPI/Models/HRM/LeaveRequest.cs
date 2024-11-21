@@ -60,7 +60,8 @@ namespace PayrollAPI.Models.HRM
     {
         Pending = 0,
         Approved = 1,
-        Rejected = 2
+        Rejected = 2,
+        Cancelled = 3
     }
 
     public enum FinalStatus

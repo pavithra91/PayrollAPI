@@ -170,13 +170,34 @@ namespace PayrollAPI.Controllers.HRM
             }
         }
 
+        [HttpPost]
+        [Route("cancel-leave")]
+        public async Task<IActionResult> CancelLeave([FromBody] CancelLeaveRequest request)
+        {
+            //var supervisor = request.MapToSupervisor();
+            var result = await _leave.CancelLeave(request);
+            if (result)
+            {
+                return Ok("success");
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
         [HttpGet("get-leaveRequest/{id:int}")]
         [ProducesResponseType(typeof(LeaveRequestApprovalResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetLeaveRequest([FromRoute] int id)
+        public async Task<IActionResult> GetLeaveRequest([FromRoute] int id, [FromQuery] int? notification = null)
         {
             var leaveApprovals = await _leave.GetLeaveApprovals(id);
             var result = await _leave.GetLeaveRequest(id);
+
+            if(notification != null)
+            {
+                await _leave.ReadNotification(notification.Value);
+            }
 
             return result == null ? NotFound() :
                 Ok(result.MapToResponse(leaveApprovals));

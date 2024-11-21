@@ -1596,3 +1596,63 @@
 2024-11-20 15:18:37.4318 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\17532\source\repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
 2024-11-20 15:18:37.5237 Info Configuration initialized.
 2024-11-20 15:18:38.9878 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\17532\source\repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-20 20:38:24.0531 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-20 20:38:24.7969 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-20 20:38:25.2088 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-20 20:38:36.2228 Info Configuration initialized.
+2024-11-20 20:39:22.3558 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 00:16:10.0192 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 00:16:11.0471 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 00:16:11.3216 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 00:16:12.6787 Info Configuration initialized.
+2024-11-21 00:16:42.1527 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 00:29:10.1657 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 00:29:13.2932 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 00:29:15.9074 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 00:29:23.6526 Info Configuration initialized.
+2024-11-21 00:30:04.2871 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 00:45:57.8840 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 00:46:00.8023 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 00:46:02.2734 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 00:46:08.5895 Info Configuration initialized.
+2024-11-21 00:46:24.5358 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 20:50:36.0207 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 20:50:36.5028 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 20:50:36.7173 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 20:50:38.8572 Info Configuration initialized.
+2024-11-21 20:50:52.3507 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 20:57:38.7973 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 20:57:39.2693 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 20:57:39.5324 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 20:57:40.6736 Info Configuration initialized.
+2024-11-21 20:57:55.5145 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:10:17.5316 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 21:10:17.8009 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 21:10:18.1031 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:10:19.4258 Info Configuration initialized.
+2024-11-21 21:10:30.1483 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:26:07.0042 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 21:26:07.3997 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 21:26:07.6212 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:26:08.6457 Info Configuration initialized.
+2024-11-21 21:26:16.8705 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:29:59.2513 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 21:29:59.4933 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 21:29:59.7014 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:30:00.0151 Info Configuration initialized.
+2024-11-21 21:30:04.4193 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:34:01.6154 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 21:34:01.7930 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 21:34:01.9803 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:34:02.3582 Info Configuration initialized.
+2024-11-21 21:34:08.1749 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:45:40.2321 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 21:45:40.5494 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 21:45:40.8191 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 21:45:42.3740 Info Configuration initialized.
+2024-11-21 21:45:53.0263 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 22:19:47.6196 Info Registered target NLog.Targets.DatabaseTarget(Name=database)
+2024-11-21 22:19:48.4419 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.8.2366. Product version: 5.2.8+f586f1341c46fa38aaaff4c641e7f0fa7e813943. GlobalAssemblyCache: False
+2024-11-21 22:19:48.8233 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config
+2024-11-21 22:19:51.4885 Info Configuration initialized.
+2024-11-21 22:20:09.4373 Info Validating config: TargetNames=database, ConfigItems=20, FilePath=C:\Users\Pavithra\Source\Repos\pavithra91\PayrollAPI\PayrollAPI\bin\Debug\net6.0\NLog.config

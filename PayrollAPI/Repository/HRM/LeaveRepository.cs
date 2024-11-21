@@ -325,9 +325,43 @@ namespace PayrollAPI.Repository.HRM
                     leaveRequest.requestStatus = approvalStatus;
                 }
 
+                leaveRequest.lastUpdateBy = request.approver;
+                leaveRequest.lastUpdateDate = DateTime.Now.Date;
+                leaveRequest.lastUpdateTime = DateTime.Now;
+
                 await _context.SaveChangesAsync();
                 return await Task.FromResult(true);
             }
+        }
+
+        public async Task<bool> CancelLeave(CancelLeaveRequest request)
+        {
+            LeaveRequest? leaveRequest = _context.LeaveRequest
+                .FirstOrDefault(x=>x.leaveRequestId == request.leaveRequestId);
+            if (leaveRequest == null || leaveRequest.finalStatus != null || leaveRequest.currentLevel != 0)
+            {
+                return await Task.FromResult(false);
+            }
+
+            List<LeaveApproval> leaveApprovals = _context.LeaveApproval
+                    .Include(x => x.level)
+                    .Include(x => x.approver_id)
+                    .Where(x => x.requestId.leaveRequestId == request.leaveRequestId).ToList();
+
+            foreach(LeaveApproval leaveApproval in leaveApprovals) 
+            {
+                leaveApproval.status = ApprovalStatus.Cancelled;
+                //leaveApproval.lastUpdateDate
+            }
+
+            leaveRequest.requestStatus = ApprovalStatus.Cancelled;
+            leaveRequest.finalStatus = FinalStatus.Cancelled;
+            leaveRequest.lastUpdateBy = request.cancelBy;
+            leaveRequest.lastUpdateDate = DateTime.Now.Date;
+            leaveRequest.lastUpdateTime = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return await Task.FromResult(true);
         }
         public async Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id)
         {
@@ -366,6 +400,17 @@ namespace PayrollAPI.Repository.HRM
                 .OrderByDescending(x => x.id)
                 .Take(10)
                 .AsEnumerable());
+        }
+
+        public async Task<bool> ReadNotification(int notificationId)
+        {
+            Notification? notification = _context.Notification.Where(x => x.id == notificationId).FirstOrDefault();
+            if(notification != null)
+            {
+                notification.markAsRead = true;
+                await _context.SaveChangesAsync();
+            }
+            return await Task.FromResult(true);
         }
 
         public async Task<bool> RequestAdvancePayment(AdvancePayment advancePayment)
