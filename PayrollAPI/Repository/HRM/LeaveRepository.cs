@@ -64,6 +64,12 @@ namespace PayrollAPI.Repository.HRM
             }
         }
 
+        public async Task<IEnumerable<LeaveType>> GetAvailableLeaveTypes(string epf)
+        {
+            return await Task.FromResult(_context.LeaveBalance.Include(x=>x.leaveType)
+                .Where(x=>x.epf == Convert.ToInt32(epf) && x.remainingLeaves > 0).Select(x=>x.leaveType).AsEnumerable());
+        }
+
         public async Task<IEnumerable<Supervisor>> GetAllSupervisors()
         {
             return await Task.FromResult(_context.Supervisor.AsEnumerable());
@@ -179,12 +185,40 @@ namespace PayrollAPI.Repository.HRM
             }            
         }
 
-        public async Task<bool> RequestLeave(RequestLeaveRequest request)
+        //public async Task<bool> CheckLeaveBalance(RequestLeaveRequest request)
+        //{
+        //    LeaveBalance leaveBalance = _context.LeaveBalance.Where(x => x.leaveType.leaveTypeId == Convert.ToInt32(request.leaveType)).FirstOrDefault();
+
+        //    if (leaveBalance == null || leaveBalance.remainingLeaves == 0)
+        //    {
+        //        return await Task.FromResult(false);
+        //    }
+        //    else if ((leaveBalance.remainingLeaves - request.noOfDays) < 0)
+        //    {
+        //        return await Task.FromResult(false);
+        //    }
+
+        //    return await Task.FromResult(true);
+        //}
+        public async Task<(bool Success, string Message)> RequestLeave(RequestLeaveRequest request)
         {
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction()) 
             {
                 try
                 {
+                    LeaveBalance? leaveBalance = _context.LeaveBalance
+                        .Include(x=>x.leaveType)
+                        .Where(x => x.leaveType.leaveTypeId == Convert.ToInt32(request.leaveType) && x.epf == Convert.ToInt32(request.epf)).FirstOrDefault();
+
+                    if (leaveBalance == null || leaveBalance.remainingLeaves == 0)
+                    {
+                        return await Task.FromResult((false, "You don't have assinged leave"));
+                    }
+                    else if ((leaveBalance.remainingLeaves - request.noOfDays) < 0)
+                    {
+                        return await Task.FromResult((false, $"You don't have {leaveBalance.leaveType.description} left"));
+                    }
+
                     LeaveRequest _leaveRequest = new LeaveRequest();
                     _leaveRequest.epf = Convert.ToInt32(request.epf);
                     _leaveRequest.leaveType = _context.LeaveType.Where(x=>x.leaveTypeId == Convert.ToInt32(request.leaveType)).FirstOrDefault();
@@ -225,7 +259,8 @@ namespace PayrollAPI.Repository.HRM
                         description = "has request you to become an acting Delegate",
                         createdDate = DateTime.Now,
                         markAsRead = false,
-                        type = 0
+                        type = 0,
+                        reference = _leaveRequest.leaveRequestId.ToString()
                     };
 
                     _context.Notification.Add(notification);
@@ -248,21 +283,25 @@ namespace PayrollAPI.Repository.HRM
                             description = "has send a leave request",
                             createdDate = DateTime.Now,
                             markAsRead = false,
-                            type = 0
+                            type = 0,
+                            reference = _leaveRequest.leaveRequestId.ToString()
                         };
 
                         _context.Notification.Add(notifications);
                         _context.LeaveApproval.Add(_approval);
                     }
 
+                    leaveBalance.remainingLeaves = leaveBalance.remainingLeaves - request.noOfDays;
+                    leaveBalance.usedLeaves = leaveBalance.usedLeaves + request.noOfDays;
+
                     await _context.SaveChangesAsync();
                     transaction.Commit();
-                    return await Task.FromResult(true);
+                    return await Task.FromResult((true, "You request has been send for approval"));
                 }
                 catch (Exception ex) 
                 {
                     transaction.Rollback();
-                    return await Task.FromResult(false);
+                    return await Task.FromResult((false, $"Error Ouccered: {ex.Message}"));
                 }
             }                
         }
@@ -279,17 +318,31 @@ namespace PayrollAPI.Repository.HRM
                 return await Task.FromResult(false);
             }
 
+            Notification notification = _context.Notification
+                    .Where(x => x.epf == Convert.ToInt32(request.approver) && x.reference == leaveRequest.leaveRequestId.ToString()).FirstOrDefault();
+
             if (request.isDelegate && request.status == "Approved") 
             {
                 leaveRequest.actingDelegateApprovalStatus = ApprovalStatus.Approved;
+                leaveRequest.actingDelegateApprovedDate = DateTime.Now.Date;
+                leaveRequest.actingDelegateApprovedTime = DateTime.Now;
+ 
+                notification.markAsRead = true;
+
+
                 await _context.SaveChangesAsync();
-                return await Task.FromResult(false);
+                return await Task.FromResult(true);
             }
             else  if(request.isDelegate && request.status == "Rejected")
             {
                 leaveRequest.actingDelegateApprovalStatus = ApprovalStatus.Rejected;
+                leaveRequest.actingDelegateApprovedDate = DateTime.Now.Date;
+                leaveRequest.actingDelegateApprovedTime = DateTime.Now;
+
+                notification.markAsRead = true;
+
                 await _context.SaveChangesAsync();
-                return await Task.FromResult(false);
+                return await Task.FromResult(true);
             }
             else
             {
@@ -314,20 +367,46 @@ namespace PayrollAPI.Repository.HRM
                     leaveApproval.status = ApprovalStatus.Rejected;
                     finalStatus = FinalStatus.Rejected;
                     approvalStatus = ApprovalStatus.Rejected;
+
+                    LeaveBalance? leaveBalance = _context.LeaveBalance
+                        .Include(x => x.leaveType)
+                        .Where(x => x.leaveType.leaveTypeId == leaveRequest.leaveType.leaveTypeId && x.epf == Convert.ToInt32(leaveRequest.epf)).FirstOrDefault();
+
+                    leaveBalance.remainingLeaves = leaveBalance.remainingLeaves + leaveRequest.noOfDays.GetValueOrDefault();
+                    leaveBalance.usedLeaves = leaveBalance.usedLeaves - leaveRequest.noOfDays.GetValueOrDefault();
                 }
 
                 leaveApproval.comments = request.comment;
+                leaveApproval.lastUpdateBy = request.approver;
+                leaveApproval.lastUpdateDate = DateTime.Now.Date;
+                leaveApproval.lastUpdateTime = DateTime.Now.TimeOfDay;
+
                 leaveRequest.currentLevel = leaveApproval.level.id;
 
                 if (leaveRequest.currentLevel == leaveApprovals.Count)
                 {
                     leaveRequest.finalStatus = finalStatus;
                     leaveRequest.requestStatus = approvalStatus;
+
+                    // Final approval notification
+                    Notification notifications = new Notification
+                    {
+                        epf = leaveRequest.epf,                        
+                        description = $"Your leave request has been {finalStatus}.",
+                        createdDate = DateTime.Now,
+                        markAsRead = false,
+                        type = 2,
+                        reference = request.requestId.ToString(),
+                    };
+
+                    _context.Notification.Add(notifications);
                 }
 
                 leaveRequest.lastUpdateBy = request.approver;
                 leaveRequest.lastUpdateDate = DateTime.Now.Date;
                 leaveRequest.lastUpdateTime = DateTime.Now;
+
+                notification.markAsRead = true;
 
                 await _context.SaveChangesAsync();
                 return await Task.FromResult(true);
@@ -351,7 +430,9 @@ namespace PayrollAPI.Repository.HRM
             foreach(LeaveApproval leaveApproval in leaveApprovals) 
             {
                 leaveApproval.status = ApprovalStatus.Cancelled;
-                //leaveApproval.lastUpdateDate
+                leaveApproval.lastUpdateBy = request.cancelBy;
+                leaveApproval.lastUpdateDate = DateTime.Now.Date;
+                leaveApproval.lastUpdateTime = DateTime.Now.TimeOfDay;
             }
 
             leaveRequest.requestStatus = ApprovalStatus.Cancelled;
@@ -360,14 +441,30 @@ namespace PayrollAPI.Repository.HRM
             leaveRequest.lastUpdateDate = DateTime.Now.Date;
             leaveRequest.lastUpdateTime = DateTime.Now;
 
+            LeaveBalance? leaveBalance = _context.LeaveBalance
+                        .Include(x => x.leaveType)
+                        .Where(x => x.leaveType.leaveTypeId == leaveRequest.leaveType.leaveTypeId && x.epf == Convert.ToInt32(leaveRequest.epf)).FirstOrDefault();
+
+            leaveBalance.remainingLeaves = leaveBalance.remainingLeaves + leaveRequest.noOfDays.GetValueOrDefault();
+            leaveBalance.usedLeaves = leaveBalance.usedLeaves - leaveRequest.noOfDays.GetValueOrDefault();
+
             await _context.SaveChangesAsync();
             return await Task.FromResult(true);
         }
-        public async Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id)
+        public async Task<IEnumerable<LeaveApproval?>> GetLeaveApproval(int id)
         {
             return await Task.FromResult(_context.LeaveApproval.Where(x => x.requestId.leaveRequestId == id)
                 .Include(x => x.level)
                 .Include(x => x.approver_id)
+                .AsEnumerable());
+        }
+
+        public async Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id)
+        {
+            return await Task.FromResult(_context.LeaveApproval.Where(x => x.approver_id.epf == id.ToString())
+                .Include(x => x.level)
+                .Include(x => x.approver_id)
+                .OrderByDescending(x=>x.id)
                 .AsEnumerable());
         }
 

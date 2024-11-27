@@ -29,5 +29,10 @@ namespace PayrollAPI.Models.HRM
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime createdTime { get; set; }
+
+        [Column(TypeName = "varchar(10)")]
+        public string? lastUpdateBy { get; set; }
+        public DateTime? lastUpdateDate { get; set; }
+        public TimeSpan? lastUpdateTime { get; set; }
     }
 }

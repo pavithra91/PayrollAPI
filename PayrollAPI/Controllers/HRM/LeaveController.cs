@@ -6,6 +6,7 @@ using MySqlX.XDevAPI.Common;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.HRM;
 using PayrollAPI.Models.HRM;
+using System.ServiceModel.Channels;
 
 namespace PayrollAPI.Controllers.HRM
 {
@@ -64,6 +65,16 @@ namespace PayrollAPI.Controllers.HRM
             }
             var response = leaveType.MapToResponse();
             return Ok(response);
+        }
+
+        [HttpGet("get-available-leaveTypes/{epf:int}")]
+        [ProducesResponseType(typeof(IEnumerable<LeaveTypeResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAvailableLeaveTypes(string epf)
+        {
+            var result = await _leave.GetAvailableLeaveTypes(epf);
+
+            var _leaveTypeResponse = result.MapToResponse();
+            return Ok(_leaveTypeResponse);
         }
 
         [HttpGet]
@@ -142,15 +153,14 @@ namespace PayrollAPI.Controllers.HRM
         [Route("request-leave")]
         public async Task<IActionResult> RequestLeave([FromBody] RequestLeaveRequest request)
         {
-            //var supervisor = request.MapToSupervisor();
-            var result = await _leave.RequestLeave(request);
-            if (result)
+            var(Success, Message) = await _leave.RequestLeave(request);
+            if (Success)
             {
-                return Ok("success");
+                return Ok(Message);
             }
             else
             {
-                return BadRequest();
+                return BadRequest(Message);
             }
         }
 
@@ -191,7 +201,7 @@ namespace PayrollAPI.Controllers.HRM
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetLeaveRequest([FromRoute] int id, [FromQuery] int? notification = null)
         {
-            var leaveApprovals = await _leave.GetLeaveApprovals(id);
+            var leaveApprovals = await _leave.GetLeaveApproval(id);
             var result = await _leave.GetLeaveRequest(id);
 
             if(notification != null)
@@ -202,6 +212,15 @@ namespace PayrollAPI.Controllers.HRM
             return result == null ? NotFound() :
                 Ok(result.MapToResponse(leaveApprovals));
 
+        }
+
+        [HttpGet("get-leaveapprovals/{id:int}")]
+        //[ProducesResponseType(typeof(LeaveRequestApprovalResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetLeaveApprovals(int id)
+        {
+            var leaveApprovals = await _leave.GetLeaveApprovals(id);
+            return Ok(leaveApprovals);
         }
 
         [HttpGet("get-leaveHistory/{epf:int}")]
@@ -253,7 +272,7 @@ namespace PayrollAPI.Controllers.HRM
             }
             else
             {
-                return BadRequest();
+                return BadRequest("Advance Payment Request already send for processing");
             }
         }
     }

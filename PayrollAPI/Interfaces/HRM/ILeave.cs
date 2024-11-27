@@ -11,6 +11,7 @@ namespace PayrollAPI.Interfaces.HRM
         Task<LeaveType?> GetLeaveType(int id);
         Task<bool> CreateLeaveType(LeaveType leaveType);
         Task<bool> UpdateLeaveType(int id, LeaveType leaveType);
+        Task<IEnumerable<LeaveType>> GetAvailableLeaveTypes(string epf);
 
 
         Task<IEnumerable<Supervisor>> GetAllSupervisors();
@@ -22,10 +23,12 @@ namespace PayrollAPI.Interfaces.HRM
         Task<ApprovalWorkflowResponse> GetApprovalWorkflow();
 
         Task<bool> AssignSupervisor(string epf, int approvalLevel, List<int> approverNames, string updateBy);
-        Task<bool> RequestLeave(RequestLeaveRequest request);
+        //Task<bool> CheckLeaveBalance(RequestLeaveRequest request);
+        Task<(bool Success, string Message)> RequestLeave(RequestLeaveRequest request);
         Task<bool> ApproveLeave(ApproveLeaveRequest request);
         Task<bool> CancelLeave(CancelLeaveRequest request);
 
+        Task<IEnumerable<LeaveApproval?>> GetLeaveApproval(int id);
         Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id);
         Task<LeaveRequest?> GetLeaveRequest(int id);
 
