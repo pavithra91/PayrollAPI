@@ -162,6 +162,16 @@ namespace PayrollAPI.DataModel.HRM
             };
         }
 
+        //public static LeaveRequestsApprovalResponse MapToResponse(IEnumerable<LeaveApproval> leaveApprovals)
+        //{
+        //    return new LeaveRequestsApprovalResponse
+        //    {
+        //        items = leaveApprovals.Select(MapToResponse(leaveApprovals, ))
+        //    };
+        //}
+
+
+
         public static LeaveBalanceResponse MapToResponse(this LeaveBalance leaveBalance)
         {
             return new LeaveBalanceResponse

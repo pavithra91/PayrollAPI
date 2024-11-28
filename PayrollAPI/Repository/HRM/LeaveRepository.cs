@@ -462,6 +462,7 @@ namespace PayrollAPI.Repository.HRM
         public async Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id)
         {
             return await Task.FromResult(_context.LeaveApproval.Where(x => x.approver_id.epf == id.ToString())
+                .Include(x=> x.requestId)
                 .Include(x => x.level)
                 .Include(x => x.approver_id)
                 .OrderByDescending(x=>x.id)
