@@ -162,13 +162,40 @@ namespace PayrollAPI.DataModel.HRM
             };
         }
 
-        //public static LeaveRequestsApprovalResponse MapToResponse(IEnumerable<LeaveApproval> leaveApprovals)
-        //{
-        //    return new LeaveRequestsApprovalResponse
-        //    {
-        //        items = leaveApprovals.Select(MapToResponse(leaveApprovals, ))
-        //    };
-        //}
+        public static LeaveRequestApprovalListResponses MapToLeaveApprovalList(this IEnumerable<LeaveApproval> leaveApprovals)
+        {
+            List<LeaveRequestApprovalListResponse> list = new List<LeaveRequestApprovalListResponse>();
+
+            foreach (var items in leaveApprovals)
+            {
+                LeaveRequestApprovalListResponse leaveRequest = new LeaveRequestApprovalListResponse
+                {
+                    epf = items.epf,
+                    //leaveTypeName = items.requestId.leaveType.leaveTypeName,
+                    startDate = items.requestId.startDate,
+                    endDate = items.requestId.endDate,
+                    actingDelegate = items.requestId.actingDelegate,
+                    actingDelegateApprovalStatus = items.requestId.actingDelegateApprovalStatus.ToString(),
+                    currentLevel = items.requestId.currentLevel,
+                    halfDayType = items.requestId.halfDayType.ToString(),
+                    reason = items.requestId.reason,
+                    isHalfDay = items.requestId.isHalfDay,
+                    lieuLeaveDate = items.requestId.lieuLeaveDate,
+                    requestId = items.requestId.leaveRequestId,
+                    requestStatus = items.requestId.requestStatus.ToString(),
+                    approverStatus = items.status.ToString(),
+                    noOfDays = items.requestId.noOfDays,
+
+                };
+
+                list.Add(leaveRequest);
+            }
+
+            return new LeaveRequestApprovalListResponses
+            {
+                items = list
+            };
+        }
 
 
 

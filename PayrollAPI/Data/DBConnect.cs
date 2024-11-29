@@ -202,8 +202,9 @@ namespace PayrollAPI.Data
             modelBuilder.ApplyConfiguration(new LeaveTypeMapping());
             modelBuilder.ApplyConfiguration(new SupervisorMapping());
             modelBuilder.ApplyConfiguration(new WorkflowTypesMapping()); 
-            modelBuilder.ApplyConfiguration(new NotificationMapping());
+            modelBuilder.ApplyConfiguration(new NotificationMapping()); 
             modelBuilder.ApplyConfiguration(new AdvancePaymentMapping());
+            modelBuilder.ApplyConfiguration(new EmployeeMapping());
         }
 
         public DbSet<EmpApprovals> EmpApprovals => Set<EmpApprovals>();
@@ -216,5 +217,6 @@ namespace PayrollAPI.Data
         public DbSet<WorkflowTypes> WorkflowTypes => Set<WorkflowTypes>();
         public DbSet<Notification> Notification => Set<Notification>();
         public DbSet<AdvancePayment> AdvancePayment => Set<AdvancePayment>();
+        public DbSet<Employee> Employee => Set<Employee>();
     }
 }

@@ -220,7 +220,7 @@ namespace PayrollAPI.Controllers.HRM
         public async Task<IActionResult> GetLeaveApprovals(int id)
         {
             var leaveApprovals = await _leave.GetLeaveApprovals(id);
-            return Ok(leaveApprovals);
+            return Ok(leaveApprovals.MapToLeaveApprovalList());
         }
 
         [HttpGet("get-leaveHistory/{epf:int}")]
