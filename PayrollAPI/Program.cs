@@ -138,6 +138,7 @@ try
     builder.Services.AddScoped<IHelp, HelpRepository>();
 
     builder.Services.AddScoped<ILeave, LeaveRepository>();
+    builder.Services.AddScoped<IEmployee, EmployeeRepository>();
 
     builder.Services.AddScoped<ApiKeyAuthFilter>();
 

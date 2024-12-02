@@ -258,5 +258,32 @@ namespace PayrollAPI.DataModel.HRM
                 createdBy = request.createdBy,
             };
         }
+
+
+        #region Employee
+        public static EmployeeResponse MapToResponse(this Employee employee)
+        {
+            return new EmployeeResponse
+            {
+                id = employee.id,
+                userID = employee.userID,
+                epf = employee.epf,
+                companyCode = employee.companyCode,
+                costCenter = employee.costCenter,
+                empName = employee.empName,
+                grade = employee.grade,
+                isActive = employee.status,
+                role = employee.role,
+            };
+        }
+
+        public static EmployeesResponse MapToResponse(this IEnumerable<Employee> employees)
+        {
+            return new EmployeesResponse
+            {
+                Items = employees.Select(MapToResponse)
+            };
+        }
+        #endregion
     }
 }
