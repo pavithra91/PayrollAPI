@@ -271,7 +271,7 @@ namespace PayrollAPI.DataModel.HRM
                 companyCode = employee.companyCode,
                 costCenter = employee.costCenter,
                 empName = employee.empName,
-                grade = employee.grade,
+                grade = employee.empGrade.gradeCode,
                 isActive = employee.status,
                 role = employee.role,
             };

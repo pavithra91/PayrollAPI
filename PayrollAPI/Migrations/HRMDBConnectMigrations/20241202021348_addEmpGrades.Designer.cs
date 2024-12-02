@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PayrollAPI.Data;
 
@@ -10,9 +11,11 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 {
     [DbContext(typeof(HRMDBConnect))]
-    partial class HRMDBConnectModelSnapshot : ModelSnapshot
+    [Migration("20241202021348_addEmpGrades")]
+    partial class addEmpGrades
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -139,6 +142,9 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int?>("EmployeeGradeid")
+                        .HasColumnType("int");
+
                     b.Property<int>("companyCode")
                         .HasColumnType("int");
 
@@ -187,6 +193,8 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                         .HasColumnType("varchar(10)");
 
                     b.HasKey("id");
+
+                    b.HasIndex("EmployeeGradeid");
 
                     b.HasIndex("empGradeid");
 
@@ -618,8 +626,12 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.Employee", b =>
                 {
-                    b.HasOne("PayrollAPI.Models.HRM.EmployeeGrade", "empGrade")
+                    b.HasOne("PayrollAPI.Models.HRM.EmployeeGrade", null)
                         .WithMany("employees")
+                        .HasForeignKey("EmployeeGradeid");
+
+                    b.HasOne("PayrollAPI.Models.HRM.Employee", "empGrade")
+                        .WithMany()
                         .HasForeignKey("empGradeid");
 
                     b.Navigation("empGrade");

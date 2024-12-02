@@ -26,5 +26,29 @@ namespace PayrollAPI.Controllers.HRM
             var _employeeResponse = result.MapToResponse();
             return Ok(_employeeResponse);
         }
+
+        [HttpGet("get-employee/{id:int}")]
+        [ProducesResponseType(typeof(EmployeeResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetEmployeesById([FromRoute] int id)
+        {
+            var result = await _employee.GetEmployeeById(id);
+
+            return result == null ? NotFound() :
+                Ok(result.MapToResponse());
+
+        }
+
+        [HttpGet("get-employee-grade/{grade}/{costCenter}/{options?}")]
+        [ProducesResponseType(typeof(EmployeesResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetEmployeesById([FromRoute] string grade, string costCenter, string? options = null)
+        {
+            var result = await _employee.GetEmployeesByGrade(grade,costCenter, options);
+
+            return result == null ? NotFound() :
+                Ok(result.MapToResponse());
+
+        }
     }
 }

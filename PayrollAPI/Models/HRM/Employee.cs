@@ -27,8 +27,8 @@ namespace PayrollAPI.Models.HRM
         [Column(TypeName = "varchar(20)")]
         public string? role { get; set; }
 
-        [Column(TypeName = "varchar(20)")]
-        public string? grade { get; set; }
+        // Fks
+        public EmployeeGrade? empGrade { get; set; }
 
         [Column(TypeName = "boolean")]
         public bool status { get; set; }
