@@ -9,10 +9,10 @@ namespace PayrollAPI.Models.HRM
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
-        public int epf { get; set; }
         public int? level { get; set; }
 
         // Fks
+        public Employee? employee { get; set; }
         [JsonIgnore]
         public ICollection<EmpApprovalWorkflow> approvalWorkflowsId { get; set; } = new HashSet<EmpApprovalWorkflow>();
 

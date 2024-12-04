@@ -39,12 +39,12 @@ namespace PayrollAPI.Controllers.HRM
 
         }
 
-        [HttpGet("get-employee-grade/{grade}/{costCenter}/{options?}")]
+        [HttpGet("get-employee-grade/{epf}")]
         [ProducesResponseType(typeof(EmployeesResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetEmployeesById([FromRoute] string grade, string costCenter, string? options = null)
+        public async Task<IActionResult> GetEmployeesById([FromRoute] string epf)
         {
-            var result = await _employee.GetEmployeesByGrade(grade,costCenter, options);
+            var result = await _employee.GetEmployeesByGrade(epf);
 
             return result == null ? NotFound() :
                 Ok(result.MapToResponse());

@@ -2,11 +2,8 @@
 using Leave.Contracts.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlX.XDevAPI.Common;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.HRM;
-using PayrollAPI.Models.HRM;
-using System.ServiceModel.Channels;
 
 namespace PayrollAPI.Controllers.HRM
 {
@@ -16,9 +13,11 @@ namespace PayrollAPI.Controllers.HRM
     public class LeaveController : ControllerBase
     {
         private readonly ILeave _leave;
-        public LeaveController(ILeave leave)
+        private readonly IEmployee _employee;
+        public LeaveController(ILeave leave, IEmployee employee)
         {
             _leave = leave;
+            _employee = employee;
         }
 
         [HttpGet]
@@ -104,7 +103,8 @@ namespace PayrollAPI.Controllers.HRM
         [Route("create-supervisor")]
         public async Task<IActionResult> CreateSupervisor([FromBody] SupervisorRequest request)
         {
-            var supervisor = request.MapToSupervisor();
+            var emp = await _employee.GetEmployeeById(Convert.ToInt32(request.epf));
+            var supervisor = request.MapToSupervisor(emp);
             await _leave.CreateSupervisor(supervisor);
             return CreatedAtAction(nameof(GetSupervisors), new { id = supervisor.id }, supervisor);
         }
@@ -121,6 +121,18 @@ namespace PayrollAPI.Controllers.HRM
             }
             var response = supervisor.MapToResponse();
             return Ok(response);
+        }
+
+        [HttpGet("get-my-supervisors/{id:int}")]
+        [ProducesResponseType(typeof(SupervisorResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMySupervisors([FromRoute] int id)
+        {
+            var result = await _leave.GetMySupervisors(id);
+
+            return result == null ? NotFound() :
+                Ok(result.MapToResponse());
+
         }
 
 

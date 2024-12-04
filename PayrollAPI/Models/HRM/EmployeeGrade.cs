@@ -16,6 +16,8 @@ namespace PayrollAPI.Models.HRM
         [Column(TypeName = "varchar(20)")]
         public string? description { get; set; }
 
+
+        // Fks
         [JsonIgnore]
         public ICollection<Employee> employees { get; set; } = new HashSet<Employee>();
 

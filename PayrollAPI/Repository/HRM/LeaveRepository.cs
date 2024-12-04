@@ -72,7 +72,10 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<IEnumerable<Supervisor>> GetAllSupervisors()
         {
-            return await Task.FromResult(_context.Supervisor.AsEnumerable());
+            return await Task.FromResult(_context.Supervisor
+                .Include(x=>x.epf)
+                .Include(x=>x.epf.empGrade)
+                .AsEnumerable());
         }
 
         public async Task<Supervisor?> GetSupervisor(int id)
@@ -110,24 +113,41 @@ namespace PayrollAPI.Repository.HRM
             }
         }
 
+        public async Task<IEnumerable<Supervisor>> GetMySupervisors(int epf)
+        {
+            Employee? employee = _context.Employee.Where(x=>x.epf == epf.ToString()).FirstOrDefault();
+            return await Task.FromResult(_context.Supervisor
+                .Include(x=>x.epf)
+                .Include(x=>x.epf.empGrade)
+                .Where(x=>x.epf.costCenter == employee.costCenter && x.isActive == true)
+                .AsEnumerable());
+        }
+
         public async Task<ApprovalWorkflowResponse> GetApprovalWorkflow()
         {
          var empApprovals =   _context.EmpApprovals
+        .Include(e=>e.employee)
+            .ThenInclude(e=>e.workflowLevel)
+        .Include(e => e.employee)
+            .ThenInclude(e => e.empGrade)
         .Include(e => e.approvalWorkflowsId)
             .ThenInclude(w => w.approvalLevels)
         .Include(e => e.approvalWorkflowsId)
-            .ThenInclude(w => w.approverId)
+            .ThenInclude(w => w.approverId).ThenInclude(x=>x.epf)
         .ToList();
 
             var result = empApprovals.Select(e => new ApprovalWorkflowDto
             {
                 id = e.id,
-                epf = e.epf,
-                approvalLevel = e.level.HasValue ? $"Level {e.level.Value}" : null,
+                epf = e.employee.epf,
+                empName = e.employee.empName,
+                empGrade = e.employee.empGrade.gradeCode,
+                approvalLevel = e.employee.workflowLevel.levelName,
                 SupervisorList = e.approvalWorkflowsId.Select(w => new SupervisorDto
                 {
                     Level = w.approvalLevels != null ? w.approvalLevels.levelName : null,
-                    Epf = w.approverId != null ? int.Parse(w.approverId.epf) : 0
+                    Epf = w.approverId != null ? int.Parse(w.approverId.epf.epf) : 0,
+                    empName = w.approverId != null ? w.approverId.epf.empName : ""
                 }).ToList(),
             });
 
@@ -143,8 +163,10 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<bool> AssignSupervisor(string epf, int approvalLevel, List<int> approverNames, string updateBy)
         {
-            var _empApprovals = _context.EmpApprovals.Where(x => x.epf == Convert.ToInt32(epf))
+            var _empApprovals = _context.EmpApprovals
+                .Include(x=>x.employee.epf)
                 .Include(x=> x.approvalWorkflowsId)
+                .Where(x => x.employee.epf == epf)
                 .FirstOrDefault();
             if (_empApprovals != null)
             {
@@ -236,8 +258,17 @@ namespace PayrollAPI.Repository.HRM
                     {
                         _leaveRequest.lieuLeaveDate = _leaveRequest.lieuLeaveDate;
                     }
-                    _leaveRequest.actingDelegate = request.actDelegate;
-                    _leaveRequest.actingDelegateApprovalStatus = ApprovalStatus.Pending;
+
+                    if(request.actDelegate != "None")
+                    {
+                        _leaveRequest.actingDelegate = request.actDelegate;
+                        _leaveRequest.actingDelegateApprovalStatus = ApprovalStatus.Pending;
+                    }
+                    else
+                    {
+                        _leaveRequest.actingDelegate = "None";
+                    }
+
                     _leaveRequest.requestStatus = ApprovalStatus.Pending;
                     _leaveRequest.actionedBy = request.requestBy;
                     _leaveRequest.reason = request.reason;
@@ -246,24 +277,29 @@ namespace PayrollAPI.Repository.HRM
 
                     await _context.SaveChangesAsync();
 
-                    var empApproval = _context.EmpApprovals.Where(x => x.epf == Convert.ToInt32(request.epf))
+                    var empApproval = _context.EmpApprovals
+                        .Include(e=>e.employee.epf)
+                        .Where(x => x.employee.epf == request.epf)
                        .Include(e => e.approvalWorkflowsId)
-                    .ThenInclude(w => w.approvalLevels)
-                .Include(e => e.approvalWorkflowsId)
-                    .ThenInclude(w => w.approverId).FirstOrDefault();
+                       .ThenInclude(w => w.approvalLevels)
+                       .Include(e => e.approvalWorkflowsId)
+                       .ThenInclude(w => w.approverId).FirstOrDefault();
 
-                    Notification notification = new Notification
+                    if (request.actDelegate != "None")
                     {
-                        epf = Convert.ToInt32(_leaveRequest.actingDelegate),
-                        target = request.epf,
-                        description = "has request you to become an acting Delegate",
-                        createdDate = DateTime.Now,
-                        markAsRead = false,
-                        type = 0,
-                        reference = _leaveRequest.leaveRequestId.ToString()
-                    };
+                        Notification notification = new Notification
+                        {
+                            epf = Convert.ToInt32(_leaveRequest.actingDelegate),
+                            target = request.epf,
+                            description = "has request you to become an acting Delegate",
+                            createdDate = DateTime.Now,
+                            markAsRead = false,
+                            type = 0,
+                            reference = _leaveRequest.leaveRequestId.ToString()
+                        };
 
-                    _context.Notification.Add(notification);
+                        _context.Notification.Add(notification);
+                    }
 
                     foreach (var item in empApproval.approvalWorkflowsId)
                     {
@@ -349,9 +385,10 @@ namespace PayrollAPI.Repository.HRM
                 List<LeaveApproval> leaveApprovals = _context.LeaveApproval
                     .Include(x=>x.level)
                     .Include(x=>x.approver_id)
+                    .ThenInclude(x=>x.epf)
                     .Where(x=> x.requestId.leaveRequestId == request.requestId).ToList();
 
-                LeaveApproval? leaveApproval = leaveApprovals.Find(x => x.approver_id.epf == request.approver);
+                LeaveApproval? leaveApproval = leaveApprovals.Find(x => x.approver_id.epf.epf == request.approver);
 
                 FinalStatus finalStatus = FinalStatus.Cancelled;
                 ApprovalStatus approvalStatus = ApprovalStatus.Pending;
@@ -456,12 +493,13 @@ namespace PayrollAPI.Repository.HRM
             return await Task.FromResult(_context.LeaveApproval.Where(x => x.requestId.leaveRequestId == id)
                 .Include(x => x.level)
                 .Include(x => x.approver_id)
+                .ThenInclude(x=>x.epf)
                 .AsEnumerable());
         }
 
         public async Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id)
         {
-            return await Task.FromResult(_context.LeaveApproval.Where(x => x.approver_id.epf == id.ToString())
+            return await Task.FromResult(_context.LeaveApproval.Where(x => x.approver_id.epf.epf == id.ToString())
                 .Include(x=> x.requestId)
                 .Include(x => x.level)
                 .Include(x => x.approver_id)

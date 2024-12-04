@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PayrollAPI.Data;
 
@@ -10,9 +11,11 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 {
     [DbContext(typeof(HRMDBConnect))]
-    partial class HRMDBConnectModelSnapshot : ModelSnapshot
+    [Migration("20241204102148_addFks")]
+    partial class addFks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,6 +119,9 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.Property<int?>("employeeid")
                         .HasColumnType("int");
 
+                    b.Property<int>("epf")
+                        .HasColumnType("int");
+
                     b.Property<string>("lastUpdateBy")
                         .HasColumnType("varchar(10)");
 
@@ -188,14 +194,9 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.Property<string>("userID")
                         .HasColumnType("varchar(10)");
 
-                    b.Property<int?>("workflowLevelid")
-                        .HasColumnType("int");
-
                     b.HasKey("id");
 
                     b.HasIndex("empGradeid");
-
-                    b.HasIndex("workflowLevelid");
 
                     b.ToTable("Employee");
                 });
@@ -639,13 +640,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                         .WithMany("employees")
                         .HasForeignKey("empGradeid");
 
-                    b.HasOne("PayrollAPI.Models.HRM.WorkflowTypes", "workflowLevel")
-                        .WithMany("employees")
-                        .HasForeignKey("workflowLevelid");
-
                     b.Navigation("empGrade");
-
-                    b.Navigation("workflowLevel");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.LeaveApproval", b =>
@@ -726,11 +721,6 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
             modelBuilder.Entity("PayrollAPI.Models.HRM.LeaveType", b =>
                 {
                     b.Navigation("leaveRequests");
-                });
-
-            modelBuilder.Entity("PayrollAPI.Models.HRM.WorkflowTypes", b =>
-                {
-                    b.Navigation("employees");
                 });
 #pragma warning restore 612, 618
         }

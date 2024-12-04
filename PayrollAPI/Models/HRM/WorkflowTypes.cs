@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace PayrollAPI.Models.HRM
 {
@@ -11,6 +12,10 @@ namespace PayrollAPI.Models.HRM
 
         public string levelName { get; set; }
 
+
+        // FKs
+        [JsonIgnore]
+        public ICollection<Employee> employees { get; set; } = new HashSet<Employee>();
 
 
         // Logs

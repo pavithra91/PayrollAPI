@@ -58,12 +58,12 @@ namespace PayrollAPI.DataModel.HRM
         #endregion
 
         #region Supervisor
-        public static Supervisor MapToSupervisor(this SupervisorRequest request)
+        public static Supervisor MapToSupervisor(this SupervisorRequest request, Employee emp)
         {
             return new Supervisor
             {
                 userId = request.userId,
-                epf = request.epf,
+                epf = emp,
                 isActive = true,
                 createdBy = request.createdBy,
             };
@@ -87,7 +87,10 @@ namespace PayrollAPI.DataModel.HRM
             {
                 id = supervisor.id,
                 userId = supervisor.userId,
-                epf = supervisor.epf,
+                epf = supervisor.epf.epf,
+                grade = supervisor.epf.empGrade.gradeCode,
+                empName = supervisor.epf.empName,
+                isActive = supervisor.isActive,
                 createdBy = supervisor.createdBy,
             };
         }
@@ -119,7 +122,7 @@ namespace PayrollAPI.DataModel.HRM
         {
             return new LeaveApprovalResponse
             {
-                approver = leaveApproval.approver_id.epf,
+                approver = leaveApproval.approver_id.epf.epf,
                 levelName = leaveApproval.level.levelName,
                 status = leaveApproval.status.ToString(),
             };

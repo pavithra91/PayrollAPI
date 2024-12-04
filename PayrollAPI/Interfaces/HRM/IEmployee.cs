@@ -7,6 +7,6 @@ namespace PayrollAPI.Interfaces.HRM
     {
         Task<IEnumerable<Employee>> GetAllEmployees();
         Task<Employee> GetEmployeeById(int id);
-        Task<IEnumerable<Employee>> GetEmployeesByGrade(string grade, string costCenter, string? options);
+        Task<IEnumerable<Employee>> GetEmployeesByGrade(string epf);
     }
 }

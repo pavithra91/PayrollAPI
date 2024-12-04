@@ -30,6 +30,15 @@ namespace PayrollAPI.Models.HRM
         // Fks
         public EmployeeGrade? empGrade { get; set; }
 
+        public WorkflowTypes? workflowLevel { get; set; }
+
+        [JsonIgnore]
+        public ICollection<Supervisor> supervisors { get; set; } = new HashSet<Supervisor>();
+
+        [JsonIgnore]
+        public ICollection<EmpApprovals> empApprovals { get; set; } = new HashSet<EmpApprovals>();
+
+
         [Column(TypeName = "boolean")]
         public bool status { get; set; }
 

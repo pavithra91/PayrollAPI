@@ -11,9 +11,10 @@ namespace PayrollAPI.Models.HRM
 
         public string userId { get; set; }
 
-        public string epf { get; set; }
-        public bool isActive { get; set; }
+        // Fks
+        public Employee? epf { get; set; }
 
+        public bool isActive { get; set; }
 
         // Logs
         [Column(TypeName = "varchar(10)")]

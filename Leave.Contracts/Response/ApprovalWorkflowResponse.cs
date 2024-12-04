@@ -15,8 +15,9 @@ namespace Leave.Contracts.Response
     public class ApprovalWorkflowDto
     {
         public int id { get; init; }
-        public int epf { get; set; }
-
+        public string epf { get; set; }
+        public string empName { get; set; }
+        public string empGrade { get; set; }
         public int? level { get; set; }
         public string approvalLevel { get; set; }
         public List<SupervisorDto> SupervisorList { get; set; }
@@ -26,5 +27,6 @@ namespace Leave.Contracts.Response
     {
         public string Level { get; set; }
         public int Epf { get; set; }
+        public string? empName { get; set; }
     }
 }
