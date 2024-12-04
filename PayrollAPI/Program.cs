@@ -16,10 +16,17 @@ using PayrollAPI.Interfaces;
 using PayrollAPI.Interfaces.HRM;
 using PayrollAPI.Repository;
 using PayrollAPI.Repository.HRM;
+using PayrollAPI.Repository.Services;
 using PayrollAPI.Services;
+using PayrollAPI.Services.BackgroudServices;
 using PdfSharp.Charting;
+using Quartz;
 using System.Reflection;
 using System.Text;
+using Quartz.Impl;
+using Quartz.Spi;
+using Microsoft.Extensions.DependencyInjection;
+using static Quartz.Logging.OperationName;
 
 
 // Initialize Logs
@@ -95,6 +102,9 @@ try
     builder.Services.AddHostedService<BackgroudService>();
 
 
+
+
+
     var _jwtsetting = builder.Configuration.GetSection("JWTSetting");
     builder.Services.Configure<JWTSetting>((IConfiguration)_jwtsetting);
 
@@ -130,6 +140,19 @@ try
     builder.Services.AddAuthorization();
 
     builder.Services.AddControllers();
+
+    builder.Services.AddQuartz(q =>
+    {
+        // Use the default Quartz.NET scheduler
+        q.UseMicrosoftDependencyInjectionJobFactory();
+    });
+
+    builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+    // Register the job class with DI
+    builder.Services.AddScoped<BackgroudJob>();
+    builder.Services.AddScoped<IJobSchedule, JobScheduleRepository>();
+
 
     builder.Services.AddScoped<IUsers, UsersRepository>();
     builder.Services.AddScoped<IDatatransfer, DataRepository>();

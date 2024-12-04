@@ -44,6 +44,7 @@
     <PackageReference Include="NReco.PivotData.Extensions" Version="1.7.0" />
     <PackageReference Include="org.matheval" Version="1.0.0.3" />
     <PackageReference Include="PDFsharp" Version="6.1.1" />
+    <PackageReference Include="Quartz" Version="3.13.1" />
     <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.13.1" />
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />

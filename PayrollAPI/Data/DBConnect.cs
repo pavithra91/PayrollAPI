@@ -2,8 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using MySql.EntityFrameworkCore.Extensions;
 using PayrollAPI.Data.EntityMapping.HRM;
+using PayrollAPI.Data.EntityMapping.Services;
 using PayrollAPI.Models;
 using PayrollAPI.Models.HRM;
+using PayrollAPI.Models.Services;
 
 namespace PayrollAPI.Data
 {
@@ -206,6 +208,7 @@ namespace PayrollAPI.Data
             modelBuilder.ApplyConfiguration(new AdvancePaymentMapping()); 
             modelBuilder.ApplyConfiguration(new EmployeeMapping());
             modelBuilder.ApplyConfiguration(new EmployeeGradeMapping());
+            modelBuilder.ApplyConfiguration(new JobScheduleMapping());
         }
 
         public DbSet<EmpApprovals> EmpApprovals => Set<EmpApprovals>();
@@ -220,5 +223,6 @@ namespace PayrollAPI.Data
         public DbSet<AdvancePayment> AdvancePayment => Set<AdvancePayment>();
         public DbSet<Employee> Employee => Set<Employee>();
         public DbSet<EmployeeGrade> EmployeeGrade => Set<EmployeeGrade>();
+        public DbSet<JobSchedule> JobSchedule => Set<JobSchedule>();
     }
 }
