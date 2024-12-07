@@ -548,21 +548,5 @@ namespace PayrollAPI.Repository.HRM
             }
             return await Task.FromResult(true);
         }
-
-        public async Task<bool> RequestAdvancePayment(AdvancePayment advancePayment)
-        {
-            var _previousRequest = _context.AdvancePayment.Where(x => x.period == advancePayment.period).FirstOrDefault();
-            if (_previousRequest == null)
-            {
-                _context.AdvancePayment.Add(advancePayment);
-                await _context.SaveChangesAsync();
-
-                return await Task.FromResult(true);
-            }
-            else
-            {
-                return await Task.FromResult(false);
-            }
-        }
     }
 }

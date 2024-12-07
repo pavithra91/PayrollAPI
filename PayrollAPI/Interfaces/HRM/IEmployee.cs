@@ -7,6 +7,11 @@ namespace PayrollAPI.Interfaces.HRM
     {
         Task<IEnumerable<Employee>> GetAllEmployees();
         Task<Employee> GetEmployeeById(int id);
+        Task<Employee> GetEmployeeByEPF(string epf);
         Task<IEnumerable<Employee>> GetEmployeesByGrade(string epf);
+
+
+        Task<bool> RequestAdvancePayment(AdvancePayment advancePayment);
+        Task<IEnumerable<AdvancePayment>> GetAdvancePayment(int period);
     }
 }

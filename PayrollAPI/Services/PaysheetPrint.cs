@@ -140,7 +140,7 @@ namespace PayrollAPI.Services
 
                 _context.SaveChanges();
 
-                IEnumerable<Sys_Properties> email_configurations = _context.Sys_Properties.Where(o => o.variable_name.StartsWith("Email_")).ToList();
+                IEnumerable<Sys_Properties> email_configurations = _context.Sys_Properties.Where(o => o.groupName == "Email" || o.groupName == "Email_Config").ToList();
 
                 EmailSender email = new EmailSender();
                 bool status = await email.SendEmail(email_configurations);

@@ -37,6 +37,8 @@ namespace PayrollAPI.Models.HRM
 
         [JsonIgnore]
         public ICollection<EmpApprovals> empApprovals { get; set; } = new HashSet<EmpApprovals>();
+        [JsonIgnore]
+        public ICollection<AdvancePayment> advancePayments { get; set; } = new HashSet<AdvancePayment>();        
 
 
         [Column(TypeName = "boolean")]

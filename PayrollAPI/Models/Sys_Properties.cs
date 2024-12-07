@@ -15,6 +15,9 @@ namespace PayrollAPI.Models
         public string category_name { get; set; }
 
         [Column(TypeName = "varchar(50)")]
+        public string? groupName { get; set; }
+
+        [Column(TypeName = "varchar(50)")]
         public string variable_name { get; set; }
 
         [Column(TypeName = "varchar(500)")]

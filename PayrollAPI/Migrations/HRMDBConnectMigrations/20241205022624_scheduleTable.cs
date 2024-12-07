@@ -7,7 +7,7 @@ using MySql.EntityFrameworkCore.Metadata;
 namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 {
     /// <inheritdoc />
-    public partial class addScheduleTables : Migration
+    public partial class scheduleTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

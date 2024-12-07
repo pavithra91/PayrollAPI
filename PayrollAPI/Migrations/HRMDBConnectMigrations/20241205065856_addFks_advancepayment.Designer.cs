@@ -11,8 +11,8 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 {
     [DbContext(typeof(HRMDBConnect))]
-    [Migration("20241204160712_addScheduleTables")]
-    partial class addScheduleTables
+    [Migration("20241205065856_addFks_advancepayment")]
+    partial class addFks_advancepayment
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,9 +44,8 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("(CURTIME())");
 
-                    b.Property<string>("epf")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int?>("employeeid")
+                        .HasColumnType("int");
 
                     b.Property<bool>("isFullAmount")
                         .HasColumnType("tinyint(1)");
@@ -67,6 +66,8 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                         .HasColumnType("int");
 
                     b.HasKey("id");
+
+                    b.HasIndex("employeeid");
 
                     b.ToTable("AdvancePayment");
                 });
@@ -629,6 +630,9 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.Property<string>("groupName")
                         .HasColumnType("varchar(20)");
 
+                    b.Property<bool>("isActive")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("jobName")
                         .HasColumnType("varchar(50)");
 
@@ -644,6 +648,15 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.HasKey("id");
 
                     b.ToTable("JobSchedule");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.HRM.AdvancePayment", b =>
+                {
+                    b.HasOne("PayrollAPI.Models.HRM.Employee", "employee")
+                        .WithMany("advancePayments")
+                        .HasForeignKey("employeeid");
+
+                    b.Navigation("employee");
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.EmpApprovalWorkflow", b =>
@@ -758,6 +771,8 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.Employee", b =>
                 {
+                    b.Navigation("advancePayments");
+
                     b.Navigation("empApprovals");
 
                     b.Navigation("supervisors");

@@ -8,7 +8,11 @@ namespace PayrollAPI.Models.HRM
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
-        public string epf { get; set; }
+
+        // FKs
+        public Employee? employee { get; set; }
+
+
         public int period { get; set; }
         public bool isFullAmount { get; set; } = true;
 

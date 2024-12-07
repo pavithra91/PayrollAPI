@@ -1,5 +1,5 @@
-﻿using Leave.Contracts.Response;
-using Microsoft.AspNetCore.Http;
+﻿using Leave.Contracts.Requests;
+using Leave.Contracts.Response;
 using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.HRM;
@@ -49,6 +49,23 @@ namespace PayrollAPI.Controllers.HRM
             return result == null ? NotFound() :
                 Ok(result.MapToResponse());
 
+        }
+
+        [HttpPost]
+        [Route("request-advancePayment")]
+        public async Task<IActionResult> RequestAdvancePayment([FromBody] AdvancePaymentRequest request)
+        {
+            var emp = await _employee.GetEmployeeByEPF(request.epf);
+            var advancePayment = request.MapToAdvancePayment(emp);
+            var result = await _employee.RequestAdvancePayment(advancePayment);
+            if (result)
+            {
+                return Ok("success");
+            }
+            else
+            {
+                return BadRequest("Advance Payment Request already send for processing");
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Net.Mail;
 using System.Net;
 using PayrollAPI.Models;
+using System.IO;
 
 namespace PayrollAPI.Services
 {
@@ -65,6 +66,38 @@ namespace PayrollAPI.Services
 
                 await smtpClient.SendMailAsync(message);
                 
+                Thread.Sleep(200);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> SendEmail(IEnumerable<Sys_Properties> email_configurations, byte[] dataArray)
+        {
+            try
+            {
+                var message = new MailMessage();
+                message.From = new MailAddress(email_configurations.Where(o => o.variable_name == "Email_From").FirstOrDefault().variable_value);
+                message.To.Add(email_configurations.Where(o => o.variable_name == "Email_To").FirstOrDefault().variable_value);
+                message.Subject = email_configurations.Where(o => o.variable_name == "Email_Subject").FirstOrDefault().variable_value;
+                message.Body = email_configurations.Where(o => o.variable_name == "Email_Body").FirstOrDefault().variable_value;
+
+                // Attachment
+                using var memoryStream = new MemoryStream(dataArray);
+                var attachment = new Attachment(memoryStream, "AdvancePayment.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                message.Attachments.Add(attachment);
+
+                var smtpClient = new SmtpClient("smtp.office365.com");
+                smtpClient.Port = 587;
+                smtpClient.Credentials = new NetworkCredential(email_configurations.Where(o => o.variable_name == "Email_From").FirstOrDefault().variable_value, email_configurations.Where(o => o.variable_name == "Email_Password").FirstOrDefault().variable_value);
+                smtpClient.EnableSsl = true;
+
+                await smtpClient.SendMailAsync(message);
+
                 Thread.Sleep(200);
 
                 return true;

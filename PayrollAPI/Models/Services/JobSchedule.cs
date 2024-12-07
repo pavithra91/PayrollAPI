@@ -18,6 +18,8 @@ namespace PayrollAPI.Models.Services
         [Column(TypeName = "varchar(200)")]
         public string? cronExpression { get; set; }
 
+        public bool isActive { get; set; } = true;
+
         // Logs
         [Column(TypeName = "varchar(10)")]
         public string? createdBy { get; set; }

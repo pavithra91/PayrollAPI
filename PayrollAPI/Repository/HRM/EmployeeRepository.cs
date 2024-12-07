@@ -22,6 +22,11 @@ namespace PayrollAPI.Repository.HRM
             return await Task.FromResult(_context.Employee.Where(x=>x.id==id).FirstOrDefault());
         }
 
+        public async Task<Employee> GetEmployeeByEPF(string epf)
+        {
+            return await Task.FromResult(_context.Employee.Where(x => x.epf == epf).FirstOrDefault());
+        }
+
         public async Task<IEnumerable<Employee>> GetEmployeesByGrade(string epf)
         {
             Employee emp = _context.Employee.Include(x=>x.empGrade).Where(x => x.epf == epf).FirstOrDefault();
@@ -54,6 +59,29 @@ namespace PayrollAPI.Repository.HRM
             //            .Where(x => x.empGrade.gradeCode == grade && x.costCenter == costCenter)
             //            .AsEnumerable());
             //}
+        }
+
+        public async Task<bool> RequestAdvancePayment(AdvancePayment advancePayment)
+        {
+            var _previousRequest = _context.AdvancePayment.Where(x => x.period == advancePayment.period).FirstOrDefault();
+            if (_previousRequest == null)
+            {
+                _context.AdvancePayment.Add(advancePayment);
+                await _context.SaveChangesAsync();
+
+                return await Task.FromResult(true);
+            }
+            else
+            {
+                return await Task.FromResult(false);
+            }
+        }
+
+        public async Task<IEnumerable<AdvancePayment>> GetAdvancePayment(int period)
+        {
+            return await Task.FromResult(_context.AdvancePayment.Where(x => x.period == period)
+                .Include(x=>x.employee)
+                .AsEnumerable());
         }
     }
 }

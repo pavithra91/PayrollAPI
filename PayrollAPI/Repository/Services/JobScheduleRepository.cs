@@ -1,5 +1,6 @@
 ﻿using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
+using PayrollAPI.Models.HRM;
 using PayrollAPI.Models.Services;
 using PayrollAPI.Services.BackgroudServices;
 using Quartz;
@@ -14,6 +15,11 @@ namespace PayrollAPI.Repository.Services
         {
             _schedulerFactory = schedulerFactory;
             _context = db;
+        }
+
+        public async Task<IEnumerable<JobSchedule>> GetAllScheduledJobs()
+        {
+            return await Task.FromResult(_context.JobSchedule.AsEnumerable());
         }
 
         public async Task<JobSchedule> GetJobScheduleAsync(string jobName)
@@ -32,10 +38,13 @@ namespace PayrollAPI.Repository.Services
             }
         }
 
-        public async Task AddJobScheduleAsync(JobSchedule jobSchedule)
+        public async Task AddJobScheduleAsync(JobSchedule _jobSchedule)
         {
-            _context.JobSchedule.Add(jobSchedule);
+            _context.JobSchedule.Add(_jobSchedule);
             await _context.SaveChangesAsync();
+
+            JobSchedulerService jobScheduler = new JobSchedulerService(_schedulerFactory);
+            jobScheduler.ScheduleJobs(_jobSchedule);
         }
 
         public async Task RunJobScheduleAsync(string jobName)

@@ -271,21 +271,5 @@ namespace PayrollAPI.Controllers.HRM
                Ok(_notificationList.MapToResponse());
 
         }
-
-        [HttpPost]
-        [Route("request-advancePayment")]
-        public async Task<IActionResult> RequestAdvancePayment([FromBody] AdvancePaymentRequest request)
-        {
-            var advancePayment = request.MapToAdvancePayment();
-            var result = await _leave.RequestAdvancePayment(advancePayment);
-            if (result)
-            {
-                return Ok("success");
-            }
-            else
-            {
-                return BadRequest("Advance Payment Request already send for processing");
-            }
-        }
     }
 }

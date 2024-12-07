@@ -414,6 +414,10 @@ namespace PayrollAPI.Repository
                 {
                     foreach (Employee_Data emp in _emp)
                     {
+                        if(emp.epf == "11318")
+                        {
+
+                        }
                         ICollection<Payroll_Data> _empPayrollData = _payrollData.Where(o => o.epf == emp.epf).OrderBy(o => o.payCode).ToList();
 
                         decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
@@ -424,7 +428,7 @@ namespace PayrollAPI.Repository
                             ICollection<Payroll_Data> _empDeductions = _empPayrollData.Where(o => o.payCategory == "1" && (o.payCodeType != "T" && o.payCodeType != "C")).OrderBy(o => o.payCode).ToList();
                             decimal unRecTotal = 0;
                             foreach (Payroll_Data deductionItem in _empDeductions)
-                            {
+                                {
                                 decimal previousGross = _grossTot;
 
                                 _grossTot -= deductionItem.amount;

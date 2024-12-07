@@ -1,6 +1,7 @@
 ﻿using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
 using PayrollAPI.Models.HRM;
+using PayrollAPI.Models.Services;
 
 namespace PayrollAPI.DataModel.HRM
 {
@@ -249,11 +250,11 @@ namespace PayrollAPI.DataModel.HRM
             };
         }
 
-        public static AdvancePayment MapToAdvancePayment(this AdvancePaymentRequest request)
+        public static AdvancePayment MapToAdvancePayment(this AdvancePaymentRequest request, Employee employee)
         {
             return new AdvancePayment
             {
-                epf = request.epf,
+                employee = employee,
                 period = Convert.ToInt32(DateTime.Now.Year + "" + DateTime.Now.Month),
                 isFullAmount = request.isFullAmount,
                 amount = request.isFullAmount ? 0 : request.amount,
@@ -285,6 +286,57 @@ namespace PayrollAPI.DataModel.HRM
             return new EmployeesResponse
             {
                 Items = employees.Select(MapToResponse)
+            };
+        }
+        #endregion
+
+
+        #region Schedule Jobs
+        public static JobSchedule MapToJobSchedule(this ScheduleJobRequest request)
+        {
+            return new JobSchedule
+            {
+                jobName = request.jobName,
+                groupName = request.groupName,
+                cronExpression = request.cronExpression,
+                isActive = true,
+                createdBy = request.createdBy,
+            };
+        }
+
+        //public static JobSchedule MapToJobSchedule(this UpdateLeaveTypeRequest request, int id)
+        //{
+        //    return new JobSchedule
+        //    {
+        //        leaveTypeId = id,
+        //        leaveTypeName = request.leaveTypeName,
+        //        description = request.description,
+        //        maxDays = request.maxDays,
+        //        carryForwardAllowed = request.carryForwardAllowed,
+        //        lastUpdateBy = request.createdBy,
+        //        lastUpdateDate = DateTime.Now.Date,
+        //        lastUpdateTime = DateTime.Now,
+        //    };
+        //}
+
+        public static ScheduleJobResponse MapToResponse(this JobSchedule jobSchedule)
+        {
+            return new ScheduleJobResponse
+            {
+                id = jobSchedule.id,
+                jobName = jobSchedule.jobName,
+                groupName = jobSchedule.groupName,
+                cronExpression = jobSchedule.cronExpression,
+                isActive = jobSchedule.isActive,
+                createdBy = jobSchedule.createdBy,
+            };
+        }
+
+        public static ScheduleJobsResponse MapToResponse(this IEnumerable<JobSchedule> jobSchedules)
+        {
+            return new ScheduleJobsResponse
+            {
+                Items = jobSchedules.Select(MapToResponse)
             };
         }
         #endregion

@@ -38,7 +38,5 @@ namespace PayrollAPI.Interfaces.HRM
         Task<IEnumerable<LeaveBalance>> GetLeaveBalance(int epf); 
         Task<IEnumerable<Notification>> GetNotifications(int epf);
         Task<bool> ReadNotification(int notificationId);
-
-        Task<bool> RequestAdvancePayment(AdvancePayment advancePayment);
     }
 }
