@@ -16,7 +16,9 @@ namespace PayrollAPI.Repository.HRM
         }
         public async Task<IEnumerable<Employee>> GetAllEmployees()
         {
-            return await Task.FromResult(_context.Employee.AsEnumerable());
+            return await Task.FromResult(_context.Employee
+                .Include(x=>x.empGrade)
+                .AsEnumerable());
         }
 
         public async Task<Employee> GetEmployeeById(int id)
