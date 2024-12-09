@@ -7,9 +7,11 @@ namespace PayrollAPI.Repository.HRM
 {
     public class EmployeeRepository : IEmployee
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly HRMDBConnect _context;
-        public EmployeeRepository(HRMDBConnect db)
+        public EmployeeRepository(HRMDBConnect db, IServiceProvider serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             _context = db;
         }
         public async Task<IEnumerable<Employee>> GetAllEmployees()
@@ -63,15 +65,47 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<bool> RequestAdvancePayment(AdvancePayment advancePayment)
         {
-            var _previousRequest = _context.AdvancePayment.Where(x => x.period == advancePayment.period).FirstOrDefault();
-            if (_previousRequest == null)
+            try
             {
-                _context.AdvancePayment.Add(advancePayment);
-                await _context.SaveChangesAsync();
+                var _previousRequest = _context.AdvancePayment.Where(x => x.employee == advancePayment.employee && x.period == advancePayment.period).FirstOrDefault();
+                if (_previousRequest == null)
+                {
+                    using var scope = _serviceProvider.CreateScope();
 
-                return await Task.FromResult(true);
+                    var dbConnect = scope.ServiceProvider.GetService<DBConnect>();
+
+                    var _advance_CutoffDate = dbConnect.Sys_Properties.Where(x => x.variable_name == "Advance_Cutoff_Date")
+                        .FirstOrDefault();
+
+                    DateTime currentDate = DateTime.Now;
+                    DateTime firstDayOfMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+
+                    int daysToAdd = Convert.ToInt32(_advance_CutoffDate.variable_value); 
+                    DateTime curPeriod = firstDayOfMonth.AddDays(daysToAdd);
+
+                    if(curPeriod < DateTime.Now)
+                    {
+                        if(currentDate.Month + 1 > 12)
+                        {
+                            advancePayment.period = Convert.ToInt32(currentDate.Year + 1 + "" + "01");
+                        }
+                        else
+                        {
+                            advancePayment.period = Convert.ToInt32(currentDate.Year + "" + (currentDate.Month + 1).ToString("D2"));
+                        }        
+                    }
+
+                    _context.AdvancePayment.Add(advancePayment);
+                    await _context.SaveChangesAsync();
+
+                    return await Task.FromResult(true);
+                }
+                else
+                {
+                    return await Task.FromResult(false);
+                }
             }
-            else
+            catch(Exception ex)
             {
                 return await Task.FromResult(false);
             }
@@ -79,7 +113,7 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<IEnumerable<AdvancePayment>> GetAdvancePayment(int period)
         {
-            return await Task.FromResult(_context.AdvancePayment.Where(x => x.period == period)
+            return await Task.FromResult(_context.AdvancePayment.Where(x => x.period == period && x.status == ApprovalStatus.Pending)
                 .Include(x=>x.employee)
                 .AsEnumerable());
         }

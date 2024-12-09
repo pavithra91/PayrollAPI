@@ -25,7 +25,7 @@ namespace PayrollAPI.Controllers.Services
 
 
         [HttpGet]
-        [Route("get-allScheduledJobs ")]
+        [Route("get-allScheduledJobs")]
         [ProducesResponseType(typeof(IEnumerable<ScheduleJobResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllScheduledJobs()
         {

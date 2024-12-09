@@ -21,12 +21,33 @@ namespace PayrollAPI.Services.BackgroudServices
         {
             try
             {
-                int period = Convert.ToInt32(DateTime.Now.ToString("yyyyMM"));
-                var advancePayments = await _employee.GetAdvancePayment(period);
-
+                int period = 0;
                 using var scope = _serviceProvider.CreateScope();
 
                 var dbConnect = scope.ServiceProvider.GetService<DBConnect>();
+
+                var _advance_CutoffDate = dbConnect.Sys_Properties.Where(x => x.variable_name == "Advance_Cutoff_Date")
+                        .FirstOrDefault();
+
+                DateTime currentDate = DateTime.Now;
+                DateTime firstDayOfMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+
+                int daysToAdd = Convert.ToInt32(_advance_CutoffDate.variable_value);
+                DateTime curPeriod = firstDayOfMonth.AddDays(daysToAdd);
+
+                if (curPeriod < DateTime.Now)
+                {
+                    if (currentDate.Month + 1 > 12)
+                    {
+                        period = Convert.ToInt32(currentDate.Year + 1 + "" + "01");
+                    }
+                    else
+                    {
+                        period = Convert.ToInt32(currentDate.Year + "" + (currentDate.Month + 1).ToString("D2"));
+                    }
+                }
+
+                var advancePayments = await _employee.GetAdvancePayment(period);
 
                 IEnumerable<Sys_Properties> sys_Properties = dbConnect.Sys_Properties
                      .Where(x => x.groupName == "Email_Advance_Payment" || x.groupName == "Email_Config")
