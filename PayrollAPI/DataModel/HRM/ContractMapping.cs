@@ -66,6 +66,7 @@ namespace PayrollAPI.DataModel.HRM
                 userId = request.userId,
                 epf = emp,
                 isActive = true,
+                isManager = request.isManager,
                 createdBy = request.createdBy,
             };
         }
@@ -76,6 +77,7 @@ namespace PayrollAPI.DataModel.HRM
             {
                 id = id,
                 isActive = request.isActive,
+                isManager = request.isManager,
                 lastUpdateBy = request.createdBy,
                 lastUpdateDate = DateTime.Now.Date,
                 lastUpdateTime = DateTime.Now,
@@ -91,6 +93,7 @@ namespace PayrollAPI.DataModel.HRM
                 epf = supervisor.epf.epf,
                 grade = supervisor.epf.empGrade.gradeCode,
                 empName = supervisor.epf.empName,
+                isManager = supervisor.isManager,
                 isActive = supervisor.isActive,
                 createdBy = supervisor.createdBy,
             };

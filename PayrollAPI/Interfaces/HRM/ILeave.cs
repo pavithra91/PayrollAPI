@@ -16,8 +16,7 @@ namespace PayrollAPI.Interfaces.HRM
 
         Task<IEnumerable<Supervisor>> GetAllSupervisors();
         Task<Supervisor?> GetSupervisor(int id);
-        Task<bool> CreateSupervisor(Supervisor supervisor);
-        Task<bool> UpdateSupervisor(int id, Supervisor supervisor);
+
         Task<IEnumerable<Supervisor>> GetMySupervisors(int epf);
 
 

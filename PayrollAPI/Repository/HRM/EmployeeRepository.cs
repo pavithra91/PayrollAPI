@@ -21,6 +21,15 @@ namespace PayrollAPI.Repository.HRM
                 .AsEnumerable());
         }
 
+        public async Task<IEnumerable<Employee>> GetEmployees()
+        {
+            var employeesNotInSupervisors = await _context.Employee
+                .Where(e => !_context.Supervisor.Any(s => s.epf.epf == e.epf))
+                .Include(e => e.empGrade)
+                .ToListAsync();
+            return await Task.FromResult(employeesNotInSupervisors);
+        }
+
         public async Task<Employee> GetEmployeeById(int id)
         {
             return await Task.FromResult(_context.Employee.Where(x=>x.id==id).FirstOrDefault());
@@ -33,13 +42,22 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<IEnumerable<Employee>> GetEmployeesByGrade(string epf)
         {
-            Employee emp = _context.Employee.Include(x=>x.empGrade).Where(x => x.epf == epf).FirstOrDefault();
+            Employee emp = _context.Employee.Include(x=>x.empGrade)
+                .Where(x => x.epf == epf).FirstOrDefault();
 
-            return await Task.FromResult(_context.Employee
-                .Include(x=>x.empGrade)
-                .Where(x => x.empGrade.gradeCode
-                .StartsWith(emp.empGrade.gradeCode.Substring(0, 1)))
-                .AsEnumerable());
+              var list = _context.Employee
+                        .Include(x => x.empGrade)
+                        .Where(x => x.empGrade.id <= emp.empGrade.id && x.costCenter == emp.costCenter &&
+                        x.epf != emp.epf)
+                        .AsEnumerable();
+
+            return(list);
+
+            //return await Task.FromResult(_context.Employee
+            //    .Include(x=>x.empGrade).OrderByDescending(x=>x.id)
+            //    .Where(x => x.empGrade.gradeCode
+            //    .StartsWith(emp.empGrade.gradeCode.Substring(0, 1)) && x.costCenter == emp.costCenter)
+            //    .AsEnumerable());
 
 
             //if (options=="gteq")
@@ -63,6 +81,49 @@ namespace PayrollAPI.Repository.HRM
             //            .Where(x => x.empGrade.gradeCode == grade && x.costCenter == costCenter)
             //            .AsEnumerable());
             //}
+        }
+
+
+        public async Task<Supervisor?> GetSupervisor(int id)
+        {
+            var _supervisor = _context.Supervisor.SingleOrDefault(x => x.id == id);
+            return await Task.FromResult(_supervisor);
+        }
+
+        public async Task<Supervisor?> GetSupervisorByEPF(string epf)
+        {
+            var _supervisor = _context.Supervisor
+                .Include(x => x.epf).Where(x => x.epf.epf == epf).FirstOrDefault();
+            return await Task.FromResult(_supervisor);
+        }
+        public async Task<bool> CreateSupervisor(Supervisor supervisor)
+        {
+            _context.Supervisor.Add(supervisor);
+            await _context.SaveChangesAsync();
+
+            return await Task.FromResult(true);
+        }
+
+        public async Task<bool> UpdateSupervisor(int id, Supervisor supervisor)
+        {
+            var existingSupervisor = await _context.Supervisor.FindAsync(id);
+
+            if (existingSupervisor is null)
+            {
+                return await Task.FromResult(false);
+            }
+            else
+            {
+                existingSupervisor.isActive = supervisor.isActive;
+                existingSupervisor.isManager = supervisor.isManager;
+                existingSupervisor.lastUpdateBy = supervisor.lastUpdateBy;
+                existingSupervisor.lastUpdateDate = supervisor.lastUpdateDate;
+                existingSupervisor.lastUpdateTime = supervisor.lastUpdateTime;
+
+                await _context.SaveChangesAsync();
+
+                return await Task.FromResult(true);
+            }
         }
 
         public async Task<bool> RequestAdvancePayment(AdvancePayment advancePayment)

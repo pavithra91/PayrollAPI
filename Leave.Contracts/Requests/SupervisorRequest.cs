@@ -5,6 +5,7 @@
         public string userId { get; init; }
         public string epf { get; init; }
         public bool isActive { get; init; }
+        public bool isManager { get; init; }
         public string? createdBy { get; init; }
     }
 
@@ -12,6 +13,7 @@
     {
         public int id { get; init; }
         public bool isActive { get; init; }
+        public bool isManager { get; init; }
         public string? createdBy { get; init; }
     }
 }

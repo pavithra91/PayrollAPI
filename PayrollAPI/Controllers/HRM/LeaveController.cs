@@ -99,30 +99,6 @@ namespace PayrollAPI.Controllers.HRM
 
         }
 
-        [HttpPost]
-        [Route("create-supervisor")]
-        public async Task<IActionResult> CreateSupervisor([FromBody] SupervisorRequest request)
-        {
-            var emp = await _employee.GetEmployeeById(Convert.ToInt32(request.epf));
-            var supervisor = request.MapToSupervisor(emp);
-            await _leave.CreateSupervisor(supervisor);
-            return CreatedAtAction(nameof(GetSupervisors), new { id = supervisor.id }, supervisor);
-        }
-
-        [HttpPut("update-supervisor/{id:int}")]
-        public async Task<IActionResult> UpdateSupervisor([FromRoute] int id, [FromBody] UpdateSupervisorRequest request)
-        {
-            var supervisor = request.MapToSupervisor(id);
-            var updated = await _leave.UpdateSupervisor(id, supervisor);
-
-            if (!updated)
-            {
-                return NotFound();
-            }
-            var response = supervisor.MapToResponse();
-            return Ok(response);
-        }
-
         [HttpGet("get-my-supervisors/{id:int}")]
         [ProducesResponseType(typeof(SupervisorResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

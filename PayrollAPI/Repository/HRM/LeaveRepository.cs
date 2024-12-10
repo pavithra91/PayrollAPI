@@ -1,15 +1,11 @@
 ﻿using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
 using LinqToDB;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PayrollAPI.Data;
-using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.HRM;
-using PayrollAPI.Models;
 using PayrollAPI.Models.HRM;
-using static Mysqlx.Notice.Warning.Types;
 
 namespace PayrollAPI.Repository.HRM
 {
@@ -82,35 +78,6 @@ namespace PayrollAPI.Repository.HRM
         {
             var _supervisor = _context.Supervisor.SingleOrDefault(x => x.id == id);
             return await Task.FromResult(_supervisor);
-        }
-
-        public async Task<bool> CreateSupervisor(Supervisor supervisor)
-        {
-            _context.Supervisor.Add(supervisor);
-            await _context.SaveChangesAsync();
-
-            return await Task.FromResult(true);
-        }
-
-        public async Task<bool> UpdateSupervisor(int id, Supervisor supervisor)
-        {
-            var existingSupervisor = await _context.Supervisor.FindAsync(id);
-
-            if (existingSupervisor is null)
-            {
-                return await Task.FromResult(false);
-            }
-            else
-            {
-                existingSupervisor.isActive = supervisor.isActive;
-                existingSupervisor.lastUpdateBy = supervisor.lastUpdateBy;
-                existingSupervisor.lastUpdateDate = supervisor.lastUpdateDate;
-                existingSupervisor.lastUpdateTime = supervisor.lastUpdateTime;
-
-                await _context.SaveChangesAsync();
-
-                return await Task.FromResult(true);
-            }
         }
 
         public async Task<IEnumerable<Supervisor>> GetMySupervisors(int epf)
@@ -278,8 +245,8 @@ namespace PayrollAPI.Repository.HRM
                     await _context.SaveChangesAsync();
 
                     var empApproval = _context.EmpApprovals
-                        .Include(e=>e.employee.epf)
-                        .Where(x => x.employee.epf == request.epf)
+                        .Include(e=>e.employee)
+                        //.Where(x => x.employee.epf == request.epf)
                        .Include(e => e.approvalWorkflowsId)
                        .ThenInclude(w => w.approvalLevels)
                        .Include(e => e.approvalWorkflowsId)
@@ -322,6 +289,48 @@ namespace PayrollAPI.Repository.HRM
                             type = 0,
                             reference = _leaveRequest.leaveRequestId.ToString()
                         };
+
+
+                        if("Level " + empApproval.approvalWorkflowsId.Count == item.approvalLevels.levelName)
+                        {
+                            LeaveRequest? leaveRequest = _context.LeaveRequest
+                                .Where(x=>x.epf == Convert.ToInt32(item.approverId.epf) && 
+                                x.startDate <= DateTime.Now && x.endDate >= DateTime.Now)
+                                .FirstOrDefault();
+
+                            if(leaveRequest!= null)
+                            {
+                                var _supervisor = _context.Supervisor.Where(x => x.epf.epf == leaveRequest.actingDelegate).FirstOrDefault();
+
+                                if (_supervisor == null) 
+                                {
+                                    Supervisor supervisor = new Supervisor
+                                    {
+                                        
+                                    };
+                                }
+                                LeaveApproval _forwardApproval = new LeaveApproval
+                                {
+                                    requestId = _leaveRequest,
+                                    epf = request.epf,
+                                    approver_id = _supervisor,
+                                    level = item.approvalLevels,
+                                    status = ApprovalStatus.Pending,
+                                };
+
+                                Notification _forwardNotifications = new Notification
+                                {
+                                    epf = Convert.ToInt32(item.approverId.epf),
+                                    target = request.epf,
+                                    description = "has send a leave request",
+                                    createdDate = DateTime.Now,
+                                    markAsRead = false,
+                                    type = 0,
+                                    reference = _leaveRequest.leaveRequestId.ToString()
+                                };
+                            }
+                        }
+                        
 
                         _context.Notification.Add(notifications);
                         _context.LeaveApproval.Add(_approval);
