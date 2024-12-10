@@ -45,10 +45,13 @@ namespace PayrollAPI.Repository.HRM
             Employee emp = _context.Employee.Include(x=>x.empGrade)
                 .Where(x => x.epf == epf).FirstOrDefault();
 
+            string allowGrades = emp.empGrade.gradeCode.Substring(0, 1);
+
               var list = _context.Employee
                         .Include(x => x.empGrade)
                         .Where(x => x.empGrade.id <= emp.empGrade.id && x.costCenter == emp.costCenter &&
                         x.epf != emp.epf)
+                        .OrderByDescending(x=>x.empGrade.gradeCode)
                         .AsEnumerable();
 
             return(list);
