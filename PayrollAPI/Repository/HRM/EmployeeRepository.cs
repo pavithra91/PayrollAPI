@@ -2,6 +2,7 @@
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces.HRM;
 using PayrollAPI.Models.HRM;
+using PayrollAPI.Services;
 
 namespace PayrollAPI.Repository.HRM
 {
@@ -42,48 +43,28 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<IEnumerable<Employee>> GetEmployeesByGrade(string epf)
         {
-            Employee emp = _context.Employee.Include(x=>x.empGrade)
+            Employee emp = _context.Employee.Include(x => x.empGrade)
                 .Where(x => x.epf == epf).FirstOrDefault();
 
-            string allowGrades = emp.empGrade.gradeCode.Substring(0, 1);
+            var eligibleGrades = GradeHelper.GetEligibleGrades(emp.empGrade.gradeCode);
 
-              var list = _context.Employee
-                        .Include(x => x.empGrade)
-                        .Where(x => x.empGrade.id <= emp.empGrade.id && x.costCenter == emp.costCenter &&
-                        x.epf != emp.epf)
-                        .OrderByDescending(x=>x.empGrade.gradeCode)
-                        .AsEnumerable();
+            List<Employee> result = null;
 
-            return(list);
+            // Start by querying with the initial eligible grades
+            result = QueryEmployeesByGrades(eligibleGrades, emp);
 
-            //return await Task.FromResult(_context.Employee
-            //    .Include(x=>x.empGrade).OrderByDescending(x=>x.id)
-            //    .Where(x => x.empGrade.gradeCode
-            //    .StartsWith(emp.empGrade.gradeCode.Substring(0, 1)) && x.costCenter == emp.costCenter)
-            //    .AsEnumerable());
+            // If no employees were found, try expanding the eligible grades and query again
+            if (result == null || !result.Any())
+            {
+                var expandedGrades = new List<string>(eligibleGrades);
+                ExpandEligibleGrades(ref expandedGrades, emp);
 
+                // Query again with the expanded grades
+                result = QueryEmployeesByGrades(expandedGrades, emp);
+            }
 
-            //if (options=="gteq")
-            //{            
-            //    return await Task.FromResult(_context.Employee
-            //            .Include(x => x.empGrade)
-            //            .Where(x => x.empGrade.id >= empgrade.id && x.costCenter == costCenter)
-            //            .AsEnumerable());
-            //}
-            //else if(options=="lteq")
-            //{
-            //    return await Task.FromResult(_context.Employee
-            //            .Include(x => x.empGrade)
-            //            .Where(x => x.empGrade.id <= empgrade.id && x.costCenter == costCenter)
-            //            .AsEnumerable());
-            //}
-            //else
-            //{
-            //    return await Task.FromResult(_context.Employee
-            //            .Include(x => x.empGrade)
-            //            .Where(x => x.empGrade.gradeCode == grade && x.costCenter == costCenter)
-            //            .AsEnumerable());
-            //}
+            return result;
+            
         }
 
 
@@ -182,6 +163,67 @@ namespace PayrollAPI.Repository.HRM
             return await Task.FromResult(_context.AdvancePayment.Where(x => x.period == period && x.status == ApprovalStatus.Pending)
                 .Include(x=>x.employee)
                 .AsEnumerable());
+        }
+
+
+        private List<Employee> QueryEmployeesByGrades(List<string> eligibleGrades, Employee emp)
+        {
+            return _context.Employee
+                .Include(x => x.empGrade)
+                .Where(x => eligibleGrades.Contains(x.empGrade.gradeCode))  // Filter by eligible grades
+                .Where(x => x.costCenter == emp.costCenter && x.epf != emp.epf) // Same cost center and exclude current employee
+                                                                                //.OrderBy(x => GradeHelper.GetGradeValue(x.empGrade.gradeCode)) // Order by grade (ascending)
+                .ToList(); // Fetch the data into memory
+        }
+
+        // Helper method to expand eligible grades when no employees are found
+        private void ExpandEligibleGrades(ref List<string> eligibleGrades, Employee emp)
+        {
+            // Check if there are any employees left. If not, keep expanding to include lower grades
+            var lastGradeValue = GradeHelper.GetGradeValue(eligibleGrades.Last());
+
+            // Continue expanding until we find employees
+            while (eligibleGrades.Any() && !HasEmployeesForGrades(eligibleGrades, emp))
+            {
+                var nextLowerGrade = GetNextLowerGrade(eligibleGrades.Last());
+                if (nextLowerGrade != null)
+                {
+                    eligibleGrades.Add(nextLowerGrade);
+                }
+                else
+                {
+                    break; // Exit if there are no more grades to add
+                }
+            }
+        }
+
+        // Helper method to check if there are any employees for a given set of grades
+        private bool HasEmployeesForGrades(List<string> eligibleGrades, Employee emp)
+        {
+            var employees = _context.Employee
+                .Where(x => x.epf != emp.epf)
+                .Where(x => eligibleGrades.Contains(x.empGrade.gradeCode))
+                .Any(); // Check if any employee exists for these grades
+            return employees;
+        }
+
+        // Helper method to get the next lower grade for the given grade
+        private string GetNextLowerGrade(string currentGrade)
+        {
+            // Define the grade order
+            var gradeOrder = new List<string>
+        {
+            "A1", "A2", "A3", "A4", "A5", "A6", "A7", "B1", "B2", "B3", "B4", "C1", "C2", "C3", "C4"
+        };
+
+            // Find the index of the current grade
+            int currentIndex = gradeOrder.IndexOf(currentGrade);
+            if (currentIndex < gradeOrder.Count - 1)
+            {
+                return gradeOrder[currentIndex + 1]; // Return the next lower grade
+            }
+
+            return null; // If there are no lower grades, return null
         }
     }
 }

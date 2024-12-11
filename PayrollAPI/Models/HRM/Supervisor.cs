@@ -16,6 +16,8 @@ namespace PayrollAPI.Models.HRM
 
         public bool isActive { get; set; }
         public bool isManager { get; set; }
+        public bool? isTempSupervisor { get; set; }
+        public DateTime? expireDate { get; set; }
 
         // Logs
         [Column(TypeName = "varchar(10)")]

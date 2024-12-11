@@ -293,41 +293,55 @@ namespace PayrollAPI.Repository.HRM
 
                         if("Level " + empApproval.approvalWorkflowsId.Count == item.approvalLevels.levelName)
                         {
-                            LeaveRequest? leaveRequest = _context.LeaveRequest
+                            LeaveRequest? _managerLeave = _context.LeaveRequest
                                 .Where(x=>x.epf == Convert.ToInt32(item.approverId.epf) && 
                                 x.startDate <= DateTime.Now && x.endDate >= DateTime.Now)
                                 .FirstOrDefault();
 
-                            if(leaveRequest!= null)
+                            if(_managerLeave != null)
                             {
-                                var _supervisor = _context.Supervisor.Where(x => x.epf.epf == leaveRequest.actingDelegate).FirstOrDefault();
-
+                                var _supervisor = _context.Supervisor.Where(x => x.epf.epf == _managerLeave.actingDelegate).FirstOrDefault();
+                                var _empSupervisor = _context.Employee.Where(x => x.epf == _managerLeave.actingDelegate).FirstOrDefault();
                                 if (_supervisor == null) 
                                 {
-                                    Supervisor supervisor = new Supervisor
+                                    Supervisor tempSupervisor = new Supervisor
                                     {
-                                        
+                                        isActive = true,
+                                        isTempSupervisor = true,
+                                        epf = _empSupervisor,
+                                        createdBy = "System",
+                                        createdDate= DateTime.Now,
+                                        createdTime = DateTime.Now,
+                                        expireDate = _managerLeave.endDate,
+                                        isManager = true,
+                                        userId = _managerLeave.epf.ToString()
+                                    };
+
+                                    _context.Supervisor.Add(tempSupervisor);
+                                    await _context.SaveChangesAsync();
+                                }
+                                else
+                                {
+                                    LeaveApproval _forwardApproval = new LeaveApproval
+                                    {
+                                        requestId = _leaveRequest,
+                                        epf = request.epf,
+                                        approver_id = _supervisor,
+                                        level = item.approvalLevels,
+                                        status = ApprovalStatus.Pending,
+                                    };
+
+                                    Notification _forwardNotifications = new Notification
+                                    {
+                                        epf = Convert.ToInt32(item.approverId.epf),
+                                        target = request.epf,
+                                        description = "has send a leave request",
+                                        createdDate = DateTime.Now,
+                                        markAsRead = false,
+                                        type = 0,
+                                        reference = _leaveRequest.leaveRequestId.ToString()
                                     };
                                 }
-                                LeaveApproval _forwardApproval = new LeaveApproval
-                                {
-                                    requestId = _leaveRequest,
-                                    epf = request.epf,
-                                    approver_id = _supervisor,
-                                    level = item.approvalLevels,
-                                    status = ApprovalStatus.Pending,
-                                };
-
-                                Notification _forwardNotifications = new Notification
-                                {
-                                    epf = Convert.ToInt32(item.approverId.epf),
-                                    target = request.epf,
-                                    description = "has send a leave request",
-                                    createdDate = DateTime.Now,
-                                    markAsRead = false,
-                                    type = 0,
-                                    reference = _leaveRequest.leaveRequestId.ToString()
-                                };
                             }
                         }
                         
