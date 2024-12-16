@@ -30,6 +30,8 @@ namespace PayrollAPI.Interfaces.HRM
 
         Task<IEnumerable<LeaveApproval?>> GetLeaveApproval(int id);
         Task<IEnumerable<LeaveApproval?>> GetLeaveApprovals(int id);
+
+        Task<bool> ClearTempApprovals();
         Task<LeaveRequest?> GetLeaveRequest(int id);
 
         Task<IEnumerable<LeaveRequest>> GetLeaveRequestHistory(int epf);

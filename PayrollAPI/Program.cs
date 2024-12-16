@@ -151,6 +151,7 @@ try
 
     // Register the job class with DI
     builder.Services.AddScoped<BackgroudJob>();
+    builder.Services.AddScoped<TempApprovalRemoveJob>();
     builder.Services.AddScoped<IJobSchedule, JobScheduleRepository>();
 
 

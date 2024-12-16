@@ -15,6 +15,7 @@ using PdfSharp.Drawing.Layout;
 using PayrollAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
+using LinqToDB.Tools;
 
 namespace PayrollAPI.Repository
 {
@@ -165,10 +166,11 @@ namespace PayrollAPI.Repository
                     foreach (Employee_Data emp in _emp)
                     {
                         ICollection<Payroll_Data> _empPayrollData = _payrollData.Where(o => o.epf == emp.epf).OrderBy(o => o.payCode).ToList();
+                        var _lumpsumPayCodes = _context.Sys_Properties.Where(o => o.variable_name == "Lump_Sum_PayCode").Select(s => Convert.ToInt32(s.variable_value)).ToList();
 
                         decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
                         decimal _epfTot = _empPayrollData.Where(o => o.epfConRate > 0).Sum(w => w.epfContribution);
-                        decimal _taxTot = Math.Floor(_empPayrollData.Where(o => o.taxConRate > 0 && o.paytype != 'A').Sum(w => w.taxContribution));
+                        decimal _taxTot = Math.Floor(_empPayrollData.Where(o => o.taxConRate > 0 && o.paytype != 'A' && !_lumpsumPayCodes.Contains(o.payCode)).Sum(w => w.taxContribution));
 
                         Payroll_Data _tempEPFTOT = new Payroll_Data();
                         _tempEPFTOT.companyCode = emp.companyCode;

@@ -107,5 +107,32 @@ namespace PayrollAPI.Services
                 return false;
             }
         }
+
+        public async Task<bool> SendEmail(IEnumerable<Sys_Properties> email_configurations, string msg)
+        {
+            try
+            {
+                var message = new MailMessage();
+                message.From = new MailAddress(email_configurations.Where(o => o.variable_name == "Email_From").FirstOrDefault().variable_value);
+                message.To.Add(email_configurations.Where(o => o.variable_name == "Email_To").FirstOrDefault().variable_value);
+                message.Subject = email_configurations.Where(o => o.variable_name == "Email_Subject").FirstOrDefault().variable_value;
+                message.Body = msg;
+
+                var smtpClient = new SmtpClient("smtp.office365.com");
+                smtpClient.Port = 587;
+                smtpClient.Credentials = new NetworkCredential(email_configurations.Where(o => o.variable_name == "Email_From").FirstOrDefault().variable_value, email_configurations.Where(o => o.variable_name == "Email_Password").FirstOrDefault().variable_value);
+                smtpClient.EnableSsl = true;
+
+                await smtpClient.SendMailAsync(message);
+
+                Thread.Sleep(200);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

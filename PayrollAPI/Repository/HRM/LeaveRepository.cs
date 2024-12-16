@@ -130,48 +130,55 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<bool> AssignSupervisor(string epf, int approvalLevel, List<int> approverNames, string updateBy)
         {
-            var _empApprovals = _context.EmpApprovals
-                .Include(x=>x.employee.epf)
-                .Include(x=> x.approvalWorkflowsId)
-                .Where(x => x.employee.epf == epf)
-                .FirstOrDefault();
-            if (_empApprovals != null)
+            try
             {
-                _empApprovals.level = approvalLevel;
-                _empApprovals.lastUpdateBy = updateBy;
-                _empApprovals.lastUpdateDate = DateTime.Now.Date;
-                _empApprovals.lastUpdateTime = DateTime.Now;
-
-                var relatedWorkflows = _context.EmpApprovalWorkflow
-                .Where(w => w.empApprovalId.id == _empApprovals.id);
-
-                _context.EmpApprovalWorkflow.RemoveRange(relatedWorkflows);
-
-                var supervisors = _context.Supervisor.ToList();
-                var levels = _context.WorkflowTypes.ToList();
-                int count = 1;
-
-                foreach (var workflow in approverNames)
+                var _empApprovals = _context.EmpApprovals
+                    .Include(x => x.employee)
+                    .Include(x => x.approvalWorkflowsId)
+                    .Where(x => x.employee.epf == epf)
+                    .FirstOrDefault();
+                if (_empApprovals != null)
                 {
-                    EmpApprovalWorkflow empApprovalWorkflow = new EmpApprovalWorkflow
+                    _empApprovals.level = approvalLevel;
+                    _empApprovals.lastUpdateBy = updateBy;
+                    _empApprovals.lastUpdateDate = DateTime.Now.Date;
+                    _empApprovals.lastUpdateTime = DateTime.Now;
+
+                    var relatedWorkflows = _context.EmpApprovalWorkflow
+                    .Where(w => w.empApprovalId.id == _empApprovals.id);
+
+                    _context.EmpApprovalWorkflow.RemoveRange(relatedWorkflows);
+
+                    var supervisors = _context.Supervisor.ToList();
+                    var levels = _context.WorkflowTypes.ToList();
+                    int count = 1;
+
+                    foreach (var workflow in approverNames)
                     {
-                        empApprovalId = _empApprovals,
-                        approvalLevels = levels.Find(x => x.id == count),
-                        approverId = supervisors.Find(x => x.id == workflow)
-                    };
+                        EmpApprovalWorkflow empApprovalWorkflow = new EmpApprovalWorkflow
+                        {
+                            empApprovalId = _empApprovals,
+                            approvalLevels = levels.Find(x => x.id == count),
+                            approverId = supervisors.Find(x => x.id == workflow)
+                        };
 
-                    _context.EmpApprovalWorkflow.Add(empApprovalWorkflow);
-                    count++;
+                        _context.EmpApprovalWorkflow.Add(empApprovalWorkflow);
+                        count++;
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    return await Task.FromResult(true);
                 }
-
-                await _context.SaveChangesAsync();
-
-                return await Task.FromResult(true);
+                else
+                {
+                    return await Task.FromResult(false);
+                }
             }
-            else
+            catch(Exception ex)
             {
                 return await Task.FromResult(false);
-            }            
+            }
         }
 
         //public async Task<bool> CheckLeaveBalance(RequestLeaveRequest request)
@@ -215,6 +222,7 @@ namespace PayrollAPI.Repository.HRM
                     _leaveRequest.endDate = request.endDate;
                     _leaveRequest.isHalfDay = request.isHalfDay;
                     _leaveRequest.noOfDays = request.noOfDays;
+
                     if (request.isHalfDay)
                     {
                         _leaveRequest.halfDayType = request.halfDayType == "1" ? 
@@ -244,13 +252,25 @@ namespace PayrollAPI.Repository.HRM
 
                     await _context.SaveChangesAsync();
 
+                    Employee emp = _context.Employee.Where(x => x.epf == request.epf).FirstOrDefault();
+
                     var empApproval = _context.EmpApprovals
                         .Include(e=>e.employee)
-                        //.Where(x => x.employee.epf == request.epf)
+                        .Where(x => x.employee == emp)
                        .Include(e => e.approvalWorkflowsId)
                        .ThenInclude(w => w.approvalLevels)
                        .Include(e => e.approvalWorkflowsId)
-                       .ThenInclude(w => w.approverId).FirstOrDefault();
+                       .ThenInclude(w => w.approverId)
+                       .ThenInclude(w=>w.epf).FirstOrDefault();
+
+                    var query = _context.EmpApprovals
+                        .Include(e => e.employee)
+                        .Where(x => x.employee == emp)
+                       .Include(e => e.approvalWorkflowsId)
+                       .ThenInclude(w => w.approvalLevels)
+                       .Include(e => e.approvalWorkflowsId)
+                       .ThenInclude(w => w.approverId)
+                       .ThenInclude(w => w.epf).ToQueryString();
 
                     if (request.actDelegate != "None")
                     {
@@ -270,45 +290,28 @@ namespace PayrollAPI.Repository.HRM
 
                     foreach (var item in empApproval.approvalWorkflowsId)
                     {
-                        LeaveApproval _approval = new LeaveApproval
-                        {
-                            requestId = _leaveRequest,
-                            epf = request.epf,
-                            approver_id = item.approverId,
-                            level = item.approvalLevels,
-                            status = ApprovalStatus.Pending,
-                        };
-
-                        Notification notifications = new Notification
-                        {
-                            epf = Convert.ToInt32(item.approverId.epf),
-                            target = request.epf,
-                            description = "has send a leave request",
-                            createdDate = DateTime.Now,
-                            markAsRead = false,
-                            type = 0,
-                            reference = _leaveRequest.leaveRequestId.ToString()
-                        };
-
+                        var x = item.approvalLevels.levelName;
+                        var y = item.approverId.epf;
+                        var z = item.empApprovalId.level;
 
                         if("Level " + empApproval.approvalWorkflowsId.Count == item.approvalLevels.levelName)
                         {
                             LeaveRequest? _managerLeave = _context.LeaveRequest
-                                .Where(x=>x.epf == Convert.ToInt32(item.approverId.epf) && 
-                                x.startDate <= DateTime.Now && x.endDate >= DateTime.Now)
+                                .Where(x=>x.epf == Convert.ToInt32(item.approverId.epf.epf) && 
+                                x.startDate.Date <= DateTime.Today && x.endDate.Date >= DateTime.Today)
                                 .FirstOrDefault();
 
-                            if(_managerLeave != null)
+                            if (_managerLeave != null)
                             {
-                                var _supervisor = _context.Supervisor.Where(x => x.epf.epf == _managerLeave.actingDelegate).FirstOrDefault();
-                                var _empSupervisor = _context.Employee.Where(x => x.epf == _managerLeave.actingDelegate).FirstOrDefault();
+                                var _employee = _context.Employee.Where(x => x.epf == _managerLeave.actingDelegate).FirstOrDefault();
+                                var _supervisor = _context.Supervisor.Where(x => x.epf == _employee).FirstOrDefault();
                                 if (_supervisor == null) 
                                 {
                                     Supervisor tempSupervisor = new Supervisor
                                     {
                                         isActive = true,
                                         isTempSupervisor = true,
-                                        epf = _empSupervisor,
+                                        epf = _employee,
                                         createdBy = "System",
                                         createdDate= DateTime.Now,
                                         createdTime = DateTime.Now,
@@ -319,35 +322,85 @@ namespace PayrollAPI.Repository.HRM
 
                                     _context.Supervisor.Add(tempSupervisor);
                                     await _context.SaveChangesAsync();
-                                }
-                                else
-                                {
-                                    LeaveApproval _forwardApproval = new LeaveApproval
-                                    {
-                                        requestId = _leaveRequest,
-                                        epf = request.epf,
-                                        approver_id = _supervisor,
-                                        level = item.approvalLevels,
-                                        status = ApprovalStatus.Pending,
-                                    };
 
-                                    Notification _forwardNotifications = new Notification
-                                    {
-                                        epf = Convert.ToInt32(item.approverId.epf),
-                                        target = request.epf,
-                                        description = "has send a leave request",
-                                        createdDate = DateTime.Now,
-                                        markAsRead = false,
-                                        type = 0,
-                                        reference = _leaveRequest.leaveRequestId.ToString()
-                                    };
+                                    _supervisor = tempSupervisor;
                                 }
+
+                                LeaveApproval _forwardApproval = new LeaveApproval
+                                {
+                                    requestId = _leaveRequest,
+                                    epf = request.epf,
+                                    approver_id = _supervisor,
+                                    level = item.approvalLevels,
+                                    tempApproval = true,
+                                    status = ApprovalStatus.Pending,
+                                };
+
+                                Notification _forwardNotifications = new Notification
+                                {
+                                    epf = Convert.ToInt32(_supervisor.epf.epf),
+                                    target = request.epf,
+                                    description = "has send a leave request",
+                                    createdDate = DateTime.Now,
+                                    markAsRead = false,
+                                    type = 0,
+                                    reference = _leaveRequest.leaveRequestId.ToString()
+                                };
+
+                                _context.LeaveApproval.Add(_forwardApproval);
+                                _context.Notification.Add(_forwardNotifications);
+                            }
+                            else
+                            {
+                                LeaveApproval _approval = new LeaveApproval
+                                {
+                                    requestId = _leaveRequest,
+                                    epf = request.epf,
+                                    approver_id = item.approverId,
+                                    level = item.approvalLevels,
+                                    status = ApprovalStatus.Pending,
+                                };
+
+                                Notification notifications = new Notification
+                                {
+                                    epf = Convert.ToInt32(item.approverId.epf.epf),
+                                    target = request.epf,
+                                    description = "has send a leave request",
+                                    createdDate = DateTime.Now,
+                                    markAsRead = false,
+                                    type = 0,
+                                    reference = _leaveRequest.leaveRequestId.ToString()
+                                };
+
+                                _context.Notification.Add(notifications);
+                                _context.LeaveApproval.Add(_approval);
                             }
                         }
-                        
+                        else
+                        {
+                            LeaveApproval _approval = new LeaveApproval
+                            {
+                                requestId = _leaveRequest,
+                                epf = request.epf,
+                                approver_id = item.approverId,
+                                level = item.approvalLevels,
+                                status = ApprovalStatus.Pending,
+                            };
 
-                        _context.Notification.Add(notifications);
-                        _context.LeaveApproval.Add(_approval);
+                            Notification notifications = new Notification
+                            {
+                                epf = Convert.ToInt32(item.approverId.epf.epf),
+                                target = request.epf,
+                                description = "has send a leave request",
+                                createdDate = DateTime.Now,
+                                markAsRead = false,
+                                type = 0,
+                                reference = _leaveRequest.leaveRequestId.ToString()
+                            };
+
+                            _context.Notification.Add(notifications);
+                            _context.LeaveApproval.Add(_approval);
+                        }
                     }
 
                     leaveBalance.remainingLeaves = leaveBalance.remainingLeaves - request.noOfDays;
@@ -455,6 +508,7 @@ namespace PayrollAPI.Repository.HRM
                         description = $"Your leave request has been {finalStatus}.",
                         createdDate = DateTime.Now,
                         markAsRead = false,
+                        status = finalStatus.ToString(),
                         type = 2,
                         reference = request.requestId.ToString(),
                     };
@@ -528,6 +582,46 @@ namespace PayrollAPI.Repository.HRM
                 .Include(x => x.approver_id)
                 .OrderByDescending(x=>x.id)
                 .AsEnumerable());
+        }
+
+        // Backgroud Job
+        public async Task<bool> ClearTempApprovals()
+        {
+            try
+            {
+                var leaveApprovals = _context.LeaveApproval.Where(x => x.tempApproval == true && x.status == ApprovalStatus.Pending)
+                    .Include(x => x.requestId)
+                    .Include(x => x.approver_id)
+                    .ToList();
+
+                if(leaveApprovals.Count == 0)
+                {
+                    return await Task.FromResult(true);
+                }
+
+                foreach (var item in leaveApprovals)
+                {
+                    if (item.approver_id.expireDate == DateTime.Today)
+                    {
+                        if (item.approver_id.isTempSupervisor == true)
+                        {
+                            _context.Supervisor.Remove(item.approver_id);
+                        }
+
+                        var _notification = _context.Notification.Where(x => x.reference == item.requestId.leaveRequestId.ToString() && x.epf == Convert.ToInt32(item.approver_id.epf.epf))
+                            .FirstOrDefault();
+                        _context.Notification.Remove(_notification);
+                        _context.LeaveApproval.Remove(item);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                return await Task.FromResult(true);
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(false);
+            }
         }
 
         public async Task<LeaveRequest?> GetLeaveRequest(int id)

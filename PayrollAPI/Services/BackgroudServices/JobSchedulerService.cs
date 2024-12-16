@@ -15,11 +15,30 @@ namespace PayrollAPI.Services.BackgroudServices
             var scheduler = await _schedulerFactory.GetScheduler();
 
             // Create the job and trigger using the cron expression
-            var job = JobBuilder.Create<BackgroudJob>()
-            .WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
-                .Build();
+            IJobDetail? job = null;
+            switch (jobSchedule.groupName?.ToLower())
+            {
+                case "advancepaymentjob":
+                    job = JobBuilder.Create<BackgroudJob>()
+                        .WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
+                        .Build();
+                    break;
+
+                case "tempremovejob":
+                    job = JobBuilder.Create<TempApprovalRemoveJob>()
+                        .WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
+                        .Build();
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unknown job type: {jobSchedule.jobName}");
+            }
+
+            //var job = JobBuilder.Create<BackgroudJob>()
+            //.WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
+            //    .Build();
             var trigger = TriggerBuilder.Create()
-                .WithIdentity("MyJobTrigger", jobSchedule.groupName)
+                .WithIdentity($"JobTrigger-{jobSchedule.jobName}", jobSchedule.groupName)
                 .WithCronSchedule(jobSchedule.cronExpression)  // Set cron expression
                 .Build();
 

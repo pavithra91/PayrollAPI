@@ -21,6 +21,7 @@ namespace PayrollAPI.Models.HRM
 
         [Column(TypeName = "varchar(100)")]
         public string? comments { get; set; }
+        public bool tempApproval { get; set; }
 
 
         // Logs
