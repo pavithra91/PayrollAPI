@@ -10,4 +10,9 @@ namespace Leave.Contracts.Response
     {
         public IEnumerable<AdvancePaymentResponse> Items { get; init; } = Enumerable.Empty<AdvancePaymentResponse>();
     }
+
+    public class AdvancePaymentsDisplayResponse
+    {
+        public IEnumerable<AdvancePaymentDisplayResponse> Items { get; init; } = Enumerable.Empty<AdvancePaymentDisplayResponse>();
+    }
 }

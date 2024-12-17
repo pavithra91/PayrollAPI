@@ -181,6 +181,24 @@ namespace PayrollAPI.Repository.HRM
                 .AsEnumerable());
         }
 
+        public async Task<bool> DeleteAdvancePayment(int id)
+        {
+            var existingRequest = await _context.AdvancePayment.FindAsync(id);
+
+            if (existingRequest is null)
+            {
+                return await Task.FromResult(false);
+            }
+            else
+            {
+                existingRequest.status = ApprovalStatus.Cancelled;
+
+                await _context.SaveChangesAsync();
+
+                return await Task.FromResult(true);
+            }
+        }
+
 
         private List<Employee> QueryEmployeesByGrades(List<string> eligibleGrades, Employee emp)
         {

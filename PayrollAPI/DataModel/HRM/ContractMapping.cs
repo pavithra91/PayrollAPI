@@ -267,6 +267,29 @@ namespace PayrollAPI.DataModel.HRM
         }
 
 
+        public static AdvancePaymentDisplayResponse MapToResponse(this AdvancePayment advancePayment)
+        {
+            return new AdvancePaymentDisplayResponse
+            {
+                id = advancePayment.id,
+                epf = advancePayment.employee.epf,
+                empName = advancePayment.employee.empName,
+                amount = advancePayment.amount,
+                isFullAmount = advancePayment.isFullAmount,
+                period = advancePayment.period,
+                status = advancePayment.status.ToString(),
+                createdBy = advancePayment.createdBy,
+            };
+        }
+
+        public static AdvancePaymentsDisplayResponse MapToResponse(this IEnumerable<AdvancePayment> advancePayments)
+        {
+            return new AdvancePaymentsDisplayResponse
+            {
+                Items = advancePayments.Select(MapToResponse)
+            };
+        }
+
         #region Employee
         public static EmployeeResponse MapToResponse(this Employee employee)
         {

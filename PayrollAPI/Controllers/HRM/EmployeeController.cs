@@ -1,6 +1,7 @@
 ﻿using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Asn1.Ocsp;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.HRM;
 
@@ -131,14 +132,24 @@ namespace PayrollAPI.Controllers.HRM
             }
         }
 
-        //[HttpGet("get-my-advancePayments/{epf}")]
-        //[ProducesResponseType(typeof(IEnumerable<SupervisorResponse>), StatusCodes.Status200OK)]
-        //public async Task<IActionResult> GetMyAdvancePayment([FromRoute] string epf)
-        //{
-        //    var result = await _employee.GetMyAdvancePayment(epf);
+        [HttpGet("get-my-advancePayments/{epf}")]
+        [ProducesResponseType(typeof(IEnumerable<SupervisorResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetMyAdvancePayment([FromRoute] string epf)
+        {
+            var result = await _employee.GetMyAdvancePayment(epf);
+            return Ok(result.MapToResponse());
+        }
 
-        //    var _supervisorResponse = result.MapToResponse();
-        //    return Ok(_supervisorResponse);
-        //}
+        [HttpPut("delete-advancePayment/{id:int}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            var deleted = await _employee.DeleteAdvancePayment(id);
+
+            if (!deleted)
+            {
+                return NotFound();
+            }
+            return Ok();
+        }
     }
 }
