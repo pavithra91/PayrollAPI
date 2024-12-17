@@ -67,6 +67,14 @@ namespace PayrollAPI.Repository.HRM
             
         }
 
+        public async Task<IEnumerable<Supervisor>> GetAllSupervisors(string costCenter)
+        {
+            return await Task.FromResult(_context.Supervisor
+                .Include(x => x.epf)
+                .Include(x => x.epf.empGrade)
+                .Where(x => x.epf.costCenter == costCenter && x.isActive == true)
+                .AsEnumerable());
+        }
 
         public async Task<Supervisor?> GetSupervisor(int id)
         {
@@ -156,6 +164,14 @@ namespace PayrollAPI.Repository.HRM
             {
                 return await Task.FromResult(false);
             }
+        }
+
+        public async Task<IEnumerable<AdvancePayment>> GetMyAdvancePayment(string epf)
+        {
+            return await Task.FromResult(_context.AdvancePayment.Where(x => x.employee.epf == epf)
+                .Include(x => x.employee)
+                .OrderByDescending(x=>x.createdDate)
+                .AsEnumerable());
         }
 
         public async Task<IEnumerable<AdvancePayment>> GetAdvancePayment(int period)

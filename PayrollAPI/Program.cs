@@ -73,12 +73,16 @@ try
         var host = connectionStringParts["host"];
         var port = int.Parse(connectionStringParts["port"]);
         var dbClusterIdentifier = connectionStringParts["dbClusterIdentifier"];
+        var hrmdb = "hrmdb";//connectionStringParts["dbClusterIdentifier"];
 
-        var connectionStringTemplate = $"Server={host};Port={port};Database={dbClusterIdentifier};Uid={username};Pwd={password};";
-
+        var payrollConnectionStringTemplate = $"Server={host};Port={port};Database={dbClusterIdentifier};Uid={username};Pwd={password};";
+        var hrmdbConnectionStringTemplate = $"Server={host};Port={port};Database={hrmdb};Uid={username};Pwd={password};";
 
         builder.Services.AddDbContext<PayrollAPI.Data.DBConnect>(options =>
-        options.UseMySQL(connectionStringTemplate));
+        options.UseMySQL(payrollConnectionStringTemplate));
+
+        builder.Services.AddDbContext<PayrollAPI.Data.HRMDBConnect>(options =>
+        options.UseMySQL(hrmdbConnectionStringTemplate));
     }
     else
     {

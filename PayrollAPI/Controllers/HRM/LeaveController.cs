@@ -87,6 +87,8 @@ namespace PayrollAPI.Controllers.HRM
             return Ok(_supervisorResponse);
         }
 
+
+
         [HttpGet("get-supervisor/{id:int}")]
         [ProducesResponseType(typeof(SupervisorResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

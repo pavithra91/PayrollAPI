@@ -62,6 +62,16 @@ namespace PayrollAPI.Controllers.HRM
 
         }
 
+        [HttpGet("get-all-supervisors/{costcenter}")]
+        [ProducesResponseType(typeof(IEnumerable<SupervisorResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllSupervisors([FromRoute] string costcenter)
+        {
+            var result = await _employee.GetAllSupervisors(costcenter);
+
+            var _supervisorResponse = result.MapToResponse();
+            return Ok(_supervisorResponse);
+        }
+
         [HttpGet("get-supervisor/{id:int}")]
         [ProducesResponseType(typeof(SupervisorResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -120,5 +130,15 @@ namespace PayrollAPI.Controllers.HRM
                 return BadRequest("Advance Payment Request already send for processing");
             }
         }
+
+        //[HttpGet("get-my-advancePayments/{epf}")]
+        //[ProducesResponseType(typeof(IEnumerable<SupervisorResponse>), StatusCodes.Status200OK)]
+        //public async Task<IActionResult> GetMyAdvancePayment([FromRoute] string epf)
+        //{
+        //    var result = await _employee.GetMyAdvancePayment(epf);
+
+        //    var _supervisorResponse = result.MapToResponse();
+        //    return Ok(_supervisorResponse);
+        //}
     }
 }
