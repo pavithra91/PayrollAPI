@@ -151,5 +151,13 @@ namespace PayrollAPI.Controllers.HRM
             }
             return Ok();
         }
+
+        [HttpGet("get-all-advancePayments/{period}")]
+        [ProducesResponseType(typeof(IEnumerable<SupervisorResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllAdvancePayment([FromRoute]int period)
+        {
+            var result = await _employee.GetAdvancePayment(period);
+            return Ok(result.MapToResponse());
+        }
     }
 }
