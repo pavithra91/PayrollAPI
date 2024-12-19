@@ -6,12 +6,14 @@ using Microsoft.EntityFrameworkCore.Storage;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces.HRM;
 using PayrollAPI.Models.HRM;
+using PayrollAPI.Services;
 
 namespace PayrollAPI.Repository.HRM
 {
     public class LeaveRepository : ILeave
     {
         private readonly HRMDBConnect _context;
+        Common com = new Common();
         public LeaveRepository(HRMDBConnect db)
         {
             _context = db;
@@ -141,8 +143,8 @@ namespace PayrollAPI.Repository.HRM
                 {
                     _empApprovals.level = approvalLevel;
                     _empApprovals.lastUpdateBy = updateBy;
-                    _empApprovals.lastUpdateDate = DateTime.Now.Date;
-                    _empApprovals.lastUpdateTime = DateTime.Now;
+                    _empApprovals.lastUpdateDate = com.GetTimeZone().Date;
+                    _empApprovals.lastUpdateTime = com.GetTimeZone();
 
                     var relatedWorkflows = _context.EmpApprovalWorkflow
                     .Where(w => w.empApprovalId.id == _empApprovals.id);
@@ -279,7 +281,7 @@ namespace PayrollAPI.Repository.HRM
                             epf = Convert.ToInt32(_leaveRequest.actingDelegate),
                             target = request.epf,
                             description = "has request you to become an acting Delegate",
-                            createdDate = DateTime.Now,
+                            createdDate = com.GetTimeZone(),
                             markAsRead = false,
                             type = 0,
                             reference = _leaveRequest.leaveRequestId.ToString()
@@ -313,8 +315,8 @@ namespace PayrollAPI.Repository.HRM
                                         isTempSupervisor = true,
                                         epf = _employee,
                                         createdBy = "System",
-                                        createdDate= DateTime.Now,
-                                        createdTime = DateTime.Now,
+                                        createdDate= com.GetTimeZone(),
+                                        createdTime = com.GetTimeZone(),
                                         expireDate = _managerLeave.endDate,
                                         isManager = true,
                                         userId = _managerLeave.epf.ToString()
@@ -341,7 +343,7 @@ namespace PayrollAPI.Repository.HRM
                                     epf = Convert.ToInt32(_supervisor.epf.epf),
                                     target = request.epf,
                                     description = "has send a leave request",
-                                    createdDate = DateTime.Now,
+                                    createdDate = com.GetTimeZone(),
                                     markAsRead = false,
                                     type = 0,
                                     reference = _leaveRequest.leaveRequestId.ToString()
@@ -366,7 +368,7 @@ namespace PayrollAPI.Repository.HRM
                                     epf = Convert.ToInt32(item.approverId.epf.epf),
                                     target = request.epf,
                                     description = "has send a leave request",
-                                    createdDate = DateTime.Now,
+                                    createdDate = com.GetTimeZone(),
                                     markAsRead = false,
                                     type = 0,
                                     reference = _leaveRequest.leaveRequestId.ToString()
@@ -392,7 +394,7 @@ namespace PayrollAPI.Repository.HRM
                                 epf = Convert.ToInt32(item.approverId.epf.epf),
                                 target = request.epf,
                                 description = "has send a leave request",
-                                createdDate = DateTime.Now,
+                                createdDate = com.GetTimeZone(),
                                 markAsRead = false,
                                 type = 0,
                                 reference = _leaveRequest.leaveRequestId.ToString()
@@ -436,8 +438,8 @@ namespace PayrollAPI.Repository.HRM
             if (request.isDelegate && request.status == "Approved") 
             {
                 leaveRequest.actingDelegateApprovalStatus = ApprovalStatus.Approved;
-                leaveRequest.actingDelegateApprovedDate = DateTime.Now.Date;
-                leaveRequest.actingDelegateApprovedTime = DateTime.Now;
+                leaveRequest.actingDelegateApprovedDate = com.GetTimeZone().Date;
+                leaveRequest.actingDelegateApprovedTime = com.GetTimeZone();
  
                 notification.markAsRead = true;
 
@@ -448,8 +450,8 @@ namespace PayrollAPI.Repository.HRM
             else  if(request.isDelegate && request.status == "Rejected")
             {
                 leaveRequest.actingDelegateApprovalStatus = ApprovalStatus.Rejected;
-                leaveRequest.actingDelegateApprovedDate = DateTime.Now.Date;
-                leaveRequest.actingDelegateApprovedTime = DateTime.Now;
+                leaveRequest.actingDelegateApprovedDate = com.GetTimeZone().Date;
+                leaveRequest.actingDelegateApprovedTime = com.GetTimeZone();
 
                 notification.markAsRead = true;
 
@@ -491,8 +493,8 @@ namespace PayrollAPI.Repository.HRM
 
                 leaveApproval.comments = request.comment;
                 leaveApproval.lastUpdateBy = request.approver;
-                leaveApproval.lastUpdateDate = DateTime.Now.Date;
-                leaveApproval.lastUpdateTime = DateTime.Now.TimeOfDay;
+                leaveApproval.lastUpdateDate = com.GetTimeZone().Date;
+                leaveApproval.lastUpdateTime = com.GetTimeZone().TimeOfDay;
 
                 leaveRequest.currentLevel = leaveApproval.level.id;
 
@@ -506,7 +508,7 @@ namespace PayrollAPI.Repository.HRM
                     {
                         epf = leaveRequest.epf,                        
                         description = $"Your leave request has been {finalStatus}.",
-                        createdDate = DateTime.Now,
+                        createdDate = com.GetTimeZone(),
                         markAsRead = false,
                         status = finalStatus.ToString(),
                         type = 2,
@@ -517,8 +519,8 @@ namespace PayrollAPI.Repository.HRM
                 }
 
                 leaveRequest.lastUpdateBy = request.approver;
-                leaveRequest.lastUpdateDate = DateTime.Now.Date;
-                leaveRequest.lastUpdateTime = DateTime.Now;
+                leaveRequest.lastUpdateDate = com.GetTimeZone().Date;
+                leaveRequest.lastUpdateTime = com.GetTimeZone();
 
                 notification.markAsRead = true;
 
@@ -545,15 +547,15 @@ namespace PayrollAPI.Repository.HRM
             {
                 leaveApproval.status = ApprovalStatus.Cancelled;
                 leaveApproval.lastUpdateBy = request.cancelBy;
-                leaveApproval.lastUpdateDate = DateTime.Now.Date;
-                leaveApproval.lastUpdateTime = DateTime.Now.TimeOfDay;
+                leaveApproval.lastUpdateDate = com.GetTimeZone().Date;
+                leaveApproval.lastUpdateTime = com.GetTimeZone().TimeOfDay;
             }
 
             leaveRequest.requestStatus = ApprovalStatus.Cancelled;
             leaveRequest.finalStatus = FinalStatus.Cancelled;
             leaveRequest.lastUpdateBy = request.cancelBy;
-            leaveRequest.lastUpdateDate = DateTime.Now.Date;
-            leaveRequest.lastUpdateTime = DateTime.Now;
+            leaveRequest.lastUpdateDate = com.GetTimeZone().Date;
+            leaveRequest.lastUpdateTime = com.GetTimeZone();
 
             LeaveBalance? leaveBalance = _context.LeaveBalance
                         .Include(x => x.leaveType)

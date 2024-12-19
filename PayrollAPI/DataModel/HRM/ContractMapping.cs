@@ -274,6 +274,7 @@ namespace PayrollAPI.DataModel.HRM
                 id = advancePayment.id,
                 epf = advancePayment.employee.epf,
                 empName = advancePayment.employee.empName,
+                costCenter = advancePayment.employee.costCenter,
                 amount = advancePayment.amount,
                 isFullAmount = advancePayment.isFullAmount,
                 period = advancePayment.period,

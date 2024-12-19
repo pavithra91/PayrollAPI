@@ -25,5 +25,16 @@
             // Format the DateTime as "YYYY MMMM"
             return date.ToString("MMM yyyy").ToUpper();
         }
+
+        public DateTime GetTimeZone()
+        {
+            string userTimeZoneId = "Asia/Colombo";
+            TimeZoneInfo userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(userTimeZoneId);
+
+            DateTime utcDate = DateTime.UtcNow;
+            DateTime userLocalDate = TimeZoneInfo.ConvertTimeFromUtc(utcDate, userTimeZone);
+
+            return userLocalDate;
+        }
     }
 }

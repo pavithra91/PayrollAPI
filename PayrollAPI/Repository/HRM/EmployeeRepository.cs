@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Leave.Contracts.Requests;
+using LinqToDB;
+using Microsoft.EntityFrameworkCore;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces.HRM;
+using PayrollAPI.Models;
 using PayrollAPI.Models.HRM;
 using PayrollAPI.Services;
 
@@ -10,10 +13,11 @@ namespace PayrollAPI.Repository.HRM
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly HRMDBConnect _context;
+        Common com = new Common();
         public EmployeeRepository(HRMDBConnect db, IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _context = db;
+            _context = db;           
         }
         public async Task<IEnumerable<Employee>> GetAllEmployees()
         {
@@ -24,10 +28,9 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<IEnumerable<Employee>> GetEmployees()
         {
-            var employeesNotInSupervisors = await _context.Employee
+            var employeesNotInSupervisors = _context.Employee
                 .Where(e => !_context.Supervisor.Any(s => s.epf.epf == e.epf))
-                .Include(e => e.empGrade)
-                .ToListAsync();
+                .Include(e => e.empGrade).ToList();
             return await Task.FromResult(employeesNotInSupervisors);
         }
 
@@ -132,13 +135,13 @@ namespace PayrollAPI.Repository.HRM
                     var _advance_CutoffDate = dbConnect.Sys_Properties.Where(x => x.variable_name == "Advance_Cutoff_Date")
                         .FirstOrDefault();
 
-                    DateTime currentDate = DateTime.Now;
+                    DateTime currentDate = com.GetTimeZone();
                     DateTime firstDayOfMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
 
                     int daysToAdd = Convert.ToInt32(_advance_CutoffDate.variable_value); 
                     DateTime curPeriod = firstDayOfMonth.AddDays(daysToAdd);
 
-                    if(curPeriod < DateTime.Now)
+                    if(curPeriod < com.GetTimeZone())
                     {
                         if(currentDate.Month + 1 > 12)
                         {
@@ -179,6 +182,28 @@ namespace PayrollAPI.Repository.HRM
             return await Task.FromResult(_context.AdvancePayment.Where(x => x.period == period && x.status == ApprovalStatus.Pending)
                 .Include(x=>x.employee)
                 .AsEnumerable());
+        }
+
+        public async Task<bool> ProcessAdvancePayment(AdvancePaymentProcessingRequest processingRequest)
+        {
+            try
+            {
+                bool hasDataToUpdate = _context.AdvancePayment
+                                       .Any(x => x.period == processingRequest.period && x.status == ApprovalStatus.Pending);
+
+                if (!hasDataToUpdate) {
+                    return await Task.FromResult(false);
+                }
+
+                _context.AdvancePayment.Where(x => x.period == processingRequest.period && x.status == ApprovalStatus.Pending)
+                    .UpdateFromQuery(x => new AdvancePayment { status = ApprovalStatus.Approved, lastUpdateBy = processingRequest.RequestBy, lastUpdateDate = com.GetTimeZone(), lastUpdateTime = com.GetTimeZone() });
+                await _context.SaveChangesAsync();
+                return await Task.FromResult(true);
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(false);
+            }
         }
 
         public async Task<bool> DeleteAdvancePayment(int id)

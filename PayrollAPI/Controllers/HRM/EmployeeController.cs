@@ -159,5 +159,20 @@ namespace PayrollAPI.Controllers.HRM
             var result = await _employee.GetAdvancePayment(period);
             return Ok(result.MapToResponse());
         }
+
+        [HttpPost]
+        [Route("process-advancePayment")]
+        public async Task<IActionResult> ProcessAdvancePayment([FromBody] AdvancePaymentProcessingRequest request)
+        {
+            var result = await _employee.ProcessAdvancePayment(request);
+            if (result)
+            {
+                return Ok("success");
+            }
+            else
+            {
+                return BadRequest("Advance Payment Request already Processed");
+            }
+        }
     }
 }

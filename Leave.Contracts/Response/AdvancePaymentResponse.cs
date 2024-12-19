@@ -17,6 +17,7 @@
         public int id { get; init; }
         public string epf { get; init; }
         public string empName { get; init; }
+        public string costCenter { get; init; }
         public int period { get; init; }
         public bool isFullAmount { get; init; }
         public decimal amount { get; init; }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Leave.Contracts.Requests;
+using Microsoft.Extensions.Options;
 using PayrollAPI.Models.HRM;
 
 namespace PayrollAPI.Interfaces.HRM
@@ -21,6 +22,7 @@ namespace PayrollAPI.Interfaces.HRM
         Task<bool> RequestAdvancePayment(AdvancePayment advancePayment);
         Task<IEnumerable<AdvancePayment>> GetMyAdvancePayment(string epf);
         Task<IEnumerable<AdvancePayment>> GetAdvancePayment(int period);
+        Task<bool> ProcessAdvancePayment(AdvancePaymentProcessingRequest period);
         Task<bool> DeleteAdvancePayment(int id);
     }
 }
