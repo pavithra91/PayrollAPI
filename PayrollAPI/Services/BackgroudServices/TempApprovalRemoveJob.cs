@@ -1,6 +1,6 @@
 ﻿using PayrollAPI.Data;
 using PayrollAPI.Interfaces.HRM;
-using PayrollAPI.Models;
+using PayrollAPI.Models.Payroll;
 using Quartz;
 
 namespace PayrollAPI.Services.BackgroudServices

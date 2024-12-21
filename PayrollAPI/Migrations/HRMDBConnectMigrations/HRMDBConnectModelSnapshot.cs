@@ -614,6 +614,258 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.ToTable("WorkflowTypes");
                 });
 
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.Bungalow", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("address")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("bungalowName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("contactNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<string>("createdBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<string>("description")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("isCloded")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("lastUpdateBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("lastUpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("mainImg")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("maxBookingPeriod")
+                        .HasColumnType("int");
+
+                    b.Property<int>("noOfRooms")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("reopenDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Bungalow");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.BungalowRates", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("bungalowid")
+                        .HasColumnType("int");
+
+                    b.Property<int>("categoryid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("createdBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<string>("lastUpdateBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("lastUpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("perDayCost")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("bungalowid");
+
+                    b.HasIndex("categoryid");
+
+                    b.ToTable("BungalowRates");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.Bungalow_Reservation", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("bookingStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("bungalowid")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("checkInDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("checkOutDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("companyCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("contactNumber_1")
+                        .IsRequired()
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<string>("contactNumber_2")
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<string>("createdBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<int>("employeeid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("lastUpdateBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("lastUpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("noOfAdults")
+                        .HasColumnType("int");
+
+                    b.Property<int>("noOfChildren")
+                        .HasColumnType("int");
+
+                    b.Property<int>("reservationCategoryid")
+                        .HasColumnType("int");
+
+                    b.Property<int>("totalPax")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("bungalowid");
+
+                    b.HasIndex("employeeid");
+
+                    b.HasIndex("reservationCategoryid");
+
+                    b.ToTable("Reservation");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.RaffleDraw", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<int>("rank")
+                        .HasColumnType("int");
+
+                    b.Property<int>("reservationID")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("reservationID")
+                        .IsUnique();
+
+                    b.ToTable("RaffleDraw");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.ReservationCategory", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("categoryName")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("createdBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("createdDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURDATE())");
+
+                    b.Property<DateTime>("createdTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("(CURTIME())");
+
+                    b.Property<string>("lastUpdateBy")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("lastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("lastUpdateTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("ReservationCategory");
+                });
+
             modelBuilder.Entity("PayrollAPI.Models.Services.JobSchedule", b =>
                 {
                     b.Property<int>("id")
@@ -773,6 +1025,63 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.Navigation("epf");
                 });
 
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.BungalowRates", b =>
+                {
+                    b.HasOne("PayrollAPI.Models.Reservation.Bungalow", "bungalow")
+                        .WithMany("rates")
+                        .HasForeignKey("bungalowid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PayrollAPI.Models.Reservation.ReservationCategory", "category")
+                        .WithMany("bungalowRates")
+                        .HasForeignKey("categoryid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("bungalow");
+
+                    b.Navigation("category");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.Bungalow_Reservation", b =>
+                {
+                    b.HasOne("PayrollAPI.Models.Reservation.Bungalow", "bungalow")
+                        .WithMany("reservations")
+                        .HasForeignKey("bungalowid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PayrollAPI.Models.HRM.Employee", "employee")
+                        .WithMany("reservations")
+                        .HasForeignKey("employeeid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PayrollAPI.Models.Reservation.ReservationCategory", "reservationCategory")
+                        .WithMany("bungalow_Reservations")
+                        .HasForeignKey("reservationCategoryid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("bungalow");
+
+                    b.Navigation("employee");
+
+                    b.Navigation("reservationCategory");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.RaffleDraw", b =>
+                {
+                    b.HasOne("PayrollAPI.Models.Reservation.Bungalow_Reservation", "bungalow_Reservation")
+                        .WithOne("raffleDraw")
+                        .HasForeignKey("PayrollAPI.Models.Reservation.RaffleDraw", "reservationID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("bungalow_Reservation");
+                });
+
             modelBuilder.Entity("PayrollAPI.Models.HRM.EmpApprovals", b =>
                 {
                     b.Navigation("approvalWorkflowsId");
@@ -783,6 +1092,8 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.Navigation("advancePayments");
 
                     b.Navigation("empApprovals");
+
+                    b.Navigation("reservations");
 
                     b.Navigation("supervisors");
                 });
@@ -800,6 +1111,26 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
             modelBuilder.Entity("PayrollAPI.Models.HRM.WorkflowTypes", b =>
                 {
                     b.Navigation("employees");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.Bungalow", b =>
+                {
+                    b.Navigation("rates");
+
+                    b.Navigation("reservations");
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.Bungalow_Reservation", b =>
+                {
+                    b.Navigation("raffleDraw")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PayrollAPI.Models.Reservation.ReservationCategory", b =>
+                {
+                    b.Navigation("bungalowRates");
+
+                    b.Navigation("bungalow_Reservations");
                 });
 #pragma warning restore 612, 618
         }

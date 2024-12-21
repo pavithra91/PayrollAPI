@@ -7,6 +7,7 @@ using PdfSharp.Drawing;
 using PdfSharp.Pdf.Security;
 using PdfSharp.Pdf;
 using PayrollAPI.Data;
+using PayrollAPI.Models.Payroll;
 
 namespace PayrollAPI.Services
 {

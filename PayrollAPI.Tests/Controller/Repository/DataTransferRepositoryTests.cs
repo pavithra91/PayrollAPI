@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
-using PayrollAPI.Repository;
+using PayrollAPI.Repository.Payroll;
 
 namespace PayrollAPI.Tests.Controller.Repository
 {

@@ -1,12 +1,24 @@
 ﻿using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
 using PayrollAPI.Models.HRM;
+using PayrollAPI.Models.Reservation;
 using PayrollAPI.Models.Services;
+using PayrollAPI.Services;
 
 namespace PayrollAPI.DataModel.HRM
 {
     public static class ContractMapping
     {
+        public static DateTime GetTimeZone()
+        {
+            string userTimeZoneId = "Asia/Colombo";
+            TimeZoneInfo userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(userTimeZoneId);
+
+            DateTime utcDate = DateTime.UtcNow;
+            DateTime userLocalDate = TimeZoneInfo.ConvertTimeFromUtc(utcDate, userTimeZone);
+
+            return userLocalDate;
+        }
         #region Leave Types
         public static LeaveType MapToLeaveType(this LeaveTypeRequest request)
         {
@@ -30,8 +42,8 @@ namespace PayrollAPI.DataModel.HRM
                 maxDays = request.maxDays,
                 carryForwardAllowed = request.carryForwardAllowed,
                 lastUpdateBy = request.createdBy,
-                lastUpdateDate = DateTime.Now.Date,
-                lastUpdateTime = DateTime.Now,
+                lastUpdateDate = GetTimeZone().Date,
+                lastUpdateTime = GetTimeZone(),
             };
         }
 
@@ -79,8 +91,8 @@ namespace PayrollAPI.DataModel.HRM
                 isActive = request.isActive,
                 isManager = request.isManager,
                 lastUpdateBy = request.createdBy,
-                lastUpdateDate = DateTime.Now.Date,
-                lastUpdateTime = DateTime.Now,
+                lastUpdateDate = GetTimeZone().Date,
+                lastUpdateTime = GetTimeZone(),
             };
         }
 
@@ -258,7 +270,7 @@ namespace PayrollAPI.DataModel.HRM
             return new AdvancePayment
             {
                 employee = employee,
-                period = Convert.ToInt32(DateTime.Now.Year + "" + DateTime.Now.Month),
+                period = Convert.ToInt32(GetTimeZone().Year + "" + GetTimeZone().Month),
                 isFullAmount = request.isFullAmount,
                 amount = request.isFullAmount ? 0 : request.amount,
                 status = ApprovalStatus.Pending,
@@ -364,6 +376,74 @@ namespace PayrollAPI.DataModel.HRM
             return new ScheduleJobsResponse
             {
                 Items = jobSchedules.Select(MapToResponse)
+            };
+        }
+        #endregion
+
+
+        #region Bungalows
+        public static Bungalow MapToBungalow(this BungalowRequest request)
+        {
+            return new Bungalow
+            {
+                companyCode = request.companyCode,
+                bungalowName = request.bungalowName,
+                description = request.description,
+                address = request.address,
+                contactNumber = request.contactNumber,
+                isCloded = request.isCloded,
+                mainImg = request.mainImg,
+                maxBookingPeriod = request.maxBookingPeriod,
+                noOfRooms = request.noOfRooms,
+                reopenDate = request.reopenDate,
+                createdBy = request.createdBy,
+            };
+        }
+
+        public static Bungalow MapToBungalow(this UpdateBungalowRequest request, int id)
+        {
+            return new Bungalow
+            {
+                id = id,
+                bungalowName = request.bungalowName,
+                description = request.description,
+                address = request.address,
+                contactNumber = request.contactNumber,
+                isCloded = request.isCloded,
+                mainImg = request.mainImg,
+                maxBookingPeriod = request.maxBookingPeriod,
+                noOfRooms = request.noOfRooms,
+                reopenDate = request.reopenDate,
+                lastUpdateBy = request.updateBy,
+                lastUpdateDate = GetTimeZone().Date,
+                lastUpdateTime = GetTimeZone(),
+            };
+        }
+
+        public static BungalowResponse MapToResponse(this Bungalow bungalow)
+        {
+            return new BungalowResponse
+            {
+                id = bungalow.id,
+                companyCode = bungalow.companyCode,
+                bungalowName = bungalow.bungalowName,
+                description = bungalow.description,
+                address = bungalow.address,
+                contactNumber = bungalow.contactNumber,
+                isCloded = bungalow.isCloded,
+                mainImg = bungalow.mainImg,
+                maxBookingPeriod = bungalow.maxBookingPeriod,
+                noOfRooms = bungalow.noOfRooms,
+                reopenDate = bungalow.reopenDate,
+                createdBy = bungalow.createdBy,
+            };
+        }
+
+        public static BungalowsResponse MapToResponse(this IEnumerable<Bungalow> bungalows)
+        {
+            return new BungalowsResponse
+            {
+                Items = bungalows.Select(MapToResponse)
             };
         }
         #endregion

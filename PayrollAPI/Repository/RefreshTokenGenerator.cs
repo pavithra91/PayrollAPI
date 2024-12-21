@@ -1,6 +1,6 @@
 ﻿using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
-using PayrollAPI.Models;
+using PayrollAPI.Models.Payroll;
 using System.Security.Cryptography;
 
 namespace PayrollAPI.Repository

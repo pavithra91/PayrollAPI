@@ -27,6 +27,10 @@ using Quartz.Impl;
 using Quartz.Spi;
 using Microsoft.Extensions.DependencyInjection;
 using static Quartz.Logging.OperationName;
+using PayrollAPI.Repository.Payroll;
+using PayrollAPI.Interfaces.Payroll;
+using PayrollAPI.Interfaces.Reservation;
+using PayrollAPI.Repository.Reservation;
 
 
 // Initialize Logs
@@ -167,6 +171,8 @@ try
 
     builder.Services.AddScoped<ILeave, LeaveRepository>();
     builder.Services.AddScoped<IEmployee, EmployeeRepository>();
+
+    builder.Services.AddScoped<IReservation, ReservationRepository>();
 
     builder.Services.AddScoped<ApiKeyAuthFilter>();
 

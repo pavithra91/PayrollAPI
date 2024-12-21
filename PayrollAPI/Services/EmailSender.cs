@@ -1,7 +1,7 @@
 ﻿using System.Net.Mail;
 using System.Net;
-using PayrollAPI.Models;
 using System.IO;
+using PayrollAPI.Models.Payroll;
 
 namespace PayrollAPI.Services
 {
