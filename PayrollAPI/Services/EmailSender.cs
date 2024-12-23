@@ -76,7 +76,7 @@ namespace PayrollAPI.Services
             }
         }
 
-        public async Task<bool> SendEmail(IEnumerable<Sys_Properties> email_configurations, byte[] dataArray)
+        public async Task<bool> SendEmail(IEnumerable<Sys_Properties> email_configurations, byte[] dataArray, string fileName, string mediaType)
         {
             try
             {
@@ -88,7 +88,7 @@ namespace PayrollAPI.Services
 
                 // Attachment
                 using var memoryStream = new MemoryStream(dataArray);
-                var attachment = new Attachment(memoryStream, "AdvancePayment.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                var attachment = new Attachment(memoryStream, fileName, mediaType);
                 message.Attachments.Add(attachment);
 
                 var smtpClient = new SmtpClient("smtp.office365.com");

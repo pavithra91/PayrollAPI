@@ -1,10 +1,10 @@
-﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
-using Leave.Contracts.Requests;
+﻿using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
 using PayrollAPI.Models.HRM;
+using PayrollAPI.Models.Payroll;
 using PayrollAPI.Models.Reservation;
 using PayrollAPI.Models.Services;
-using PayrollAPI.Services;
+using static Leave.Contracts.Response.PaymentResponse;
 using static PayrollAPI.Data.EntityMapping.StatusMapper;
 
 namespace PayrollAPI.DataModel.HRM
@@ -529,6 +529,35 @@ namespace PayrollAPI.DataModel.HRM
             return new ReservationsResponse
             {
                 Items = reservations.Select(MapToResponse)
+            };
+        }
+        #endregion
+
+
+        #region Voucher Payments
+        public static PaymentResponse MapToResponse(this OtherPayment payment)
+        {
+            return new PaymentResponse
+            {
+                id = payment.id,
+                epf = payment.epf,
+                empName = payment.empName,
+                bankCode = payment.bankCode,
+                accountNo = payment.accountNo,
+                amount = payment.amount,
+                paymentCategory = payment.paymentCategory,
+                bankTransferDate = payment.bankTransferDate,
+                voucherNo = payment.voucherNo,
+                status = payment.paymentStatus.ToString(),
+                createdBy = payment.createdBy,
+            };
+        }
+
+        public static PaymentsResponse MapToResponse(this IEnumerable<OtherPayment> payments)
+        {
+            return new PaymentsResponse
+            {
+                Items = payments.Select(MapToResponse)
             };
         }
         #endregion

@@ -246,7 +246,8 @@ namespace PayrollAPI.Repository.Payroll
                         x.taxConRate,
                     });
 
-                    _context.Payroll_Data.UpdateFromQuery(x => new Payroll_Data { epfContribution = x.amount * (decimal)x.epfConRate, taxContribution = x.amount * (decimal)x.taxConRate, calCode = "_" + x.payCode });
+                    _context.Payroll_Data.Where(x => x.period == approvalDto.period && x.companyCode == approvalDto.companyCode)
+                        .UpdateFromQuery(x => new Payroll_Data { epfContribution = x.amount * (decimal)x.epfConRate, taxContribution = x.amount * (decimal)x.taxConRate, calCode = "_" + x.payCode });
 
                     _payRun.approvedBy = approvalDto.approvedBy;
                     _payRun.approvedDate = DateTime.Today;

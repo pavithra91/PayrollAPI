@@ -63,7 +63,7 @@ namespace PayrollAPI.Services.BackgroudServices
 
 
                 EmailSender emailSender = new EmailSender();
-                await emailSender.SendEmail(sys_Properties, data);
+                await emailSender.SendEmail(sys_Properties, data, "AdvancePayment.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
                 _logger.LogInformation("Job executed at: " + DateTime.Now);
                 //return Task.CompletedTask;
