@@ -26,6 +26,7 @@ namespace PayrollAPI.Models.Reservation
         public string? mainImg { get; set; }
         public int noOfRooms { get; set; }
         public int maxBookingPeriod { get; set; }
+        public int maxOccupancy { get; set; }
         public bool isCloded { get; set; }
         public DateTime? reopenDate { get; set; }
 

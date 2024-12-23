@@ -1,9 +1,11 @@
-﻿using Leave.Contracts.Requests;
+﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
+using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
 using PayrollAPI.Models.HRM;
 using PayrollAPI.Models.Reservation;
 using PayrollAPI.Models.Services;
 using PayrollAPI.Services;
+using static PayrollAPI.Data.EntityMapping.StatusMapper;
 
 namespace PayrollAPI.DataModel.HRM
 {
@@ -29,6 +31,8 @@ namespace PayrollAPI.DataModel.HRM
                 maxDays = request.maxDays,
                 carryForwardAllowed = request.carryForwardAllowed,
                 createdBy = request.createdBy,
+                createdDate = GetTimeZone().Date,
+                createdTime = GetTimeZone(),
             };
         }
 
@@ -80,6 +84,8 @@ namespace PayrollAPI.DataModel.HRM
                 isActive = true,
                 isManager = request.isManager,
                 createdBy = request.createdBy,
+                createdDate = GetTimeZone().Date,
+                createdTime = GetTimeZone(),
             };
         }
 
@@ -275,6 +281,8 @@ namespace PayrollAPI.DataModel.HRM
                 amount = request.isFullAmount ? 0 : request.amount,
                 status = ApprovalStatus.Pending,
                 createdBy = request.createdBy,
+                createdDate = GetTimeZone().Date,
+                createdTime = GetTimeZone(),
             };
         }
 
@@ -340,6 +348,8 @@ namespace PayrollAPI.DataModel.HRM
                 cronExpression = request.cronExpression,
                 isActive = true,
                 createdBy = request.createdBy,
+                createdDate = GetTimeZone().Date,
+                createdTime = GetTimeZone(),
             };
         }
 
@@ -414,7 +424,7 @@ namespace PayrollAPI.DataModel.HRM
                 maxBookingPeriod = request.maxBookingPeriod,
                 noOfRooms = request.noOfRooms,
                 reopenDate = request.reopenDate,
-                lastUpdateBy = request.updateBy,
+                lastUpdateBy = request.lastUpdateBy,
                 lastUpdateDate = GetTimeZone().Date,
                 lastUpdateTime = GetTimeZone(),
             };
@@ -444,6 +454,81 @@ namespace PayrollAPI.DataModel.HRM
             return new BungalowsResponse
             {
                 Items = bungalows.Select(MapToResponse)
+            };
+        }
+        #endregion
+
+        #region Reservation
+        public static Bungalow_Reservation MapToReservation(this ReservationRequest request, Employee emp, Bungalow bungalow, ReservationCategory category)
+        {
+            return new Bungalow_Reservation
+            {
+                companyCode = request.companyCode,
+                employee = emp,
+                bungalow = bungalow,
+                reservationCategory = category,
+                bookingStatus = BookingStatus.Pending,
+                checkInDate = request.checkInDate,
+                checkOutDate = request.checkOutDate,
+                noOfAdults = request.noOfAdults,
+                noOfChildren = request.noOfChildren,
+                totalPax = request.totalPax,
+                contactNumber_1 = request.contactNumber_1,
+                contactNumber_2 = request.contactNumber_2,
+                createdBy = request.createdBy,
+                createdDate = GetTimeZone().Date,
+                createdTime = GetTimeZone(),
+            };
+        }
+
+        public static Bungalow_Reservation MapToReservation(this UpdateReservationRequest request, int id, Employee emp, Bungalow bungalow)
+        {
+            return new Bungalow_Reservation
+            {
+                id = id,
+                employee = emp,
+                bungalow = bungalow,
+                checkInDate = request.checkInDate,
+                checkOutDate = request.checkOutDate,
+                noOfAdults = request.noOfAdults,
+                noOfChildren = request.noOfChildren,
+                totalPax = request.totalPax,
+                contactNumber_1 = request.contactNumber_1,
+                contactNumber_2 = request.contactNumber_2,
+                //bookingStatus = request.
+                lastUpdateBy = request.lastUpdateBy,
+                lastUpdateDate = GetTimeZone().Date,
+                lastUpdateTime = GetTimeZone(),
+            };
+        }
+
+        public static ReservationResponse MapToResponse(this Bungalow_Reservation reservation)
+        {
+            return new ReservationResponse
+            {
+                id = reservation.id,
+                companyCode = reservation.companyCode,
+                empId = reservation.employee.id,
+                epf = reservation.employee.epf,
+                bungalowId = reservation.bungalow.id,
+                bungalowName = reservation.bungalow.bungalowName,
+                checkInDate = reservation.checkInDate,
+                checkOutDate = reservation.checkOutDate,
+                noOfAdults = reservation.noOfAdults,
+                noOfChildren = reservation.noOfChildren,
+                totalPax = reservation.totalPax,
+                contactNumber_1 = reservation.contactNumber_1,
+                contactNumber_2 = reservation.contactNumber_2,
+                reservationCategory = reservation.reservationCategory.categoryName,
+                createdBy = reservation.createdBy,
+            };
+        }
+
+        public static ReservationsResponse MapToResponse(this IEnumerable<Bungalow_Reservation> reservations)
+        {
+            return new ReservationsResponse
+            {
+                Items = reservations.Select(MapToResponse)
             };
         }
         #endregion

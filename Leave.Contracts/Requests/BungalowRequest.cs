@@ -16,6 +16,7 @@ namespace Leave.Contracts.Requests
         public decimal perDayCost { get; init; }
         public int noOfRooms { get; init; }
         public int maxBookingPeriod { get; init; }
+        public int maxOccupancy { get; init; }
         public bool isCloded { get; init; }
         public DateTime? reopenDate { get; init; }
         public string contactNumber { get; init; }
@@ -34,6 +35,6 @@ namespace Leave.Contracts.Requests
         public bool isCloded { get; init; }
         public DateTime? reopenDate { get; init; }
         public string contactNumber { get; init; }
-        public string? updateBy { get; init; }
+        public string? lastUpdateBy { get; init; }
     }
 }

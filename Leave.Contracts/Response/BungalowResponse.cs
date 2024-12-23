@@ -11,6 +11,7 @@
         public decimal perDayCost { get; init; }
         public int noOfRooms { get; init; }
         public int maxBookingPeriod { get; init; }
+        public int maxOccupancy { get; init; }
         public bool isCloded { get; init; }
         public DateTime? reopenDate { get; init; }
         public string contactNumber { get; init; }

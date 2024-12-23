@@ -1,4 +1,5 @@
-﻿using Leave.Contracts.Requests;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +14,14 @@ namespace PayrollAPI.Controllers.Reservation
     public class ReservationController : ControllerBase
     {
         private readonly IReservation _reservation;
-        public ReservationController(IReservation reservation)
+        private readonly IEmployee _employee;
+        public ReservationController(IReservation reservation, IEmployee employee)
         {
             _reservation = reservation;
+            _employee = employee;
         }
 
+        #region Bungalow
         [HttpGet]
         [Route("get-all-bungalows")]
         [ProducesResponseType(typeof(IEnumerable<BungalowResponse>), StatusCodes.Status200OK)]
@@ -63,5 +67,63 @@ namespace PayrollAPI.Controllers.Reservation
             var response = bungalow.MapToResponse();
             return Ok(response);
         }
+
+        #endregion
+
+        #region Reservation
+        [HttpGet]
+        [Route("get-all-reservations")]
+        [ProducesResponseType(typeof(IEnumerable<ReservationResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllReservations()
+        {
+            var result = await _reservation.GetAllReservations();
+
+            var _reservationResponse = result.MapToResponse();
+            return Ok(_reservationResponse);
+        }
+
+        [HttpGet("get-reservation/{id:int}")]
+        [ProducesResponseType(typeof(ReservationResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetReservationById([FromRoute] int id)
+        {
+            var result = await _reservation.GetReservationById(id);
+
+            return result == null ? NotFound() :
+                Ok(result.MapToResponse());
+
+        }
+
+        [HttpPost]
+        [Route("create-reservation")]
+        public async Task<IActionResult> CreateReservation([FromBody] ReservationRequest request)
+        {
+            var emp = await _employee.GetEmployeeByEPF(request.epf);
+            var bungalow = await _reservation.GetBungalowById(request.bungalowid);
+            var category = await _reservation.GetReservationCategoryById(request.category);
+
+            var _reservationResponse = request.MapToReservation(emp, bungalow, category);
+            await _reservation.CreateReservation(_reservationResponse);
+
+            return CreatedAtAction(nameof(GetReservationById), new { id = _reservationResponse.id }, _reservationResponse);
+        }
+
+        [HttpPut("update-reservation/{id:int}")]
+        public async Task<IActionResult> UpdateReservation([FromRoute] int id, [FromBody] UpdateReservationRequest request)
+        {
+            var emp = await _employee.GetEmployeeByEPF(request.epf);
+            var bungalow = await _reservation.GetBungalowById(request.bungalowid);
+
+            var reservation = request.MapToReservation(id, emp, bungalow);
+            var updated = await _reservation.UpdateReservation(id, reservation);
+
+            if (!updated)
+            {
+                return NotFound();
+            }
+            var response = reservation.MapToResponse();
+            return Ok(response);
+        }
+        #endregion
     }
 }
