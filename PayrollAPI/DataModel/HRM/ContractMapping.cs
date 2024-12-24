@@ -521,6 +521,8 @@ namespace PayrollAPI.DataModel.HRM
                 contactNumber_2 = reservation.contactNumber_2,
                 reservationCategory = reservation.reservationCategory.categoryName,
                 createdBy = reservation.createdBy,
+                bookingStatus = reservation.bookingStatus.ToString(),
+
             };
         }
 

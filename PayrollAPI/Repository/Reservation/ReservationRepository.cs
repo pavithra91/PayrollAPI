@@ -103,6 +103,17 @@ namespace PayrollAPI.Repository.Reservation
                 .Include(x => x.reservationCategory)
                 .AsEnumerable());
         }
+
+        public async Task<IEnumerable<Bungalow_Reservation>> GetAllReservations(string epf)
+        {
+            return await Task.FromResult(_context.Reservation
+                .Where(x=>x.employee.epf == epf)
+                .Include(x => x.employee)
+                .Include(x => x.bungalow)
+                .Include(x => x.reservationCategory)
+                .OrderByDescending(x=>x.id)
+                .AsEnumerable());
+        }
         public async Task<Bungalow_Reservation> GetReservationById(int id)
         {
             return await Task.FromResult(_context.Reservation.Where(x => x.id == id)
@@ -148,6 +159,36 @@ namespace PayrollAPI.Repository.Reservation
 
                 return await Task.FromResult(true);
             }
+        }
+
+        public async Task<List<object>> GetRestrictedDates()
+        {
+            var reservations = _context.Reservation
+                    .Where(x => x.reservationCategory.id == 5 && x.checkInDate >= DateTime.Now)
+                    .Select(x => new
+                    {
+                        x.checkInDate,
+                        x.checkOutDate
+                    })
+                    .ToList();
+
+            List<object> formattedDates = new List<object>();
+
+            foreach (var reservation in reservations)
+            {
+                DateTime current = reservation.checkInDate;
+                while (current <= reservation.checkOutDate)
+                {
+                    formattedDates.Add(new
+                    {
+                        day = current.Day,
+                        month = current.Month - 1
+                    });
+                    current = current.AddDays(1);
+                }
+            }
+
+            return await Task.FromResult(formattedDates);
         }
     }
 }

@@ -82,6 +82,17 @@ namespace PayrollAPI.Controllers.Reservation
             return Ok(_reservationResponse);
         }
 
+        [HttpGet]
+        [Route("get-my-reservations/{epf}")]
+        [ProducesResponseType(typeof(IEnumerable<ReservationResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllReservations(string epf)
+        {
+            var result = await _reservation.GetAllReservations(epf);
+
+            var _reservationResponse = result.MapToResponse();
+            return Ok(_reservationResponse);
+        }
+
         [HttpGet("get-reservation/{id:int}")]
         [ProducesResponseType(typeof(ReservationResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -123,6 +134,18 @@ namespace PayrollAPI.Controllers.Reservation
             }
             var response = reservation.MapToResponse();
             return Ok(response);
+        }
+
+        [HttpGet("get-disabledates")]
+        [ProducesResponseType(typeof(List<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetRestrictedDates()
+        {
+            var result = await _reservation.GetRestrictedDates();
+
+            return result == null ? NotFound() :
+                Ok(result);
+
         }
         #endregion
     }

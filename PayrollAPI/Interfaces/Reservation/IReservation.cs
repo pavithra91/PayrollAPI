@@ -15,8 +15,10 @@ namespace PayrollAPI.Interfaces.Reservation
 
 
         Task<IEnumerable<Bungalow_Reservation>> GetAllReservations();
+        Task<IEnumerable<Bungalow_Reservation>> GetAllReservations(string epf);
         Task<Bungalow_Reservation> GetReservationById(int id);
         Task<bool> CreateReservation(Bungalow_Reservation reservation);
         Task<bool> UpdateReservation(int id, Bungalow_Reservation reservation);
+        Task<List<object>> GetRestrictedDates();
     }
 }

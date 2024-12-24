@@ -16,6 +16,7 @@
         public int totalPax { get; init; }
         public string contactNumber_1 { get; init; }
         public string contactNumber_2 { get; init; }
+        public string bookingStatus { get; init; }
         public string createdBy { get; init; }
     }
 
