@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using static PayrollAPI.Data.EntityMapping.StatusMapper;
 
 namespace PayrollAPI.Models.Reservation
 {
@@ -8,11 +9,14 @@ namespace PayrollAPI.Models.Reservation
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
+        public int RaffleDrawId { get; set; }
 
         // Fks
         public int reservationID { get; set; }
         public Bungalow_Reservation bungalow_Reservation { get; set; }
         public int rank { get; set; }
+
+        public BookingStatus bookingStatus { get; set; }
 
         // Logs
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]

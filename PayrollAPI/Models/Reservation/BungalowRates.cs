@@ -9,7 +9,7 @@ namespace PayrollAPI.Models.Reservation
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
-
+        [JsonIgnore]
         public Bungalow bungalow { get; set; }
 
         public ReservationCategory category { get; set; }

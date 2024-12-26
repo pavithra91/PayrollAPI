@@ -1,4 +1,5 @@
 ﻿using PayrollAPI.DataModel;
+using PayrollAPI.Models.Payroll;
 
 namespace PayrollAPI.Interfaces.Payroll
 {
@@ -43,5 +44,8 @@ namespace PayrollAPI.Interfaces.Payroll
         public Task<MsgDto> UpdateSystemVariable(SysVariableDto sysVariableDto);
 
         public Task<MsgDto> GetPayCodeWiseData(int period, int companyCode);
+
+        Task<List<Sys_Properties>> GetSystemProperties(string groupName);
+        Task<bool> SetSystemProperties(string groupName, string variableName, string value);
     }
 }

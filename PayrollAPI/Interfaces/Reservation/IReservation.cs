@@ -1,4 +1,5 @@
-﻿using PayrollAPI.Models.Reservation;
+﻿using Leave.Contracts.Requests;
+using PayrollAPI.Models.Reservation;
 
 namespace PayrollAPI.Interfaces.Reservation
 {
@@ -8,6 +9,10 @@ namespace PayrollAPI.Interfaces.Reservation
         Task<Bungalow> GetBungalowById(int id);
         Task<bool> CreateBungalow(Bungalow bungalow);
         Task<bool> UpdateBungalow(int id, Bungalow bungalow);
+
+
+        Task<IEnumerable<BungalowRates>> GetBungalowRates(int id);
+        Task<bool> UpdateBungalowRates(int id, UpdateBungalowRatesRequest request);
 
 
         Task<IEnumerable<ReservationCategory>> GetAllReservationCategories();
@@ -20,5 +25,8 @@ namespace PayrollAPI.Interfaces.Reservation
         Task<bool> CreateReservation(Bungalow_Reservation reservation);
         Task<bool> UpdateReservation(int id, Bungalow_Reservation reservation);
         Task<List<object>> GetRestrictedDates();
+
+        Task<bool> RaffelDraw();
+        Task<bool> WinnerConfirmation();
     }
 }

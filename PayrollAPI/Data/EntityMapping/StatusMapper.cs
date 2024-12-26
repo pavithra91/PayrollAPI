@@ -5,9 +5,17 @@
         public enum BookingStatus
         {
             Pending = 0,
-            Approved = 1,
+            Confirmed = 1,
             Rejected = 2,
-            Cancelled = 3
+            Cancelled = 3,
+            Raffle_Winner = 4,
+            Raffle_Drawn = 5
+        }
+
+        public enum BookingPriority
+        {
+            HighPriority = 1,
+            LowPriority = 0
         }
         public enum BookingType
         {
@@ -22,6 +30,13 @@
             Transferred = 0,
             Processed = 1,
             ReOpened = 2,
+        }
+
+        public enum NotificationType
+        {
+            Leave = 0,
+            Reservation = 1,
+            System = 2,
         }
     }
 }

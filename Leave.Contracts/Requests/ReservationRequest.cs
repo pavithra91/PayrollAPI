@@ -13,6 +13,8 @@
         public int totalPax { get; init; }
         public string contactNumber_1 { get; init; }
         public string contactNumber_2 { get; init; }
+        public string? nicNo { get; init; }
+        public string? comments { get; init; }        
         public string createdBy { get; init; }
     }
     public class UpdateReservationRequest
@@ -27,6 +29,8 @@
         public int totalPax { get; init; }
         public string contactNumber_1 { get; init; }
         public string contactNumber_2 { get; init; }
+        public string? nicNo { get; init; }
+        public string? comments { get; init; }
         public string lastUpdateBy { get; init; }
     }
 }

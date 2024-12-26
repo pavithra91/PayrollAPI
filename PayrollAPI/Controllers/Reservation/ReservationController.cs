@@ -70,6 +70,32 @@ namespace PayrollAPI.Controllers.Reservation
 
         #endregion
 
+        #region Bungalow Rates
+        //[HttpGet("get-bungalow-rates/{id:int}")]
+        //[ProducesResponseType(typeof(IEnumerable<BungalowRateResponse>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //public async Task<IActionResult> GetBungalowRates([FromRoute] int id)
+        //{
+        //    var result = await _reservation.GetBungalowRates(id);
+
+        //    return result == null ? NotFound() :
+        //        Ok(result);
+
+        //}
+
+        [HttpPut("update-bungalow-rates/{id:int}")]
+        public async Task<IActionResult> UpdateBungalowRates([FromRoute] int id, [FromBody] UpdateBungalowRatesRequest request)
+        {
+            var updated = await _reservation.UpdateBungalowRates(id, request);
+            if (!updated)
+            {
+                return NotFound();
+            }
+
+            return Ok("success");
+        }
+        #endregion
+
         #region Reservation
         [HttpGet]
         [Route("get-all-reservations")]
@@ -136,6 +162,15 @@ namespace PayrollAPI.Controllers.Reservation
             return Ok(response);
         }
 
+        [HttpPost]
+        [Route("cancel-reservation")]
+        public async Task<IActionResult> CancelReservation([FromBody] ReservationCancellationRequest request)
+        {
+            //await _reservation.CancelReservation(request);
+
+            return Ok("success");
+        }
+
         [HttpGet("get-disabledates")]
         [ProducesResponseType(typeof(List<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -148,5 +183,14 @@ namespace PayrollAPI.Controllers.Reservation
 
         }
         #endregion
+
+        [HttpPost]
+        [Route("raffel-draw")]
+        public async Task<IActionResult> RaffelDraw()
+        {
+            var result = await _reservation.RaffelDraw();
+
+            return Ok(result);
+        }
     }
 }

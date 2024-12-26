@@ -1,4 +1,5 @@
-﻿using Leave.Contracts.Requests;
+﻿using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
 using PayrollAPI.Models.HRM;
 using PayrollAPI.Models.Payroll;
@@ -260,6 +261,7 @@ namespace PayrollAPI.DataModel.HRM
                 date = notification.createdDate,
                 status = notification.status,
                 readed = notification.markAsRead,
+                notificationType = notification.notificationType.ToString(),
             };
         }
 
@@ -430,6 +432,24 @@ namespace PayrollAPI.DataModel.HRM
             };
         }
 
+        public static RateResponse MapToResponse(this BungalowRates bungalow)
+        {
+            return new RateResponse
+            {
+                rateId = bungalow.id,
+                categoryName = bungalow.category.categoryName,
+                amount = bungalow.perDayCost,
+            };
+        }
+
+        public static RatesResponse MapToResponse(this IEnumerable<BungalowRates> bungalows)
+        {
+            return new RatesResponse
+            {
+                rates = bungalows.Select(MapToResponse)
+            };
+        }
+
         public static BungalowResponse MapToResponse(this Bungalow bungalow)
         {
             return new BungalowResponse
@@ -446,6 +466,8 @@ namespace PayrollAPI.DataModel.HRM
                 noOfRooms = bungalow.noOfRooms,
                 reopenDate = bungalow.reopenDate,
                 createdBy = bungalow.createdBy,
+                maxOccupancy = bungalow.maxOccupancy,
+                bungalowRates = bungalow.rates.MapToResponse()
             };
         }
 
@@ -461,13 +483,18 @@ namespace PayrollAPI.DataModel.HRM
         #region Reservation
         public static Bungalow_Reservation MapToReservation(this ReservationRequest request, Employee emp, Bungalow bungalow, ReservationCategory category)
         {
+            BookingStatus bookingStatus = BookingStatus.Pending;
+            if (category.id == 5)
+            {
+                bookingStatus = BookingStatus.Confirmed;
+            }
             return new Bungalow_Reservation
             {
                 companyCode = request.companyCode,
                 employee = emp,
                 bungalow = bungalow,
                 reservationCategory = category,
-                bookingStatus = BookingStatus.Pending,
+                bookingStatus = bookingStatus,
                 checkInDate = request.checkInDate,
                 checkOutDate = request.checkOutDate,
                 noOfAdults = request.noOfAdults,
@@ -475,6 +502,8 @@ namespace PayrollAPI.DataModel.HRM
                 totalPax = request.totalPax,
                 contactNumber_1 = request.contactNumber_1,
                 contactNumber_2 = request.contactNumber_2,
+                nicNo = request.nicNo,
+                comments = request.comments,
                 createdBy = request.createdBy,
                 createdDate = GetTimeZone().Date,
                 createdTime = GetTimeZone(),
@@ -495,7 +524,8 @@ namespace PayrollAPI.DataModel.HRM
                 totalPax = request.totalPax,
                 contactNumber_1 = request.contactNumber_1,
                 contactNumber_2 = request.contactNumber_2,
-                //bookingStatus = request.
+                nicNo = request.nicNo,
+                comments = request.comments,
                 lastUpdateBy = request.lastUpdateBy,
                 lastUpdateDate = GetTimeZone().Date,
                 lastUpdateTime = GetTimeZone(),
@@ -520,9 +550,11 @@ namespace PayrollAPI.DataModel.HRM
                 contactNumber_1 = reservation.contactNumber_1,
                 contactNumber_2 = reservation.contactNumber_2,
                 reservationCategory = reservation.reservationCategory.categoryName,
+                nicNo = reservation.nicNo,
+                comments = reservation.comments,
                 createdBy = reservation.createdBy,
                 bookingStatus = reservation.bookingStatus.ToString(),
-
+                reservationCost = reservation.reservationCost,
             };
         }
 

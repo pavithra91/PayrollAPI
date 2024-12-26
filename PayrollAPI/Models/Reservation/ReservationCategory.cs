@@ -13,6 +13,8 @@ namespace PayrollAPI.Models.Reservation
         [Column(TypeName = "varchar(20)")]
         public string? categoryName { get; set; }
 
+        public int raffleDrawOrder { get; set; }
+
 
         [JsonIgnore]
         public ICollection<BungalowRates> bungalowRates { get; set; } = new HashSet<BungalowRates>();

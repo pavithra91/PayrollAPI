@@ -32,7 +32,7 @@ namespace PayrollAPI.Models.Reservation
 
         [Column(TypeName = "varchar(15)")]
         public string contactNumber { get; set; }
-
+        public DateTime? nextRaffelDrawDate { get; set; }
 
 
         [JsonIgnore]

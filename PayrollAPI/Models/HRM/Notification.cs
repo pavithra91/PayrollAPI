@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using static PayrollAPI.Data.EntityMapping.StatusMapper;
 
 namespace PayrollAPI.Models.HRM
 {
@@ -15,6 +16,8 @@ namespace PayrollAPI.Models.HRM
 
         [Column(TypeName = "varchar(6)")]
         public string? reference { get; set; }
+
+        public NotificationType notificationType { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public string? target { get; set; }

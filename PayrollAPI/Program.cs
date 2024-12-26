@@ -33,6 +33,7 @@ using PayrollAPI.Interfaces.Reservation;
 using PayrollAPI.Repository.Reservation;
 using PayrollAPI.Interfaces.Payment;
 using PayrollAPI.Repository.Payment;
+using System.Text.Json.Serialization;
 
 
 // Initialize Logs
@@ -149,7 +150,9 @@ try
 
     builder.Services.AddAuthorization();
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers().AddJsonOptions(x =>
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
 
     builder.Services.AddQuartz(q =>
     {

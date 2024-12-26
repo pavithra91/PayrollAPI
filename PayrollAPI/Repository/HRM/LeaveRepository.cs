@@ -7,6 +7,7 @@ using PayrollAPI.Data;
 using PayrollAPI.Interfaces.HRM;
 using PayrollAPI.Models.HRM;
 using PayrollAPI.Services;
+using static PayrollAPI.Data.EntityMapping.StatusMapper;
 
 namespace PayrollAPI.Repository.HRM
 {
@@ -284,7 +285,8 @@ namespace PayrollAPI.Repository.HRM
                             createdDate = com.GetTimeZone(),
                             markAsRead = false,
                             type = 0,
-                            reference = _leaveRequest.leaveRequestId.ToString()
+                            reference = _leaveRequest.leaveRequestId.ToString(),
+                            notificationType = NotificationType.Leave,
                         };
 
                         _context.Notification.Add(notification);
@@ -346,7 +348,8 @@ namespace PayrollAPI.Repository.HRM
                                     createdDate = com.GetTimeZone(),
                                     markAsRead = false,
                                     type = 0,
-                                    reference = _leaveRequest.leaveRequestId.ToString()
+                                    reference = _leaveRequest.leaveRequestId.ToString(),
+                                    notificationType = NotificationType.Leave,
                                 };
 
                                 _context.LeaveApproval.Add(_forwardApproval);
@@ -371,7 +374,8 @@ namespace PayrollAPI.Repository.HRM
                                     createdDate = com.GetTimeZone(),
                                     markAsRead = false,
                                     type = 0,
-                                    reference = _leaveRequest.leaveRequestId.ToString()
+                                    reference = _leaveRequest.leaveRequestId.ToString(),
+                                    notificationType = NotificationType.Leave,
                                 };
 
                                 _context.Notification.Add(notifications);
@@ -397,7 +401,8 @@ namespace PayrollAPI.Repository.HRM
                                 createdDate = com.GetTimeZone(),
                                 markAsRead = false,
                                 type = 0,
-                                reference = _leaveRequest.leaveRequestId.ToString()
+                                reference = _leaveRequest.leaveRequestId.ToString(),
+                                notificationType = NotificationType.Leave,
                             };
 
                             _context.Notification.Add(notifications);
@@ -513,6 +518,7 @@ namespace PayrollAPI.Repository.HRM
                         status = finalStatus.ToString(),
                         type = 2,
                         reference = request.requestId.ToString(),
+                        notificationType = NotificationType.Leave,
                     };
 
                     _context.Notification.Add(notifications);

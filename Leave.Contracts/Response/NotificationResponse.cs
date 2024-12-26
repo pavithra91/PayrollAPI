@@ -9,6 +9,7 @@
         public bool readed { get; init; } = false;
         public int type { get; init; }
         public string? target { get; init; }
+        public string? notificationType { get; init; }
         public string? status { get; init; }
         public DateTime date { get; init; }
     }

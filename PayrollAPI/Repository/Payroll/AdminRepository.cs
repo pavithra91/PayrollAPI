@@ -1,18 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using NReco.PivotData;
-using Org.BouncyCastle.Ocsp;
 using PayrollAPI.Data;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces.Payroll;
-using PayrollAPI.Models;
 using PayrollAPI.Models.Payroll;
-using PdfSharp.Charting;
-using PdfSharp.Pdf.Content.Objects;
 using System.Data;
-using static LinqToDB.Common.Configuration;
 
 namespace PayrollAPI.Repository.Payroll
 {
@@ -1438,6 +1432,26 @@ namespace PayrollAPI.Repository.Payroll
                 _msg.Description = "Inner Expection : " + ex.InnerException;
                 return _msg;
             }
+        }
+
+        public async Task<List<Sys_Properties>> GetSystemProperties(string groupName)
+        {
+            return await Task.FromResult(_context.Sys_Properties.Where(x => x.groupName == groupName).ToList());
+        }
+
+        public async Task<bool> SetSystemProperties(string groupName, string variableName, string value)
+        {
+            var sysProperty = _context.Sys_Properties.Where(x => x.groupName == groupName && x.variable_name == variableName)
+                .FirstOrDefault();
+
+            if (sysProperty != null) 
+            {
+                sysProperty.variable_value = value;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return await Task.FromResult(true);
         }
     }
 }

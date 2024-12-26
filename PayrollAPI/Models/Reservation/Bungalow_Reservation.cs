@@ -26,7 +26,18 @@ namespace PayrollAPI.Models.Reservation
         [Column(TypeName = "varchar(15)")]
         public string? contactNumber_2 { get; set; }
 
+        [Column(TypeName = "varchar(15)")]
+        public string? nicNo { get; set; }
+
+        [Column(TypeName = "varchar(300)")]
+        public string? comments { get; set; }
+
         public BookingStatus bookingStatus { get; set; }
+
+        public BookingPriority bookingPriority { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? reservationCost { get; set; }
 
         // Logs
         [Column(TypeName = "varchar(10)")]

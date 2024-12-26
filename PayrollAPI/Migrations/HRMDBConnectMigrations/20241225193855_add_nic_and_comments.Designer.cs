@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PayrollAPI.Data;
 
@@ -10,9 +11,11 @@ using PayrollAPI.Data;
 namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 {
     [DbContext(typeof(HRMDBConnect))]
-    partial class HRMDBConnectModelSnapshot : ModelSnapshot
+    [Migration("20241225193855_add_nic_and_comments")]
+    partial class add_nic_and_comments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -506,9 +509,6 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.Property<bool>("markAsRead")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("notificationType")
-                        .HasColumnType("int");
-
                     b.Property<string>("reference")
                         .HasColumnType("varchar(6)");
 
@@ -673,9 +673,6 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.Property<int>("maxOccupancy")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("nextRaffelDrawDate")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int>("noOfRooms")
                         .HasColumnType("int");
 
@@ -737,9 +734,6 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("bookingPriority")
                         .HasColumnType("int");
 
                     b.Property<int>("bookingStatus")
@@ -804,9 +798,6 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.Property<int>("reservationCategoryid")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("reservationCost")
-                        .HasColumnType("decimal(10, 2)");
-
                     b.Property<int>("totalPax")
                         .HasColumnType("int");
 
@@ -825,12 +816,6 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("RaffleDrawId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("bookingStatus")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("createdDate")
@@ -887,9 +872,6 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.Property<DateTime?>("lastUpdateTime")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<int>("raffleDrawOrder")
-                        .HasColumnType("int");
 
                     b.HasKey("id");
 
