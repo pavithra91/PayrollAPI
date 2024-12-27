@@ -27,4 +27,16 @@
     {
         public IEnumerable<ReservationResponse> Items { get; init; } = Enumerable.Empty<ReservationResponse>();
     }
+
+    public class ReservationCategoryResponse
+    {
+        public int id { get; init; }
+        public string categoryName { get; init; }
+        public string? createdBy { get; init; }
+    }
+
+    public class ReservationCategoriesResponse
+    {
+        public IEnumerable<ReservationCategoryResponse> Items { get; init; } = Enumerable.Empty<ReservationCategoryResponse>();
+    }
 }

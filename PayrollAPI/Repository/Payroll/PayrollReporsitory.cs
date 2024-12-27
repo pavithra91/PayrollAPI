@@ -1094,10 +1094,7 @@ namespace PayrollAPI.Repository.Payroll
                 foreach (var item in _records)
                 {
                     _epf = item.EPF;
-                    if (_epf == "16715")
-                    {
 
-                    }
                     decimal _arriesSum = _payItem.Where(o => o.epf == item.EPF).Sum(s => s.amount);
                     int count = _epfetf.Where(o => o.epf == item.EPF).Count();
                     decimal _pTaxableGross = Convert.ToDecimal(_epfetf.Where(o => o.epf == item.EPF).Sum(s => s.taxableGross));

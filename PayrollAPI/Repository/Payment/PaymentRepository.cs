@@ -66,7 +66,16 @@ namespace PayrollAPI.Repository.Payment
                     string date = now.ToString("yyMMdd");
                     formattedString += string.Format(
                     "{0,4}{1,7}{2,-12}{3,-20}23{4,21}SLR{5,4}{6:3}{7, -12}{8, -50}{9, 6}{10,6}\n",
-                    "0000", item.bankCode, item.accountNo.PadLeft(12, '0'), item.empName.Trim(), amount.PadLeft(21, '0'), _comp_BankCode, _comp_Branch_Code, _comp_Account_No.PadLeft(12, '0'), _comp_Account_Name, date, "000000");
+                    "0000", 
+                    item.bankCode, 
+                    item.accountNo.PadLeft(12, '0'), 
+                    item.empName.Trim(), amount.PadLeft(21, '0'), 
+                    _comp_BankCode, 
+                    _comp_Branch_Code, 
+                    _comp_Account_No.PadLeft(12, '0'), 
+                    _comp_Account_Name, 
+                    date, 
+                    "000000");
                 }
 
                 byte[] byteArray = Encoding.UTF8.GetBytes(formattedString);

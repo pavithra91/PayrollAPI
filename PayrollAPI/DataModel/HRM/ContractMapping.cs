@@ -480,6 +480,25 @@ namespace PayrollAPI.DataModel.HRM
         }
         #endregion
 
+                public static ReservationCategoryResponse MapToResponse(this ReservationCategory category)
+        {
+            return new ReservationCategoryResponse
+            {
+                id = category.id,
+                categoryName = category.categoryName,
+                createdBy = category.createdBy,
+            };
+        }
+
+        public static ReservationCategoriesResponse MapToResponse(this IEnumerable<ReservationCategory> categories)
+        {
+            return new ReservationCategoriesResponse
+            {
+                Items = categories.Select(MapToResponse)
+            };
+        }
+
+
         #region Reservation
         public static Bungalow_Reservation MapToReservation(this ReservationRequest request, Employee emp, Bungalow bungalow, ReservationCategory category)
         {

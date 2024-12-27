@@ -6,6 +6,7 @@ using PayrollAPI.Interfaces.Reservation;
 using PayrollAPI.Models.HRM;
 using PayrollAPI.Models.Reservation;
 using PayrollAPI.Services;
+using System.Linq;
 using static PayrollAPI.Data.EntityMapping.StatusMapper;
 
 namespace PayrollAPI.Repository.Reservation
@@ -160,13 +161,34 @@ namespace PayrollAPI.Repository.Reservation
         {
             try
             {
+                Bungalow? bungalow = _context.Bungalow.Where(x => x.id == reservation.bungalow.id).FirstOrDefault();
                 var sys_Properties = await _admin.GetSystemProperties("Bungalow_Reservation");
+
+                if (bungalow.nextRaffelDrawDate > reservation.checkOutDate && reservation.checkInDate > com.GetTimeZone().Date)
+                {
+                    _context.Reservation.Add(reservation);
+                    await _context.SaveChangesAsync();
+
+                    Notification notification = new Notification
+                    {
+                        epf = Convert.ToInt32(reservation.employee.epf),
+                        notificationType = NotificationType.Reservation,
+                        createdDate = com.GetTimeZone(),
+                        type = 2,
+                        description = "Please confirm your Reservation",
+                        markAsRead = false,
+                    };
+
+                    _context.Notification.Add(notification);
+                    return await Task.FromResult(true);
+                }
+                
                 var propertyName  = Convert.ToInt32(sys_Properties.Where(x => x.variable_name == "Reservation_Gap").FirstOrDefault().variable_value) * -1;
 
                 DateTime reservationGap = reservation.checkInDate.AddMonths(propertyName);
 
                 var previousReservations = _context.Reservation.Where(x => x.checkInDate > reservationGap && 
-                x.createdBy == reservation.createdBy && x.reservationCategory.id != 5).ToList();
+                x.createdBy == reservation.createdBy && x.reservationCategory.id != 5 && x.bookingStatus == BookingStatus.Confirmed).ToList();
 
                 if (previousReservations.Count > 0)
                 {
@@ -188,12 +210,12 @@ namespace PayrollAPI.Repository.Reservation
                         bungalow_Reservation = reservation,
                     };
 
-                    Bungalow? bungalow = _context.Bungalow.Where(x => x.id == reservation.bungalow.id).FirstOrDefault();
                     if (bungalow != null)
                     {
                         bungalow.nextRaffelDrawDate = reservation.checkOutDate;
                     }
                 }
+
                 await _context.SaveChangesAsync();
 
                 return await Task.FromResult(true);
@@ -245,6 +267,26 @@ namespace PayrollAPI.Repository.Reservation
                         x.checkOutDate
                     })
                     .ToList();
+
+            var bungalowList = _context.Bungalow.ToList();
+
+            foreach (var bungalow in bungalowList)
+            {
+                var reservation = _context.Reservation
+                    .Where(x => x.checkInDate < bungalow.nextRaffelDrawDate && x.checkInDate > com.GetTimeZone().Date 
+                    && x.checkOutDate < bungalow.nextRaffelDrawDate)
+                    .Select(x => new
+                    {
+                        x.checkInDate,
+                        x.checkOutDate
+                    })
+                    .ToList();
+
+                if(reservation != null)
+                {
+                    reservations.AddRange(reservation);
+                }
+            }
 
             List<object> formattedDates = new List<object>();
 

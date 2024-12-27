@@ -96,6 +96,18 @@ namespace PayrollAPI.Controllers.Reservation
         }
         #endregion
 
+        [HttpGet]
+        [Route("get-all-categories")]
+        [ProducesResponseType(typeof(IEnumerable<ReservationCategoryResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllReservationCategories()
+        {
+            var result = await _reservation.GetAllReservationCategories();
+
+            var categoryResponse = result.MapToResponse();
+            return Ok(categoryResponse);
+        }
+
+
         #region Reservation
         [HttpGet]
         [Route("get-all-reservations")]
