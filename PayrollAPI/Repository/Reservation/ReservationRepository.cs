@@ -180,6 +180,7 @@ namespace PayrollAPI.Repository.Reservation
                     };
 
                     _context.Notification.Add(notification);
+                    await _context.SaveChangesAsync();
                     return await Task.FromResult(true);
                 }
                 
