@@ -33,6 +33,7 @@ namespace PayrollAPI.Repository.Reservation
         {
             return await Task.FromResult(_context.Bungalow.Where(x => x.id == id)
                 .Include(x=>x.rates)
+                .ThenInclude(x => x.category)
                 .FirstOrDefault());
         }
         public async Task<bool> CreateBungalow(Bungalow bungalow)
@@ -161,11 +162,24 @@ namespace PayrollAPI.Repository.Reservation
         {
             try
             {
-                Bungalow? bungalow = _context.Bungalow.Where(x => x.id == reservation.bungalow.id).FirstOrDefault();
+                Bungalow? bungalow = _context.Bungalow
+                    .Where(x => x.id == reservation.bungalow.id).FirstOrDefault();
                 var sys_Properties = await _admin.GetSystemProperties("Bungalow_Reservation");
 
                 if (bungalow.nextRaffelDrawDate > reservation.checkOutDate && reservation.checkInDate > com.GetTimeZone().Date)
                 {
+
+                    BungalowRates? rate = _context.BungalowRates.Where(x => x.bungalow == reservation.bungalow && x.category == reservation.reservationCategory)
+                        .FirstOrDefault();
+
+                    if (rate == null) {
+                        return await Task.FromResult(false);
+                    }
+
+                    TimeSpan difference = reservation.checkOutDate - reservation.checkInDate;
+
+                    reservation.reservationCost = rate.perDayCost * Convert.ToDecimal(difference.TotalDays);
+
                     _context.Reservation.Add(reservation);
                     await _context.SaveChangesAsync();
 
@@ -174,12 +188,16 @@ namespace PayrollAPI.Repository.Reservation
                         epf = Convert.ToInt32(reservation.employee.epf),
                         notificationType = NotificationType.Reservation,
                         createdDate = com.GetTimeZone(),
-                        type = 2,
+                        type = 1,
                         description = "Please confirm your Reservation",
                         markAsRead = false,
+                        reference = reservation.id.ToString(),
                     };
 
                     _context.Notification.Add(notification);
+
+
+
                     await _context.SaveChangesAsync();
                     return await Task.FromResult(true);
                 }
@@ -362,9 +380,10 @@ namespace PayrollAPI.Repository.Reservation
                             epf = Convert.ToInt32(allCompetitors[0].employee.epf),
                             notificationType = NotificationType.Reservation,
                             createdDate = com.GetTimeZone(),
-                            type = 2,
+                            type = 1,
                             description = "You have won the Raffel Draw. Please confirm the Reservation",
                             markAsRead = false,
+                            reference = allCompetitors[0].id.ToString(),
                         };
 
                         _context.Notification.Add(notification);
@@ -464,9 +483,10 @@ namespace PayrollAPI.Repository.Reservation
                                     epf = Convert.ToInt32(allCompetitors[0].employee.epf),
                                     notificationType = NotificationType.Reservation,
                                     createdDate = com.GetTimeZone(),
-                                    type = 2,
+                                    type = 1,
                                     description = "You have won the Raffel Draw. Please confirm the Reservation",
                                     markAsRead = false,
+                                    reference = allCompetitors[0].id.ToString(),
                                 };
 
                                 _context.Notification.Add(notification);

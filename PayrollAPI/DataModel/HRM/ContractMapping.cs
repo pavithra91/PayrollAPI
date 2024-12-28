@@ -480,7 +480,7 @@ namespace PayrollAPI.DataModel.HRM
         }
         #endregion
 
-                public static ReservationCategoryResponse MapToResponse(this ReservationCategory category)
+        public static ReservationCategoryResponse MapToResponse(this ReservationCategory category)
         {
             return new ReservationCategoryResponse
             {
