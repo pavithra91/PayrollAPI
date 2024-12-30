@@ -15,6 +15,8 @@ namespace PayrollAPI.Models.Reservation
         public Bungalow bungalow { get; set; }
         public RaffleDraw raffleDraw { get; set; }
         public ReservationCategory reservationCategory { get; set; }
+        public CancellationCharges cancellationCharges { get; set; }
+
         public DateTime checkInDate { get; set; }
         public DateTime checkOutDate { get; set; }
         public int noOfAdults { get; set; }

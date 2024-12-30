@@ -229,6 +229,7 @@ namespace PayrollAPI.Data
             modelBuilder.ApplyConfiguration(new ReservationCategoryMapping());
             modelBuilder.ApplyConfiguration(new Bungalow_ReservationMapping());
             modelBuilder.ApplyConfiguration(new RaffleDrawMapping());
+            modelBuilder.ApplyConfiguration(new CancellationChargesMapping());
         }
 
         public DbSet<EmpApprovals> EmpApprovals => Set<EmpApprovals>();
@@ -251,7 +252,8 @@ namespace PayrollAPI.Data
         public DbSet<Bungalow> Bungalow => Set<Bungalow>();
         public DbSet<BungalowRates> BungalowRates => Set<BungalowRates>();
         public DbSet<ReservationCategory> ReservationCategory => Set<ReservationCategory>();
-        public DbSet<Bungalow_Reservation> Reservation => Set<Bungalow_Reservation>();
+        public DbSet<Bungalow_Reservation> Reservation => Set<Bungalow_Reservation>(); 
         public DbSet<RaffleDraw> RaffleDraw => Set<RaffleDraw>();
+        public DbSet<CancellationCharges> CancellationCharges => Set<CancellationCharges>();
     }
 }

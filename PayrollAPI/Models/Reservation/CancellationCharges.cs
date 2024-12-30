@@ -4,21 +4,20 @@ using static PayrollAPI.Data.EntityMapping.StatusMapper;
 
 namespace PayrollAPI.Models.Reservation
 {
-    public class RaffleDraw
+    public class CancellationCharges
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
-        public int RaffleDrawId { get; set; }
-
-        // Fks
+        public Bungalow_Reservation reservation { get; set; }
         public int reservationID { get; set; }
-        public Bungalow_Reservation bungalow_Reservation { get; set; }
-        public int rank { get; set; }
-
-        public BookingStatus bookingStatus { get; set; }
+        public Cancellation_Policy cancellation_Policy { get; set; }
+        public decimal cancellationFees { get; set; }
 
         // Logs
+        [Column(TypeName = "varchar(10)")]
+        public string? createdBy { get; set; }
+
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime createdDate { get; set; }
 
@@ -27,7 +26,7 @@ namespace PayrollAPI.Models.Reservation
 
         [Column(TypeName = "varchar(10)")]
         public string? lastUpdateBy { get; set; }
-        public DateTime lastUpdateDate { get; set; }
-        public DateTime lastUpdateTime { get; set; }
+        public DateTime? lastUpdateDate { get; set; }
+        public DateTime? lastUpdateTime { get; set; }
     }
 }

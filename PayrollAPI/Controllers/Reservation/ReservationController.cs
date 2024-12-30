@@ -178,7 +178,7 @@ namespace PayrollAPI.Controllers.Reservation
         [Route("cancel-reservation")]
         public async Task<IActionResult> CancelReservation([FromBody] ReservationCancellationRequest request)
         {
-            //await _reservation.CancelReservation(request);
+            await _reservation.CancelReservation(request);
 
             return Ok("success");
         }

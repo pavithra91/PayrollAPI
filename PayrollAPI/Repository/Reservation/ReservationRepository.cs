@@ -1,5 +1,6 @@
 ﻿using Leave.Contracts.Requests;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces.Payroll;
 using PayrollAPI.Interfaces.Reservation;
@@ -188,7 +189,7 @@ namespace PayrollAPI.Repository.Reservation
                         epf = Convert.ToInt32(reservation.employee.epf),
                         notificationType = NotificationType.Reservation,
                         createdDate = com.GetTimeZone(),
-                        type = 1,
+                        type = 4,
                         description = "Please confirm your Reservation",
                         markAsRead = false,
                         reference = reservation.id.ToString(),
@@ -217,6 +218,7 @@ namespace PayrollAPI.Repository.Reservation
                 _context.Reservation.Add(reservation);
                 await _context.SaveChangesAsync();
 
+                // Official Booking
                 if (reservation.reservationCategory.id == 5)
                 {
                     RaffleDraw raffleDraw = new RaffleDraw()
@@ -226,6 +228,8 @@ namespace PayrollAPI.Repository.Reservation
                         reservationID = reservation.id,
                         createdDate = com.GetTimeZone().Date,
                         createdTime = com.GetTimeZone(),
+                        lastUpdateDate = com.GetTimeZone().Date,
+                        lastUpdateTime = com.GetTimeZone(),
                         bungalow_Reservation = reservation,
                     };
 
@@ -273,6 +277,129 @@ namespace PayrollAPI.Repository.Reservation
                 await _context.SaveChangesAsync();
 
                 return await Task.FromResult(true);
+            }
+        }
+
+
+        public async Task<bool> CancelReservation(ReservationCancellationRequest request)
+        {
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                     var reservation = _context.Reservation.Where(x => x.id == request.id)
+                        .Include(x => x.bungalow)
+                        .Include(e => e.employee)
+                        .Include(r => r.raffleDraw)
+                        .FirstOrDefault();
+
+                    DateTime now = com.GetTimeZone().Date;
+                    TimeSpan difference = reservation.checkInDate - now;
+
+                    decimal amount = 0;
+
+                    if (reservation.reservationCost != null)
+                    {
+                        amount = reservation.reservationCost.Value;
+                    }
+
+                    if (difference.TotalDays <= 7)
+                    {
+                        CancellationCharges cancellationCharges = new CancellationCharges()
+                        {
+                            cancellation_Policy = Cancellation_Policy.Full_Cancellation,
+                            reservation = reservation,
+                            reservationID = reservation.id,
+                            cancellationFees = amount,
+                            createdDate = com.GetTimeZone().Date,
+                            createdTime = com.GetTimeZone(),
+                        };
+
+                        _context.CancellationCharges.Add(cancellationCharges);
+                    }
+                    else if (difference.TotalDays > 7 && difference.TotalDays < 30)
+                    {
+                        CancellationCharges cancellationCharges = new CancellationCharges()
+                        {
+                            cancellation_Policy = Cancellation_Policy.Full_Cancellation,
+                            reservation = reservation,
+                            reservationID = reservation.id,
+                            cancellationFees = amount / 2,
+                            createdDate = com.GetTimeZone().Date,
+                            createdTime = com.GetTimeZone(),
+                        };
+
+                        _context.CancellationCharges.Add(cancellationCharges);
+                    }
+
+                    reservation.bookingStatus = BookingStatus.Cancelled;
+
+                    reservation.lastUpdateBy = request.lastUpdateBy;
+                    reservation.lastUpdateDate = com.GetTimeZone().Date;
+                    reservation.lastUpdateTime = com.GetTimeZone();
+
+                    Notification notification = new Notification
+                    {
+                        epf = Convert.ToInt32(reservation.employee.epf),
+                        notificationType = NotificationType.Reservation,
+                        createdDate = com.GetTimeZone(),
+                        type = 5,
+                        description = "Your Reservation is Cancelled",
+                        markAsRead = false,
+                        reference = reservation.id.ToString(),
+                    };
+
+                    _context.Notification.Add(notification);
+
+                    if (reservation.raffleDraw != null)
+                    {
+                        reservation.raffleDraw.bookingStatus = BookingStatus.Cancelled;
+
+                        var nextRaffelDrawPosition = _context.RaffleDraw.Where(x => x.reservationID == request.id && x.rank == (reservation.raffleDraw.rank + 1))
+                        .Include(x => x.bungalow_Reservation)
+                        .ThenInclude(x => x.reservationCategory)
+                        .Include(e => e.bungalow_Reservation)
+                        .ThenInclude(e => e.employee)
+                        .FirstOrDefault();
+
+                        if (nextRaffelDrawPosition != null)
+                        {
+                            nextRaffelDrawPosition.bookingStatus = BookingStatus.Raffle_Winner;
+                            nextRaffelDrawPosition.bungalow_Reservation.bookingStatus = BookingStatus.Raffle_Winner;
+
+                            var reservationCost = _context.BungalowRates.Where(x => x.bungalow == reservation.bungalow
+                                && x.category == nextRaffelDrawPosition.bungalow_Reservation.reservationCategory)
+                                .FirstOrDefault();
+
+                            DateTime newCheckInDate = nextRaffelDrawPosition.bungalow_Reservation.checkInDate;
+                            TimeSpan noOfDays = nextRaffelDrawPosition.bungalow_Reservation.checkOutDate - newCheckInDate;
+
+                            nextRaffelDrawPosition.bungalow_Reservation.reservationCost = reservationCost.perDayCost * Convert.ToDecimal(noOfDays.TotalDays);
+
+                            Notification nextRaffelDrawPositionNotification = new Notification
+                            {
+                                epf = Convert.ToInt32(nextRaffelDrawPosition.bungalow_Reservation.employee.epf),
+                                notificationType = NotificationType.Reservation,
+                                createdDate = com.GetTimeZone(),
+                                type = 3,
+                                description = "You have won the Raffel Draw. Please confirm the Reservation",
+                                markAsRead = false,
+                                reference = nextRaffelDrawPosition.bungalow_Reservation.id.ToString(),
+                            };
+
+                            _context.Notification.Add(nextRaffelDrawPositionNotification);
+                        }
+                    }
+                    
+                    _context.SaveChanges();
+                    transaction.Commit();
+                    return await Task.FromResult(true);
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return await Task.FromResult(false);
+                }
             }
         }
 
@@ -366,6 +493,8 @@ namespace PayrollAPI.Repository.Reservation
                             bookingStatus = BookingStatus.Pending,
                             createdDate = com.GetTimeZone().Date,
                             createdTime = com.GetTimeZone(),
+                            lastUpdateDate = com.GetTimeZone().Date,
+                            lastUpdateTime = com.GetTimeZone(),
                             reservationID = allCompetitors[0].id,
                             rank = 1,
                             RaffleDrawId = next_Raffle_ID,
@@ -380,7 +509,7 @@ namespace PayrollAPI.Repository.Reservation
                             epf = Convert.ToInt32(allCompetitors[0].employee.epf),
                             notificationType = NotificationType.Reservation,
                             createdDate = com.GetTimeZone(),
-                            type = 1,
+                            type = 3,
                             description = "You have won the Raffel Draw. Please confirm the Reservation",
                             markAsRead = false,
                             reference = allCompetitors[0].id.ToString(),
@@ -463,6 +592,8 @@ namespace PayrollAPI.Repository.Reservation
                                 bungalow_Reservation = item,
                                 createdDate = com.GetTimeZone().Date,
                                 createdTime = com.GetTimeZone(),
+                                lastUpdateDate = com.GetTimeZone().Date,
+                                lastUpdateTime = com.GetTimeZone(),
                                 rank = rank,
                                 reservationID = item.id,
                                 RaffleDrawId = next_Raffle_ID,
@@ -483,7 +614,7 @@ namespace PayrollAPI.Repository.Reservation
                                     epf = Convert.ToInt32(allCompetitors[0].employee.epf),
                                     notificationType = NotificationType.Reservation,
                                     createdDate = com.GetTimeZone(),
-                                    type = 1,
+                                    type = 3,
                                     description = "You have won the Raffel Draw. Please confirm the Reservation",
                                     markAsRead = false,
                                     reference = allCompetitors[0].id.ToString(),
@@ -524,11 +655,56 @@ namespace PayrollAPI.Repository.Reservation
             foreach (var item in WinnerList) 
             {
                 DateTime now = com.GetTimeZone().Date;
-                TimeSpan difference = now - item.createdDate;
+                TimeSpan difference = now - item.lastUpdateDate;
 
                 if(difference.TotalDays > 4)
                 {
+                    item.bungalow_Reservation.bookingStatus = BookingStatus.Rejected;
 
+                    item.bookingStatus = BookingStatus.Rejected;
+
+                    Notification cancellationNotification = new Notification
+                    {
+                        epf = Convert.ToInt32(item.bungalow_Reservation.employee.epf),
+                        notificationType = NotificationType.Reservation,
+                        createdDate = com.GetTimeZone(),
+                        type = 1,
+                        description = "Your reservation was canceled due to non-confirmation.",
+                        markAsRead = false,
+                        reference = item.reservationID.ToString(),
+                    };
+
+                    _context.Notification.Add(cancellationNotification);
+
+                    int newRank = item.rank + 1;
+
+                    var nextWinner = _context.RaffleDraw.Where(x => x.rank == newRank && x.RaffleDrawId == item.RaffleDrawId)
+                        .Include(x => x.bungalow_Reservation)
+                        .ThenInclude(e=>e.employee)
+                        .FirstOrDefault();
+
+                    if (nextWinner != null)
+                    {
+                        nextWinner.bungalow_Reservation.bookingStatus = BookingStatus.Raffle_Winner;
+                        nextWinner.bookingStatus = BookingStatus.Raffle_Winner;
+                        nextWinner.lastUpdateDate = com.GetTimeZone().Date;
+                        nextWinner.lastUpdateTime = com.GetTimeZone();
+
+                        Notification notification = new Notification
+                        {
+                            epf = Convert.ToInt32(nextWinner.bungalow_Reservation.employee.epf),
+                            notificationType = NotificationType.Reservation,
+                            createdDate = com.GetTimeZone(),
+                            type = 3,
+                            description = "You have won the Raffel Draw. Please confirm the Reservation",
+                            markAsRead = false,
+                            reference = nextWinner.reservationID.ToString(),
+                        };
+
+                        _context.Notification.Add(notification);
+                    }
+
+                    _context.SaveChanges();
                 }
             }
 

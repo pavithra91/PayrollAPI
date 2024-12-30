@@ -38,5 +38,12 @@
             Reservation = 1,
             System = 2,
         }
+
+        public enum Cancellation_Policy
+        {
+            No_Cancellation = 0,
+            Half_Cancellation = 1,
+            Full_Cancellation = 2,
+        }
     }
 }

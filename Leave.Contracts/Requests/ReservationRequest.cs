@@ -31,6 +31,7 @@
         public string contactNumber_2 { get; init; }
         public string? nicNo { get; init; }
         public string? comments { get; init; }
+        public string? bookingStatus { get; init; }
         public string lastUpdateBy { get; init; }
     }
 }
