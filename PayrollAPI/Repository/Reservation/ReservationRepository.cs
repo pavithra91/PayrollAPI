@@ -1,4 +1,5 @@
-﻿using Leave.Contracts.Requests;
+﻿using DocumentFormat.OpenXml.InkML;
+using Leave.Contracts.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PayrollAPI.Data;
@@ -153,11 +154,25 @@ namespace PayrollAPI.Repository.Reservation
         }
         public async Task<Bungalow_Reservation> GetReservationById(int id)
         {
-            return await Task.FromResult(_context.Reservation.Where(x => x.id == id)
+            Bungalow_Reservation? bungalow_Reservation = _context.Reservation.Where(x => x.id == id)
                 .Include(x => x.employee)
                 .Include(x => x.bungalow)
                 .Include(x => x.reservationCategory)
-                .FirstOrDefault());
+                .FirstOrDefault();
+
+            if(bungalow_Reservation != null)
+            {
+                Notification? notification = _context.Notification.Where(x => x.reference == id.ToString()
+                    && x.epf == Convert.ToInt32(bungalow_Reservation.employee.epf)).FirstOrDefault();
+
+                if (notification != null)
+                {
+                    notification.markAsRead = true;
+                    _context.SaveChanges();
+                }
+            }         
+
+            return await Task.FromResult(bungalow_Reservation);
         }
         public async Task<bool> CreateReservation(Bungalow_Reservation reservation)
         {
@@ -202,7 +217,19 @@ namespace PayrollAPI.Repository.Reservation
                     await _context.SaveChangesAsync();
                     return await Task.FromResult(true);
                 }
-                
+
+
+                var overlappingReservations = _context.Reservation
+                    .Where(x => x.checkInDate <= reservation.checkOutDate && // Existing check-in is before or on new check-out
+                    x.checkOutDate >= reservation.checkInDate && x.bungalow == bungalow) // Existing check-out is after or on new check-in
+                    .ToList();
+
+                if(overlappingReservations.Count > 0 )
+                {
+                    return await Task.FromResult(false);
+                }
+
+
                 var propertyName  = Convert.ToInt32(sys_Properties.Where(x => x.variable_name == "Reservation_Gap").FirstOrDefault().variable_value) * -1;
 
                 DateTime reservationGap = reservation.checkInDate.AddMonths(propertyName);
