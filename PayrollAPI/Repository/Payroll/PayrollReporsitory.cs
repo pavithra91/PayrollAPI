@@ -25,6 +25,7 @@ namespace PayrollAPI.Repository.Payroll
         private readonly DBConnect _context;
         private readonly ILogger _logger;
         private readonly IBackgroundTaskQueue _taskQueue;
+        Common com = new Common();
         public PayrollReporsitory(DBConnect db, ILogger<PayrollReporsitory> logger, IBackgroundTaskQueue taskQueue)
         {
             _context = db;
@@ -54,7 +55,7 @@ namespace PayrollAPI.Repository.Payroll
                 int _previousPeriod = GetPreviousPeriod(approvalDto.period.ToString());
 
 
-                DateTime currentDate = DateTime.Now;
+                DateTime currentDate = com.GetTimeZone().Date;
                 DateTime previousMonth = currentDate.AddMonths(-1);
 
                 _previousPeriod = Convert.ToInt32(previousMonth.ToString("yyyyMM"));
@@ -346,8 +347,8 @@ namespace PayrollAPI.Repository.Payroll
 
                     _payRun.payrunBy = approvalDto.approvedBy;
                     _payRun.payrunStatus = "EPF/TAX Calculated";
-                    _payRun.payrunDate = DateTime.Now;
-                    _payRun.payrunTime = DateTime.Now;
+                    _payRun.payrunDate = com.GetTimeZone().Date;
+                    _payRun.payrunTime = com.GetTimeZone();
 
                     await _context.SaveChangesAsync();
 
@@ -417,10 +418,6 @@ namespace PayrollAPI.Repository.Payroll
                 {
                     foreach (Employee_Data emp in _emp)
                     {
-                        if (emp.epf == "11318")
-                        {
-
-                        }
                         ICollection<Payroll_Data> _empPayrollData = _payrollData.Where(o => o.epf == emp.epf).OrderBy(o => o.payCode).ToList();
 
                         decimal _grossTot = _empPayrollData.Where(o => o.payCategory == "0").Sum(w => w.amount);
@@ -474,8 +471,8 @@ namespace PayrollAPI.Repository.Payroll
 
                     _payRun.payrunBy = approvalDto.approvedBy;
                     _payRun.payrunStatus = "Unrec File Created";
-                    _payRun.payrunDate = DateTime.Now;
-                    _payRun.payrunTime = DateTime.Now;
+                    _payRun.payrunDate = com.GetTimeZone().Date;
+                    _payRun.payrunTime = com.GetTimeZone();
 
                     await _context.SaveChangesAsync();
 
@@ -567,7 +564,7 @@ namespace PayrollAPI.Repository.Payroll
                     _paysheetLog.epf = epf;
                     _paysheetLog.period = period;
                     _paysheetLog.companyCode = _selectedEmpData.companyCode;
-                    _paysheetLog.changeDate = DateTime.Now;
+                    _paysheetLog.changeDate = com.GetTimeZone();
                     _context.PaySheet_Log.Add(_paysheetLog);
                     _context.SaveChanges();
                 }

@@ -14,6 +14,7 @@ namespace PayrollAPI.Services
     public class PaysheetPrint
     {
         private readonly DBConnect _context;
+        
         public PaysheetPrint(DBConnect context)
         {
             _context = context;
@@ -22,17 +23,18 @@ namespace PayrollAPI.Services
         public async Task<MsgDto> PrintPaySheets(int companyCode, int period, string approvedBy)
         {
             MsgDto _msg = new MsgDto();
-
+            Common com = new Common();
             BackgroudJobs bj = new BackgroudJobs
             {
                 companyCode = companyCode,
                 period = period,
                 createdBy = approvedBy,
+                createdDate = com.GetTimeZone().Date,
+                createdTime = com.GetTimeZone(),
                 backgroudJobStatus = "Backgroud Job Started"
             };
 
             var objectsToSave = new List<PaySheet_Log>();
-            Common com = new Common();
 
 
             Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Send_SMS_PaySheet_View").FirstOrDefault();
@@ -133,8 +135,8 @@ namespace PayrollAPI.Services
                 if (_payRun != null)
                 {
                     _payRun.bankFileCreatedBy = approvedBy;
-                    _payRun.bankFileCreatedDate = DateTime.Now;
-                    _payRun.bankFileCreatedTime = DateTime.Now;
+                    _payRun.bankFileCreatedDate = com.GetTimeZone().Date;
+                    _payRun.bankFileCreatedTime = com.GetTimeZone();
 
                     _context.Entry(_payRun).State = EntityState.Modified;
                 }
@@ -158,7 +160,7 @@ namespace PayrollAPI.Services
                 }
 
                 bj.backgroudJobStatus = "Task Completed";
-                bj.finishedTime = DateTime.Now;
+                bj.finishedTime = com.GetTimeZone();
 
                 _context.BackgroudJobs.Add(bj);
                 _context.SaveChangesAsync();
