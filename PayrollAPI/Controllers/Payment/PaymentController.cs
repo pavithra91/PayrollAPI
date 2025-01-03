@@ -25,7 +25,9 @@ namespace PayrollAPI.Controllers.Payment
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetVoucherPayments([FromRoute] string id)
         {
-            var result = await _payment.GetVoucherPayments(id);
+            string decodedId = System.Web.HttpUtility.UrlDecode(id);
+
+            var result = await _payment.GetVoucherPayments(decodedId);
 
             return result == null ? NotFound() :
                 Ok(result.MapToResponse());

@@ -26,7 +26,7 @@ namespace PayrollAPI.Models.Payroll
         [Column(TypeName = "varchar(15)")]
         public string paymentCategory { get; set; }
 
-        [Column(TypeName = "varchar(10)")]
+        [Column(TypeName = "varchar(50)")]
         public string voucherNo { get; set; }
         public DateTime bankTransferDate { get; set; }
         public PaymentStatus paymentStatus { get; set; }
