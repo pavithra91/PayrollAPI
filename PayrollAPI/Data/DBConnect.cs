@@ -209,6 +209,8 @@ namespace PayrollAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //modelBuilder.Ignore<Reservation_Payments_View>().Entity<Reservation_Payments_View>().HasNoKey();
+
             modelBuilder.ApplyConfiguration(new EmpApprovalsMapping());
             modelBuilder.ApplyConfiguration(new LeaveApprovalMappings());
             modelBuilder.ApplyConfiguration(new LeaveBalanceMapping());
@@ -230,6 +232,11 @@ namespace PayrollAPI.Data
             modelBuilder.ApplyConfiguration(new Bungalow_ReservationMapping());
             modelBuilder.ApplyConfiguration(new RaffleDrawMapping());
             modelBuilder.ApplyConfiguration(new CancellationChargesMapping());
+
+            modelBuilder.Entity<Reservation_Payments_View>()
+            .ToView("Reservation_Payments_View") // The name of the view in the database
+            .HasNoKey() // Since it's a view, it doesn't have a primary key.
+            .ToTable("Reservation_Payments_View"); // Optional: this is just to specify the name of the view
         }
 
         public DbSet<EmpApprovals> EmpApprovals => Set<EmpApprovals>();
@@ -255,5 +262,7 @@ namespace PayrollAPI.Data
         public DbSet<Bungalow_Reservation> Reservation => Set<Bungalow_Reservation>(); 
         public DbSet<RaffleDraw> RaffleDraw => Set<RaffleDraw>();
         public DbSet<CancellationCharges> CancellationCharges => Set<CancellationCharges>();
+
+        public DbSet<Reservation_Payments_View> ReservationPayments { get; set; }
     }
 }

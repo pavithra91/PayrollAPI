@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.HRM;
 using PayrollAPI.Interfaces.Reservation;
+using PayrollAPI.Models.Reservation;
 
 namespace PayrollAPI.Controllers.Reservation
 {
@@ -193,6 +194,38 @@ namespace PayrollAPI.Controllers.Reservation
             return result == null ? NotFound() :
                 Ok(result);
 
+        }
+
+        [HttpGet("get-disabledatesbyId/{id:int}")]
+        [ProducesResponseType(typeof(List<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetRestrictedDates([FromRoute] int id)
+        {
+            var result = await _reservation.GetRestrictedDates(id);
+
+            return result == null ? NotFound() :
+                Ok(result);
+
+        }
+        #endregion
+
+        #region Reservation Payments
+        [HttpPost]
+        [Route("get-all-payments")]
+        [ProducesResponseType(typeof(IEnumerable<ReservationPaymentResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetReservationsPayments([FromBody] ReservationPaymentRequest request)
+        {
+            try
+            {
+                var result = await _reservation.GetReservationsPayments(request);
+
+                var _paymentsResponse = result.MapToResponse();
+                return Ok(_paymentsResponse);
+            }
+            catch (Exception ex) 
+            {
+                return BadRequest(ex.Message);
+            }
         }
         #endregion
 

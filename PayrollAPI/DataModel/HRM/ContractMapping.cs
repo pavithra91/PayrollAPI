@@ -587,6 +587,49 @@ namespace PayrollAPI.DataModel.HRM
         #endregion
 
 
+        #region Reservation Payments
+
+        public static ReservationPaymentResponse MapToResponse(this Reservation_Payments_View reservation)
+        {
+            string chargeType = "";
+            if (reservation.chargeType == "0")
+            {
+                chargeType = Cancellation_Policy.No_Cancellation.ToString();
+            }
+            else if (reservation.chargeType == "1")
+            {
+                chargeType = Cancellation_Policy.Half_Cancellation.ToString();
+            }
+            else if(reservation.chargeType == "2")
+            {
+                chargeType = Cancellation_Policy.Full_Cancellation.ToString();
+            }
+            else
+            {
+                chargeType = reservation.chargeType;
+            }
+            return new ReservationPaymentResponse
+            {
+                reservationId = reservation.reservationId,
+                status = reservation.status.ToString(),
+                chargeType = chargeType,
+                amount = reservation.amount,
+                categoryName = reservation.categoryName,
+                epf = reservation.epf,
+                checkInDate = reservation.checkInDate,
+                checkOutDate = reservation.checkOutDate,
+            };
+        }
+        public static ReservationPaymentsResponse MapToResponse(this IEnumerable<Reservation_Payments_View> reservations)
+        {
+            return new ReservationPaymentsResponse
+            {
+                Items = reservations.Select(MapToResponse)
+            };
+        }
+        #endregion
+
+
         #region Voucher Payments
         public static PaymentResponse MapToResponse(this OtherPayment payment)
         {

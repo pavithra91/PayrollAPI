@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.InkML;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.InkML;
 using Leave.Contracts.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -478,6 +479,62 @@ namespace PayrollAPI.Repository.Reservation
             }
 
             return await Task.FromResult(formattedDates);
+        }
+
+        public async Task<List<object>> GetRestrictedDates(int id)
+        {
+            var bungalow = _context.Bungalow.Where(x => x.id == id).FirstOrDefault();
+
+            var reservations = _context.Reservation
+                    .Where(x => x.reservationCategory.id == 5 && x.checkInDate >= DateTime.Now)
+                    .Select(x => new
+                    {
+                        x.checkInDate,
+                        x.checkOutDate
+                    })
+                    .ToList();
+
+                var reservation = _context.Reservation
+                    .Where(x => x.bungalow == bungalow && x.checkInDate < bungalow.nextRaffelDrawDate && x.checkInDate > com.GetTimeZone().Date
+                    && x.checkOutDate < bungalow.nextRaffelDrawDate && (x.bookingStatus != BookingStatus.Pending || x.bookingStatus != BookingStatus.Cancelled))
+                    .Select(x => new
+                    {
+                        x.checkInDate,
+                        x.checkOutDate
+                    })
+                    .ToList();
+
+                if (reservation != null)
+                {
+                    reservations.AddRange(reservation);
+                }
+
+            List<object> formattedDates = new List<object>();
+
+            foreach (var res in reservations)
+            {
+                DateTime current = res.checkInDate;
+                while (current <= res.checkOutDate)
+                {
+                    formattedDates.Add(new
+                    {
+                        day = current.Day,
+                        month = current.Month - 1
+                    });
+                    current = current.AddDays(1);
+                }
+            }
+
+            return await Task.FromResult(formattedDates);
+        }
+
+
+        public async Task<List<Reservation_Payments_View>> GetReservationsPayments(ReservationPaymentRequest request)
+        {
+            var formattedList = _context.ReservationPayments.Where(x => x.categoryId == request.category 
+            && x.checkInDate >= request.fromDate && x.checkInDate <= request.toDate).ToList();
+
+            return await Task.FromResult(formattedList);
         }
 
         public async Task<bool> RaffelDraw()
