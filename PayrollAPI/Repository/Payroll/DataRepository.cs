@@ -475,6 +475,17 @@ namespace PayrollAPI.Repository.Payroll
                     });
                 }
 
+                if(_tempPaymentList.Count > 0)
+                {
+                    bool isAlreadyUploaded = _context.OtherPayment.Where(x => x.voucherNo == _tempPaymentList[0].voucherNo).Any();
+                    if (isAlreadyUploaded)
+                    {
+                        _msg.MsgCode = 'E';
+                        _msg.Message = $"Error : Voucher No {_tempPaymentList[0].voucherNo} Already Transfered";
+                        return _msg;
+                    }
+                }
+
                 _context.BulkCopy(_tempPaymentList);
                 await _context.SaveChangesAsync();
                 transaction.Commit();

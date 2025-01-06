@@ -47,5 +47,19 @@ namespace PayrollAPI.Controllers.Payment
 
             return Ok(result);
         }
+
+        [HttpPost]
+        [Route("reset-voucher")]
+        public async Task<IActionResult> ResetVoucher([FromBody] PaymentResetRequest request)
+        {
+            var result = await _payment.ResetVoucher(request.voucherNo, request.lastUpdateBy);
+
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
     }
 }

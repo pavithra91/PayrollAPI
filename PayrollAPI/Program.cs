@@ -54,8 +54,9 @@ try
         options.AddPolicy(name: MyAllowSpecificOrigins,
                           policy =>
                           {
-                              policy.AllowAnyOrigin().AllowAnyHeader()
-                                                      .AllowAnyMethod();
+                              policy.AllowAnyOrigin()
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
                           });
     });
 

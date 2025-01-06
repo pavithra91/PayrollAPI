@@ -32,7 +32,7 @@ namespace PayrollAPI.Repository.Payment
             return await Task.FromResult(_context.OtherPayment.Where(x => x.voucherNo == voucherNo)
                 .AsEnumerable());
         }
-
+        
         public async Task<bool> ProcessVoucher(string voucherNo, DateTime processingDate, string processBy)
         {
             using var transaction = BeginTransaction();
@@ -86,6 +86,39 @@ namespace PayrollAPI.Repository.Payment
                 emailSender.SendEmail(properties, byteArray, voucherNo + ".txt", "text/plain");
 
                 transaction.Commit();
+
+                return await Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                return await Task.FromResult(false);
+            }
+        }
+
+        public async Task<bool> ResetVoucher(string voucherNo, string lastUpdateBy)
+        {
+            using var transaction = BeginTransaction();
+            try
+            {
+                var voucherPaymentList = await _context.OtherPayment.Where(x => x.voucherNo == voucherNo).ToListAsync();
+
+                if (voucherPaymentList.Count == 0)
+                {
+                    return await Task.FromResult(false);
+                }
+
+                foreach(var item in voucherPaymentList)
+                {
+                    item.paymentStatus = PaymentStatus.ReOpened;
+                    item.lastUpdateBy = lastUpdateBy;
+                    item.lastUpdateDate = com.GetTimeZone().Date;
+                    item.lastUpdateTime = com.GetTimeZone();
+                }
+
+                //_context.OtherPayment.Where(x => x.voucherNo == voucherNo).UpdateFromQuery(x => new OtherPayment { paymentStatus = PaymentStatus.ReOpened, lastUpdateBy = lastUpdateBy, lastUpdateDate = com.GetTimeZone().Date, lastUpdateTime = com.GetTimeZone() });
+
+                await _context.SaveChangesAsync();
 
                 return await Task.FromResult(true);
             }
