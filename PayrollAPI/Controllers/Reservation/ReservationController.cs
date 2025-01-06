@@ -153,9 +153,16 @@ namespace PayrollAPI.Controllers.Reservation
             var category = await _reservation.GetReservationCategoryById(request.category);
 
             var _reservationResponse = request.MapToReservation(emp, bungalow, category);
-            await _reservation.CreateReservation(_reservationResponse);
+            string Response = await _reservation.CreateReservation(_reservationResponse);
 
-            return CreatedAtAction(nameof(GetReservationById), new { id = _reservationResponse.id }, _reservationResponse);
+            if(Response == "Success")
+            {
+                return CreatedAtAction(nameof(GetReservationById), new { id = _reservationResponse.id }, _reservationResponse);
+            }
+            else
+            {
+                return Ok(new { status = "Error", msg = Response });
+            }
         }
 
         [HttpPut("update-reservation/{id:int}")]

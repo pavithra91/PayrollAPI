@@ -175,7 +175,7 @@ namespace PayrollAPI.Repository.Reservation
 
             return await Task.FromResult(bungalow_Reservation);
         }
-        public async Task<bool> CreateReservation(Bungalow_Reservation reservation)
+        public async Task<string> CreateReservation(Bungalow_Reservation reservation)
         {
             try
             {
@@ -185,12 +185,20 @@ namespace PayrollAPI.Repository.Reservation
 
                 if (bungalow.nextRaffelDrawDate > reservation.checkOutDate && reservation.checkInDate > com.GetTimeZone().Date)
                 {
-
                     BungalowRates? rate = _context.BungalowRates.Where(x => x.bungalow == reservation.bungalow && x.category == reservation.reservationCategory)
                         .FirstOrDefault();
 
                     if (rate == null) {
-                        return await Task.FromResult(false);
+                        return await Task.FromResult("No Rates Found for this Category");
+                    }
+
+                    bool ifPrevisouBooking = _context.Reservation
+                        .Include(e => e.employee)
+                        .Where(x => x.employee == reservation.employee && bungalow.nextRaffelDrawDate > reservation.checkOutDate && reservation.checkInDate > com.GetTimeZone().Date).Any();
+
+                    if(ifPrevisouBooking)
+                    {
+                        return await Task.FromResult("You Already Booked for This Period");
                     }
 
                     TimeSpan difference = reservation.checkOutDate - reservation.checkInDate;
@@ -213,10 +221,8 @@ namespace PayrollAPI.Repository.Reservation
 
                     _context.Notification.Add(notification);
 
-
-
                     await _context.SaveChangesAsync();
-                    return await Task.FromResult(true);
+                    return await Task.FromResult("Success");
                 }
 
 
@@ -227,7 +233,7 @@ namespace PayrollAPI.Repository.Reservation
 
                 if(overlappingReservations.Count > 0 )
                 {
-                    return await Task.FromResult(false);
+                    return await Task.FromResult("This Date Period is Already Reserved");
                 }
 
 
@@ -269,11 +275,11 @@ namespace PayrollAPI.Repository.Reservation
 
                 await _context.SaveChangesAsync();
 
-                return await Task.FromResult(true);
+                return await Task.FromResult("Success");
             }
             catch(Exception ex)
             {
-                return await Task.FromResult(false);
+                return await Task.FromResult(ex.Message);
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿using System.Data;
 using System.Text;
-using LinqToDB;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PayrollAPI.Data;
 using PayrollAPI.Interfaces.Payment;
@@ -41,6 +41,11 @@ namespace PayrollAPI.Repository.Payment
                 var voucherPaymentList = await _context.OtherPayment.Where(x => x.voucherNo == voucherNo).ToListAsync();
 
                 if (voucherPaymentList.Count == 0)
+                {
+                    return await Task.FromResult(false);
+                }
+
+                if (voucherPaymentList[0].paymentStatus == PaymentStatus.Processed)
                 {
                     return await Task.FromResult(false);
                 }
@@ -101,7 +106,8 @@ namespace PayrollAPI.Repository.Payment
             using var transaction = BeginTransaction();
             try
             {
-                var voucherPaymentList = await _context.OtherPayment.Where(x => x.voucherNo == voucherNo).ToListAsync();
+                var voucherPaymentList = await _context.OtherPayment.Where(x => x.voucherNo == voucherNo)
+                                            .ToListAsync();
 
                 if (voucherPaymentList.Count == 0)
                 {
@@ -109,7 +115,7 @@ namespace PayrollAPI.Repository.Payment
                 }
 
                 foreach(var item in voucherPaymentList)
-                {
+                {       
                     item.paymentStatus = PaymentStatus.ReOpened;
                     item.lastUpdateBy = lastUpdateBy;
                     item.lastUpdateDate = com.GetTimeZone().Date;
@@ -119,6 +125,7 @@ namespace PayrollAPI.Repository.Payment
                 //_context.OtherPayment.Where(x => x.voucherNo == voucherNo).UpdateFromQuery(x => new OtherPayment { paymentStatus = PaymentStatus.ReOpened, lastUpdateBy = lastUpdateBy, lastUpdateDate = com.GetTimeZone().Date, lastUpdateTime = com.GetTimeZone() });
 
                 await _context.SaveChangesAsync();
+                transaction.Commit();
 
                 return await Task.FromResult(true);
             }
