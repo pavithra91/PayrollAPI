@@ -166,6 +166,9 @@ try
     // Register the job class with DI
     builder.Services.AddScoped<BackgroudJob>();
     builder.Services.AddScoped<TempApprovalRemoveJob>();
+    builder.Services.AddScoped<RaffleConfirmationJob>();
+    builder.Services.AddScoped<RaffleDrawJob>();
+    builder.Services.AddScoped<BungalowReopenJob>();
     builder.Services.AddScoped<IJobSchedule, JobScheduleRepository>();
 
 
@@ -190,9 +193,9 @@ try
     {
         c.SwaggerDoc("v1", new OpenApiInfo
         {
-            Title = "CPSTL Payroll API",
-            Version = "v1",
-            Description = "CPSTL Payroll API is a robust tool designed to efficiently handle and process company's payroll data.",
+            Title = "CPSTL Employee Self Service (ESS) API",
+            Version = "v2",
+            Description = "CPSTL Employee Self Service API is a robust tool designed to efficiently handle and process company's payroll & Human Resource data.",
             Contact = new OpenApiContact
             {
                 Name = "R.A.P.B.M Jayasundara",
@@ -214,7 +217,7 @@ try
         app.UseSwaggerUI(
             c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "CPSTL Payroll API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "CPSTL Employee Self Service (ESS) API V2");
             });
     }
 

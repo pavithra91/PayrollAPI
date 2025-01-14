@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Interfaces.HRM;
+using PayrollAPI.Interfaces.Reservation;
 using PayrollAPI.Models.Services;
 using PayrollAPI.Repository.Services;
 using PayrollAPI.Services.BackgroudServices;
@@ -56,27 +57,47 @@ namespace PayrollAPI.Controllers.Services
             return Ok("Job scheduled successfully.");
         }
 
-        [HttpPost("run-job")]
-        public async Task<IActionResult> RunJob([FromBody] string jobName)
+        [HttpPut("update-scheduledJob/{id:int}")]
+        public async Task<IActionResult> UpdateScheduledJob([FromRoute] int id, [FromBody] UpdateScheduleJobRequest request)
         {
-            if (string.IsNullOrEmpty(jobName))
+            if (!CronExpression.IsValidExpression(request.cronExpression))
+            {
+                return BadRequest("Invalid Cron expression");
+            }
+
+            var updated = await _jobSchedule.UpdateCronExpressionAsync(id, request);
+
+            if (!updated)
+            {
+                return NotFound();
+            }
+
+            return Ok("success");
+        }
+
+        [HttpPost]
+        [Route("run-job")]
+        public async Task<IActionResult> RunJob([FromBody] ManageScheduleJobRequest request)
+        {
+            if (string.IsNullOrEmpty(request.jobName))
             {
                 return BadRequest("Job name cannot be empty.");
             }
 
-            await _jobSchedule.RunJobScheduleAsync(jobName);
+            await _jobSchedule.RunJobScheduleAsync(request.jobName);
             return Ok("Job scheduled successfully.");
         }
 
-        [HttpPost("pause-job")]
-        public async Task<IActionResult> PauseJob([FromBody] string jobName)
+        [HttpPost]
+        [Route("pause-job")]
+        public async Task<IActionResult> PauseJob([FromBody] ManageScheduleJobRequest request)
         {
-            if (string.IsNullOrEmpty(jobName))
+            if (string.IsNullOrEmpty(request.jobName))
             {
                 return BadRequest("Job name cannot be empty.");
             }
 
-            await _jobSchedule.PauseJobScheduleAsync(jobName);
+            await _jobSchedule.PauseJobScheduleAsync(request.jobName);
             return Ok("Job scheduled successfully.");
         }
     }

@@ -310,6 +310,8 @@ namespace PayrollAPI.Repository.Payroll
                     return null;
                 }
 
+                _user.failAttempts = 0;
+
                 Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Session_Timeout").FirstOrDefault();
                 int SessionTimeOut = 5;
 

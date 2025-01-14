@@ -538,6 +538,152 @@ namespace PayrollAPI.Repository.Payroll
         public async Task<MsgDto> GetPaySheet(string epf, int period)
         {
             MsgDto _msg = new MsgDto();
+            
+            DataTable dt = new DataTable();
+
+            try
+            {
+                Employee_Data? _selectedEmpData = _context.Employee_Data.
+        Where(o => o.period == period && o.epf == epf).FirstOrDefault();
+
+                if (_selectedEmpData == null)
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "No Employee Found";
+
+                    return _msg;
+                }
+
+                ICollection<Payroll_Data> _payData = await _context.Payroll_Data.
+                    Where(o => o.period == period && o.epf == epf).
+                    OrderBy(o => o.epf).ToListAsync();
+
+                ICollection<PayCode> _payCodes = await _context.PayCode.ToListAsync();
+
+                ICollection<Payroll_Data> _earningData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "0").OrderBy(o => o.epf).ToList();
+
+                var _earningDataResult = from payData in _earningData
+                                         join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                         into Earnings
+                                         where payData.epf == epf
+                                         from defaultVal in Earnings.DefaultIfEmpty()
+                                         orderby payData.payCode
+                                         select new
+                                         {
+                                             defaultVal.id,
+                                             name = defaultVal.description,
+                                             payData.payCode,
+                                             payData.amount,
+                                             payData.calCode,
+                                         };
+
+                ICollection<Payroll_Data> _deductionData = _payData.Where(o => o.displayOnPaySheet == true && o.payCategory == "1").OrderBy(o => o.epf).ToList();
+
+                var _deductionDataResult = from payData in _deductionData
+                                           join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                         into Deductions
+                                           where payData.epf == epf && payData.payCode > 0
+                                           from defaultVal in Deductions.DefaultIfEmpty()
+                                           orderby payData.payCode
+                                           select new
+                                           {
+                                               payData.id,
+                                               name = defaultVal.description,
+                                               payData.payCode,
+                                               payData.paytype,
+                                               payData.amount,
+                                               payData.balanceAmount,
+                                               payData.calCode,
+                                               payData.payCodeType,
+                                           };
+
+                var _empData = await _context.Employee_Data.
+                               Where(o => o.period == period && o.epf == epf).
+                               Select(e => new
+                               {
+                                   e.epf,
+                                   e.empName,
+                                   e.companyCode,
+                                   e.location,
+                                   e.costCenter,
+                                   e.empGrade,
+                                   e.gradeCode,
+                               }).ToListAsync();
+
+                var _salData = await _context.EPF_ETF.
+                   Where(o => o.period == period && o.epf == epf).
+                   Select(e => new
+                   {
+                       e.id,
+                       e.epfGross,
+                       e.taxableGross,
+                       e.tax,
+                       e.emp_contribution,
+                       e.comp_contribution,
+                       e.etf,
+                       e.deductionGross,
+                       e.unRecoveredTotal,
+                       e.grossAmount,
+                       e.netAmount,
+                       e.lumpsumTax,
+                   }).ToListAsync();
+
+                var _unrecovered = await _context.Unrecovered.
+                    Where(o => o.period == period && o.epf == epf).
+                    Select(e => new
+                    {
+                        e.id,
+                        e.payCode,
+                        e.calCode,
+                        e.amount
+                    }).ToListAsync();
+
+                var _loanDataResult = from payData in _deductionData
+                                      join payCode in _payCodes on payData.payCode equals payCode.payCode
+                                    into Deductions
+                                      where payData.epf == epf && payData.payCode > 0 && payData.balanceAmount > 0
+                                      from defaultVal in Deductions.DefaultIfEmpty()
+                                      orderby payData.payCode
+                                      select new
+                                      {
+                                          payData.id,
+                                          name = defaultVal.description,
+                                          payData.payCode,
+                                          payData.paytype,
+                                          payData.balanceAmount,
+                                          payData.amount,
+                                          payData.calCode,
+                                      };
+
+
+                dt.Columns.Add("empData");
+                dt.Columns.Add("salData");
+                dt.Columns.Add("earningData");
+                dt.Columns.Add("deductionData");
+                dt.Columns.Add("unRecoveredData");
+                dt.Columns.Add("loanData");
+                dt.Rows.Add(JsonConvert.SerializeObject(_empData), JsonConvert.SerializeObject(_salData), JsonConvert.SerializeObject(_earningDataResult), JsonConvert.SerializeObject(_deductionDataResult), JsonConvert.SerializeObject(_unrecovered), JsonConvert.SerializeObject(_loanDataResult));
+
+                _msg.Data = JsonConvert.SerializeObject(dt).Replace('/', ' ');
+                _msg.MsgCode = 'S';
+                _msg.Message = "Success";
+
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"get-paysheet : {ex.Message}");
+                _logger.LogError($"get-paysheet : {ex.InnerException}");
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> UploadPaysheet(string epf, int period)
+        {
+            MsgDto _msg = new MsgDto();
             int _paysheetCounter = 1000000;
             Random random = new Random();
             int randomNumber = random.Next(1000000, 9999999);

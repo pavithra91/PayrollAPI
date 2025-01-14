@@ -800,5 +800,29 @@ namespace PayrollAPI.Repository.Reservation
 
             return await Task.FromResult(true);
         }
+
+        public async Task<bool> BungalowReopenJob()
+        {
+            var closedBungalowList = _context.Bungalow.Where(x=>x.isCloded == true).ToList();
+
+            if(closedBungalowList.Count == 0)
+            {
+                return await Task.FromResult(false);
+            }
+            else
+            {
+                foreach(var bungalow in closedBungalowList)
+                {
+                    DateTime today = com.GetTimeZone().Date;
+                    if (bungalow.reopenDate.GetValueOrDefault().Date == today)
+                    {
+                        bungalow.isCloded = false;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                return await Task.FromResult(true);
+            }
+        }
     }
 }

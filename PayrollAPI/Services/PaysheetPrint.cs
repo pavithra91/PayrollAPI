@@ -70,7 +70,7 @@ namespace PayrollAPI.Services
                 var paysheetLogEpfs = _paysheetLog.Select(p => p.epf).ToHashSet();
                 _empData = _empData.Where(e => !paysheetLogEpfs.Contains(e.epf)).ToList();
 
-                int _paysheetCounter = 3000;
+                int _paysheetCounter = 50000;
                 Random random = new Random();
                 int randomNumber = random.Next(1, 11);
 
@@ -486,11 +486,11 @@ namespace PayrollAPI.Services
             try
             {
                 Common com = new Common();
-                var imagePath = Path.Combine("/app", "logo.jpg");
-                //var imagePath = Path.Combine("C:\\Users\\17532\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\logo.jpg");
+                //var imagePath = Path.Combine("/app", "logo.jpg");
+                var imagePath = Path.Combine("C:\\Users\\Pavithra\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\logo.jpg");
 
-                //var watermarkImagePath = Path.Combine("C:\\Users\\17532\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\Draft.png");
-                var watermarkImagePath = Path.Combine("/app", "Draft.png");
+                var watermarkImagePath = Path.Combine("C:\\Users\\Pavithra\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\Draft.png");
+                //var watermarkImagePath = Path.Combine("/app", "Draft.png");
                 XImage watermarkImage = XImage.FromFile(watermarkImagePath);
                 gfx.DrawImage(watermarkImage, 50, 130, 500, 500);
 

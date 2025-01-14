@@ -33,5 +33,6 @@ namespace PayrollAPI.Interfaces.Reservation
 
         Task<bool> RaffelDraw();
         Task<bool> WinnerConfirmation();
+        Task<bool> BungalowReopenJob();
     }
 }

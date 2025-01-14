@@ -1,4 +1,5 @@
-﻿using PayrollAPI.Data;
+﻿using Leave.Contracts.Requests;
+using PayrollAPI.Data;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Models.HRM;
 using PayrollAPI.Models.Services;
@@ -22,19 +23,31 @@ namespace PayrollAPI.Repository.Services
             return await Task.FromResult(_context.JobSchedule.AsEnumerable());
         }
 
+        public async Task<JobSchedule> GetJobScheduleById(int id)
+        {
+            return _context.JobSchedule.FirstOrDefault(js => js.id == id);
+        }
+
         public async Task<JobSchedule> GetJobScheduleAsync(string jobName)
         {
             return _context.JobSchedule.FirstOrDefault(js => js.jobName == jobName);
         }
 
-        public async Task UpdateCronExpressionAsync(int jobId, string newCronExpression)
+        public async Task<bool> UpdateCronExpressionAsync(int jobId, UpdateScheduleJobRequest request)
         {
             var jobSchedule = await _context.JobSchedule.FindAsync(jobId);
             if (jobSchedule != null)
             {
-                jobSchedule.cronExpression = newCronExpression;
+                jobSchedule.cronExpression = request.cronExpression;
+                jobSchedule.lastUpdateBy = request.lastUpdateBy;
                 jobSchedule.lastUpdateDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+
+                return await Task.FromResult(true);
+            }
+            else
+            {
+                return await Task.FromResult(false);
             }
         }
 
@@ -52,13 +65,19 @@ namespace PayrollAPI.Repository.Services
             JobSchedule jobSchedule = _context.JobSchedule.FirstOrDefault(js => js.jobName == jobName);
             JobSchedulerService jobScheduler = new JobSchedulerService(_schedulerFactory);
             jobScheduler.ScheduleJobs(jobSchedule);
+
+            jobSchedule.isActive = true;
+            await _context.SaveChangesAsync();
         }
 
         public async Task PauseJobScheduleAsync(string jobName)
         {
             JobSchedule jobSchedule = _context.JobSchedule.FirstOrDefault(js => js.jobName == jobName);
             JobSchedulerService jobScheduler = new JobSchedulerService(_schedulerFactory);
-            jobScheduler.ScheduleJobs(jobSchedule);
+            jobScheduler.PauseJobs(jobSchedule);
+
+            jobSchedule.isActive = false;
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using PayrollAPI.Models.HRM;
+﻿using Leave.Contracts.Requests;
+using PayrollAPI.Models.HRM;
 using PayrollAPI.Models.Services;
 
 namespace PayrollAPI.Interfaces
@@ -8,9 +9,9 @@ namespace PayrollAPI.Interfaces
         Task<IEnumerable<JobSchedule>> GetAllScheduledJobs();
 
 
-
-        public Task<JobSchedule> GetJobScheduleAsync(string jobName);
-        Task UpdateCronExpressionAsync(int jobId, string newCronExpression);
+        Task<JobSchedule> GetJobScheduleById(int id);
+        Task<JobSchedule> GetJobScheduleAsync(string jobName);
+        Task<bool> UpdateCronExpressionAsync(int jobId, UpdateScheduleJobRequest request);
         Task AddJobScheduleAsync(JobSchedule jobSchedule);
 
         Task RunJobScheduleAsync(string jobName);

@@ -23,9 +23,26 @@ namespace PayrollAPI.Services.BackgroudServices
                         .WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
                         .Build();
                     break;
-
+                    
                 case "tempremovejob":
                     job = JobBuilder.Create<TempApprovalRemoveJob>()
+                        .WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
+                        .Build();
+                    break;
+                case "raffle_draw":
+                    job = JobBuilder.Create<RaffleDrawJob>()
+                        .WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
+                        .Build();
+                    break;
+
+                case "raffle_draw_con":
+                    job = JobBuilder.Create<RaffleConfirmationJob>()
+                        .WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
+                        .Build();
+                    break;
+
+                case "bungalow_reopen":
+                    job = JobBuilder.Create<BungalowReopenJob>()
                         .WithIdentity(jobSchedule.jobName, jobSchedule.groupName)
                         .Build();
                     break;
