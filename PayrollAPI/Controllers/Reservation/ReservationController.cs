@@ -183,6 +183,15 @@ namespace PayrollAPI.Controllers.Reservation
         }
 
         [HttpPost]
+        [Route("confirm-reservation")]
+        public async Task<IActionResult> ConfirmReservation([FromBody] ReservationConfirmationRequest request)
+        {
+            await _reservation.ConfirmReservation(request);
+
+            return Ok("success");
+        }
+
+        [HttpPost]
         [Route("cancel-reservation")]
         public async Task<IActionResult> CancelReservation([FromBody] ReservationCancellationRequest request)
         {

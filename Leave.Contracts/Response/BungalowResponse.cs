@@ -11,8 +11,9 @@
         public int noOfRooms { get; init; }
         public int maxBookingPeriod { get; init; }
         public int maxOccupancy { get; init; }
-        public bool isCloded { get; init; }
+        public bool isClosed { get; init; }
         public DateTime? reopenDate { get; init; }
+        public DateTime? nextRaffelDrawDate { get; init; }
         public string contactNumber { get; init; }
         public string? createdBy { get; init; }
         public RatesResponse? bungalowRates { get; init; }

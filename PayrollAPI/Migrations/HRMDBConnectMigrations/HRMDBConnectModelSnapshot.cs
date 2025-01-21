@@ -66,7 +66,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("employeeid");
 
-                    b.ToTable("AdvancePayment");
+                    b.ToTable("AdvancePayment", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.EmpApprovalWorkflow", b =>
@@ -92,7 +92,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("empApprovalIdid");
 
-                    b.ToTable("EmpApprovalWorkflow");
+                    b.ToTable("EmpApprovalWorkflow", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.EmpApprovals", b =>
@@ -133,7 +133,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("employeeid");
 
-                    b.ToTable("EmpApprovals");
+                    b.ToTable("EmpApprovals", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.Employee", b =>
@@ -198,7 +198,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("workflowLevelid");
 
-                    b.ToTable("Employee");
+                    b.ToTable("Employee", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.EmployeeGrade", b =>
@@ -237,7 +237,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasKey("id");
 
-                    b.ToTable("EmployeeGrade");
+                    b.ToTable("EmployeeGrade", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.LeaveApproval", b =>
@@ -296,7 +296,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("requestIdleaveRequestId");
 
-                    b.ToTable("LeaveApproval");
+                    b.ToTable("LeaveApproval", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.LeaveBalance", b =>
@@ -352,7 +352,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("leaveTypeId");
 
-                    b.ToTable("LeaveBalance");
+                    b.ToTable("LeaveBalance", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.LeaveRequest", b =>
@@ -436,7 +436,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("leaveTypeId");
 
-                    b.ToTable("LeaveRequest");
+                    b.ToTable("LeaveRequest", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.LeaveType", b =>
@@ -483,7 +483,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasKey("leaveTypeId");
 
-                    b.ToTable("LeaveType");
+                    b.ToTable("LeaveType", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.Notification", b =>
@@ -523,7 +523,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Notification");
+                    b.ToTable("Notification", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.Supervisor", b =>
@@ -577,7 +577,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("epfid");
 
-                    b.ToTable("Supervisor");
+                    b.ToTable("Supervisor", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.WorkflowTypes", b =>
@@ -614,7 +614,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasKey("id");
 
-                    b.ToTable("WorkflowTypes");
+                    b.ToTable("WorkflowTypes", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Reservation.Bungalow", b =>
@@ -684,7 +684,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Bungalow");
+                    b.ToTable("Bungalow", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Reservation.BungalowRates", b =>
@@ -730,7 +730,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("categoryid");
 
-                    b.ToTable("BungalowRates");
+                    b.ToTable("BungalowRates", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Reservation.Bungalow_Reservation", b =>
@@ -818,7 +818,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasIndex("reservationCategoryid");
 
-                    b.ToTable("Reservation");
+                    b.ToTable("Reservation", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Reservation.CancellationCharges", b =>
@@ -863,7 +863,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.HasIndex("reservationID")
                         .IsUnique();
 
-                    b.ToTable("CancellationCharges");
+                    b.ToTable("CancellationCharges", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Reservation.RaffleDraw", b =>
@@ -908,7 +908,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
                     b.HasIndex("reservationID")
                         .IsUnique();
 
-                    b.ToTable("RaffleDraw");
+                    b.ToTable("RaffleDraw", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Reservation.ReservationCategory", b =>
@@ -947,7 +947,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasKey("id");
 
-                    b.ToTable("ReservationCategory");
+                    b.ToTable("ReservationCategory", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.Services.JobSchedule", b =>
@@ -992,7 +992,7 @@ namespace PayrollAPI.Migrations.HRMDBConnectMigrations
 
                     b.HasKey("id");
 
-                    b.ToTable("JobSchedule");
+                    b.ToTable("JobSchedule", (string)null);
                 });
 
             modelBuilder.Entity("PayrollAPI.Models.HRM.AdvancePayment", b =>

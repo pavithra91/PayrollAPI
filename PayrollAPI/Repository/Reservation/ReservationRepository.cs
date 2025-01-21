@@ -78,7 +78,7 @@ namespace PayrollAPI.Repository.Reservation
                 existingBungalow.address = bungalow.address;
                 existingBungalow.description = bungalow.description;
                 existingBungalow.contactNumber = bungalow.contactNumber;
-                existingBungalow.isCloded = bungalow.isCloded;
+                existingBungalow.isClosed = bungalow.isClosed;
                 existingBungalow.mainImg = bungalow.mainImg;
                 existingBungalow.maxBookingPeriod = bungalow.maxBookingPeriod;
                 existingBungalow.maxOccupancy = bungalow.maxOccupancy;
@@ -225,13 +225,18 @@ namespace PayrollAPI.Repository.Reservation
                     return await Task.FromResult("Success");
                 }
 
-
                 var overlappingReservations = _context.Reservation
-                    .Where(x => x.checkInDate <= reservation.checkOutDate && // Existing check-in is before or on new check-out
-                    x.checkOutDate >= reservation.checkInDate && x.bungalow == bungalow) // Existing check-out is after or on new check-in
+                    .Where(x =>
+                        x.bungalow == bungalow &&
+                        (
+                            (x.checkInDate < reservation.checkOutDate && x.checkOutDate > reservation.checkInDate) || // Overlap case
+                            (x.checkInDate >= reservation.checkInDate && x.checkOutDate <= reservation.checkOutDate)   // Fully inside case
+                        ) &&
+                        !(x.checkInDate == reservation.checkInDate && x.checkOutDate == reservation.checkOutDate) // Exclude exact match
+                    )
                     .ToList();
 
-                if(overlappingReservations.Count > 0 )
+                if (overlappingReservations.Count > 0 )
                 {
                     return await Task.FromResult("This Date Period is Already Reserved");
                 }
@@ -314,7 +319,45 @@ namespace PayrollAPI.Repository.Reservation
             }
         }
 
+        public async Task<bool> ConfirmReservation(ReservationConfirmationRequest request)
+        {
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    Bungalow_Reservation? reservation = _context.Reservation.Where(x => x.id == request.id)
+                                                                           .Include(x => x.raffleDraw)
+                                                                           .FirstOrDefault();
 
+                    if (reservation != null)
+                    {
+                        reservation.bookingStatus = BookingStatus.Confirmed;
+                        reservation.lastUpdateBy = request.lastUpdateBy;
+                        reservation.lastUpdateDate = com.GetTimeZone().Date;
+                        reservation.lastUpdateTime = com.GetTimeZone();
+
+                        reservation.raffleDraw.bookingStatus = BookingStatus.Confirmed;
+                        reservation.raffleDraw.lastUpdateBy = request.lastUpdateBy;
+                        reservation.raffleDraw.lastUpdateDate = com.GetTimeZone().Date;
+                        reservation.raffleDraw.lastUpdateTime = com.GetTimeZone();
+
+                        _context.SaveChanges();
+                    }
+                    else
+                    {
+                        return await Task.FromResult(false);
+                    }
+
+                    transaction.Commit();
+                    return await Task.FromResult(true);
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return await Task.FromResult(false);
+                }
+            }
+        }
         public async Task<bool> CancelReservation(ReservationCancellationRequest request)
         {
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
@@ -551,7 +594,7 @@ namespace PayrollAPI.Repository.Reservation
                 //DateTime nextReffelDrawDate = DateTime.Now;
                 DateTime reffelDate = DateTime.Now.AddDays(dayCount);
 
-                var bungalowList = _context.Bungalow.Where(x => x.isCloded == false)
+                var bungalowList = _context.Bungalow.Where(x => x.isClosed == false)
                     .Include(r=>r.rates).ToList();
 
                 var sys_Properties = await _admin.GetSystemProperties("Bungalow_Reservation");
@@ -666,12 +709,21 @@ namespace PayrollAPI.Repository.Reservation
                         lowPriorityRetired = lowPriorityRetired.OrderBy(u => rng.Next()).ToList();
                         external = external.OrderBy(u => rng.Next()).ToList();
 
-                        var raffelDrawOrder = highPriorityCPSTL.Concat(highPriorityCPC).ToList();
-                        raffelDrawOrder.Concat(highPriorityRetired).ToList();
-                        raffelDrawOrder.Concat(lowPriorityCPSTL).ToList();
-                        raffelDrawOrder.Concat(lowPriorityCPC).ToList();
-                        raffelDrawOrder.Concat(lowPriorityRetired).ToList();
-                        raffelDrawOrder.Concat(external).ToList();
+                        //var raffelDrawOrder = highPriorityCPSTL.Concat(highPriorityCPC).ToList();
+                        //raffelDrawOrder.Concat(highPriorityRetired).ToList();
+                        //raffelDrawOrder.Concat(lowPriorityCPSTL).ToList();
+                        //raffelDrawOrder.Concat(lowPriorityCPC).ToList();
+                        //raffelDrawOrder.Concat(lowPriorityRetired).ToList();
+                        //raffelDrawOrder.Concat(external).ToList();
+
+                        var raffelDrawOrder = new List<Bungalow_Reservation>();
+                        raffelDrawOrder.AddRange(highPriorityCPSTL);
+                        raffelDrawOrder.AddRange(highPriorityCPC);
+                        raffelDrawOrder.AddRange(highPriorityRetired);
+                        raffelDrawOrder.AddRange(lowPriorityCPSTL);
+                        raffelDrawOrder.AddRange(lowPriorityCPC);
+                        raffelDrawOrder.AddRange(lowPriorityRetired);
+                        raffelDrawOrder.AddRange(external);
 
                         int rank = 1;
                         foreach (var item in raffelDrawOrder)
@@ -803,7 +855,7 @@ namespace PayrollAPI.Repository.Reservation
 
         public async Task<bool> BungalowReopenJob()
         {
-            var closedBungalowList = _context.Bungalow.Where(x=>x.isCloded == true).ToList();
+            var closedBungalowList = _context.Bungalow.Where(x=>x.isClosed == true).ToList();
 
             if(closedBungalowList.Count == 0)
             {
@@ -816,7 +868,7 @@ namespace PayrollAPI.Repository.Reservation
                     DateTime today = com.GetTimeZone().Date;
                     if (bungalow.reopenDate.GetValueOrDefault().Date == today)
                     {
-                        bungalow.isCloded = false;
+                        bungalow.isClosed = false;
                         await _context.SaveChangesAsync();
                     }
                 }

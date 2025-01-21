@@ -24,6 +24,7 @@ namespace PayrollAPI.Interfaces.Reservation
         Task<Bungalow_Reservation> GetReservationById(int id);
         Task<string> CreateReservation(Bungalow_Reservation reservation);
         Task<bool> UpdateReservation(int id, Bungalow_Reservation reservation);
+        Task<bool> ConfirmReservation(ReservationConfirmationRequest request);
         Task<bool> CancelReservation(ReservationCancellationRequest request);
         Task<List<object>> GetRestrictedDates();
         Task<List<object>> GetRestrictedDates(int id);

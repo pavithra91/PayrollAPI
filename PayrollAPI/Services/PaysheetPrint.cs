@@ -486,11 +486,11 @@ namespace PayrollAPI.Services
             try
             {
                 Common com = new Common();
-                //var imagePath = Path.Combine("/app", "logo.jpg");
-                var imagePath = Path.Combine("C:\\Users\\Pavithra\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\logo.jpg");
+                var imagePath = Path.Combine("/app", "logo.jpg");
+                //var imagePath = Path.Combine("C:\\Users\\Pavithra\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\logo.jpg");
 
-                var watermarkImagePath = Path.Combine("C:\\Users\\Pavithra\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\Draft.png");
-                //var watermarkImagePath = Path.Combine("/app", "Draft.png");
+                //var watermarkImagePath = Path.Combine("C:\\Users\\Pavithra\\source\\repos\\pavithra91\\PayrollAPI\\PayrollAPI\\Draft.png");
+                var watermarkImagePath = Path.Combine("/app", "Draft.png");
                 XImage watermarkImage = XImage.FromFile(watermarkImagePath);
                 gfx.DrawImage(watermarkImage, 50, 130, 500, 500);
 
