@@ -2,6 +2,7 @@
 using Leave.Contracts.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.Authentication;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.HRM;
 
@@ -9,7 +10,8 @@ namespace PayrollAPI.Controllers.HRM
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class LeaveController : ControllerBase
     {
         private readonly ILeave _leave;

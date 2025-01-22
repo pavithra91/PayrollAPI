@@ -1,7 +1,9 @@
 ﻿using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.Authentication;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces;
 using PayrollAPI.Interfaces.HRM;
@@ -15,6 +17,8 @@ namespace PayrollAPI.Controllers.Services
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class JobScheduleController : ControllerBase
     {
         private readonly IJobSchedule _jobSchedule;

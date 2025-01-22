@@ -1,8 +1,10 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
 using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.Authentication;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.Payment;
 using PayrollAPI.Interfaces.Reservation;
@@ -12,6 +14,8 @@ namespace PayrollAPI.Controllers.Payment
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class PaymentController : ControllerBase
     {
         private readonly IPayment _payment;

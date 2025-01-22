@@ -46,28 +46,34 @@ namespace PayrollAPI.Repository.HRM
 
         public async Task<IEnumerable<Employee>> GetEmployeesByGrade(string epf)
         {
-            Employee emp = _context.Employee.Include(x => x.empGrade)
-                .Where(x => x.epf == epf).FirstOrDefault();
-
-            var eligibleGrades = GradeHelper.GetEligibleGrades(emp.empGrade.gradeCode);
-
-            List<Employee> result = null;
-
-            // Start by querying with the initial eligible grades
-            result = QueryEmployeesByGrades(eligibleGrades, emp);
-
-            // If no employees were found, try expanding the eligible grades and query again
-            if (result == null || !result.Any())
+            try
             {
-                var expandedGrades = new List<string>(eligibleGrades);
-                ExpandEligibleGrades(ref expandedGrades, emp);
+                Employee emp = _context.Employee.Include(x => x.empGrade)
+                    .Where(x => x.epf == epf).FirstOrDefault();
 
-                // Query again with the expanded grades
-                result = QueryEmployeesByGrades(expandedGrades, emp);
+                var eligibleGrades = GradeHelper.GetEligibleGrades(emp.empGrade.gradeCode);
+
+                List<Employee> result = null;
+
+                // Start by querying with the initial eligible grades
+                result = QueryEmployeesByGrades(eligibleGrades, emp);
+
+                // If no employees were found, try expanding the eligible grades and query again
+                if (result == null || !result.Any())
+                {
+                    var expandedGrades = new List<string>(eligibleGrades);
+                    ExpandEligibleGrades(ref expandedGrades, emp);
+
+                    // Query again with the expanded grades
+                    result = QueryEmployeesByGrades(expandedGrades, emp);
+                }
+
+                return result;
             }
-
-            return result;
-            
+            catch(Exception ex)
+            {
+                return null;
+            }
         }
 
         public async Task<IEnumerable<Supervisor>> GetAllSupervisors(string costCenter)

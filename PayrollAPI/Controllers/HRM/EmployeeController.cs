@@ -1,7 +1,9 @@
 ﻿using Leave.Contracts.Requests;
 using Leave.Contracts.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Asn1.Ocsp;
+using PayrollAPI.Authentication;
 using PayrollAPI.DataModel.HRM;
 using PayrollAPI.Interfaces.HRM;
 
@@ -9,6 +11,8 @@ namespace PayrollAPI.Controllers.HRM
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployee _employee;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PayrollAPI.Authentication;
 using PayrollAPI.DataModel;
 using PayrollAPI.Interfaces.Payroll;
 
@@ -8,6 +9,7 @@ namespace PayrollAPI.Controllers.Payroll
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class HelpController : ControllerBase
     {
         private readonly IHelp _help;
