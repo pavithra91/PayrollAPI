@@ -483,7 +483,7 @@ namespace PayrollAPI.Repository.Reservation
         public async Task<List<object>> GetRestrictedDates()
         {
             var reservations = _context.Reservation
-                    .Where(x => x.reservationCategory.id == 5 && x.checkInDate >= DateTime.Now)
+                    .Where(x => x.reservationCategory.id == 5 && x.checkInDate >= com.GetTimeZone())
                     .Select(x => new
                     {
                         x.checkInDate,
@@ -535,7 +535,7 @@ namespace PayrollAPI.Repository.Reservation
             var bungalow = _context.Bungalow.Where(x => x.id == id).FirstOrDefault();
 
             var reservations = _context.Reservation
-                    .Where(x => x.reservationCategory.id == 5 && x.checkInDate >= DateTime.Now)
+                    .Where(x => x.reservationCategory.id == 5 && x.checkInDate >= com.GetTimeZone())
                     .Select(x => new
                     {
                         x.checkInDate,
@@ -590,9 +590,22 @@ namespace PayrollAPI.Repository.Reservation
         {
             try
             {
+                Notification notification1 = new Notification
+                {
+                    epf = 17532,
+                    markAsRead = false,
+                    type = 1,
+                    createdDate = com.GetTimeZone(),
+                    notificationType = NotificationType.Reservation,
+                    description = "Raffel Draw Started",
+                };
+
+                _context.Notification.Add(notification1);
+                _context.SaveChanges();
+
                 int dayCount = 31;
                 //DateTime nextReffelDrawDate = DateTime.Now;
-                DateTime reffelDate = DateTime.Now.AddDays(dayCount);
+                DateTime reffelDate = com.GetTimeZone().AddDays(dayCount);
 
                 var bungalowList = _context.Bungalow.Where(x => x.isClosed == false)
                     .Include(r=>r.rates).ToList();
@@ -613,6 +626,19 @@ namespace PayrollAPI.Repository.Reservation
                         .Include(e => e.employee)
                         .Include(r => r.reservationCategory)
                         .ToList();
+
+                    Notification notification2 = new Notification
+                    {
+                        epf = 17532,
+                        markAsRead = false,
+                        type = 1,
+                        createdDate = com.GetTimeZone(),
+                        notificationType = NotificationType.Reservation,
+                        description = "no of competitors : " + allCompetitors.Count,
+                    };
+
+                    _context.Notification.Add(notification2);
+                    _context.SaveChanges();
 
                     if (allCompetitors.Count == 0)
                     {
@@ -785,6 +811,19 @@ namespace PayrollAPI.Repository.Reservation
             }
             catch (Exception ex) 
             {
+                Notification notification3 = new Notification
+                {
+                    epf = 17532,
+                    markAsRead = false,
+                    type = 1,
+                    createdDate = com.GetTimeZone(),
+                    notificationType = NotificationType.Reservation,
+                    description = "Error : " + ex.Message,
+                };
+
+                _context.Notification.Add(notification3);
+                _context.SaveChanges();
+
                 return await Task.FromResult(false);
             }
         }
