@@ -139,10 +139,10 @@ namespace PayrollAPI.Controllers.Payroll
         /// <returns></returns>
         [Route("reset-password")]
         [HttpPost]
-        public IActionResult ResetPassword([FromBody] UserDto usrDto)
+        public IActionResult ResetPassword([FromBody] PwdResetDto usrDto)
         {
 
-            bool _user = _usr.ResetPassword(usrDto.userID, usrDto.password);
+            bool _user = _usr.ResetPassword(usrDto.lastUpdateBy, usrDto.password);
 
             if (_user)
                 return Ok(_user);

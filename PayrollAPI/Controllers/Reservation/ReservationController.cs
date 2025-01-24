@@ -249,13 +249,27 @@ namespace PayrollAPI.Controllers.Reservation
         }
         #endregion
 
-        [HttpPost]
-        [Route("raffel-draw")]
-        public async Task<IActionResult> RaffelDraw()
+        #region Raffle Draw
+        [HttpGet]
+        [Route("get-raffle-draw-details")]
+        public async Task<IActionResult> GetRaffleDrawDetails()
         {
-            var result = await _reservation.RaffelDraw();
+            var result = await _reservation.GetRaffleDrawDetails(DateTime.Now);
 
             return Ok(result);
         }
+        #endregion
+
+
+        #region Test Methods
+        [HttpPost]
+        [Route("raffle-draw")]
+        public async Task<IActionResult> RaffleDraw()
+        {
+            var result = await _reservation.RaffleDraw();
+
+            return Ok(result);
+        }
+        #endregion
     }
 }

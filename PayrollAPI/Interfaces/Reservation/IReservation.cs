@@ -32,7 +32,9 @@ namespace PayrollAPI.Interfaces.Reservation
 
         Task<List<Reservation_Payments_View>> GetReservationsPayments(ReservationPaymentRequest request);
 
-        Task<bool> RaffelDraw();
+        Task<List<RaffleDraw>> GetRaffleDrawDetails(DateTime createdDate);
+
+        Task<bool> RaffleDraw();
         Task<bool> WinnerConfirmation();
         Task<bool> BungalowReopenJob();
     }

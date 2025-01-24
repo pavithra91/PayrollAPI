@@ -19,7 +19,7 @@ namespace PayrollAPI.Services.BackgroudServices
 
         public async Task Execute(IJobExecutionContext context)
         {
-            await _reservation.RaffelDraw();
+            await _reservation.RaffleDraw();
         }
     }
 }
