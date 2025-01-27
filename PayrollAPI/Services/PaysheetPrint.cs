@@ -8,6 +8,8 @@ using PdfSharp.Pdf.Security;
 using PdfSharp.Pdf;
 using PayrollAPI.Data;
 using PayrollAPI.Models.Payroll;
+using System.Text;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace PayrollAPI.Services
 {
@@ -38,6 +40,8 @@ namespace PayrollAPI.Services
 
 
             Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Send_SMS_PaySheet_View").FirstOrDefault();
+            IEnumerable<Sys_Properties> sms_configurations = _context.Sys_Properties.Where(o => o.groupName == "SMS").ToList();
+            IEnumerable<Sys_Properties> companyBankDetails = _context.Sys_Properties.Where(o => o.groupName == "Company_Bank_Details").ToList();
             Sys_Properties smsBody = _context.Sys_Properties.Where(o => o.variable_name == "SMS_Body").FirstOrDefault();
             Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == companyCode && o.period == period).FirstOrDefault();
 
@@ -78,10 +82,6 @@ namespace PayrollAPI.Services
 
                 foreach (var emp in _empData)
                 {
-                    if(emp.epf != "17568")
-                    {
-                        continue;
-                    }
                     count++;
                     var _objLog = new PaySheet_Log
                     {
@@ -147,10 +147,45 @@ namespace PayrollAPI.Services
 
                 _context.SaveChanges();
 
+
+                var itemList = from epf_etf in _epfData
+                               join empData in _empData on epf_etf.epf equals empData.epf
+                               orderby epf_etf.epf
+                               select new
+                               {
+                                   epf = epf_etf.epf,
+                                   name = epf_etf.empName,
+                                   netSalary = epf_etf.netAmount.ToString(),
+                                   bankCode = empData.bankCode.ToString(),
+                                   branchCode = empData.branchCode.ToString(),
+                                   accountNo = empData.accountNo.ToString(),
+                               };
+                string formattedString = "";
+
+                string _comp_BankCode = companyBankDetails.Where(o => o.variable_name == "Bank_Code").FirstOrDefault().variable_value;
+                string _comp_Branch_Code = companyBankDetails.Where(o => o.variable_name == "Branch_Code").FirstOrDefault().variable_value;
+                string _comp_Account_No = companyBankDetails.Where(o => o.variable_name == "Account_No").FirstOrDefault().variable_value;
+                string _comp_Account_Name = companyBankDetails.Where(o => o.variable_name == "Account_Name").FirstOrDefault().variable_value;
+                
+                foreach (var item in itemList)
+                {
+                    string amount = item.netSalary.ToString().Replace(".", "");
+                    amount.Count();
+                    DateTime now = DateTime.Now;
+                    string date = now.ToString("yyMMdd");
+                    formattedString += string.Format(
+                    "{0,4}{1,4}{2:3}{3,-12}{4,-20}23{5,21}SLR{6,4}{7:3}{8, -12}{9, -50}{10, 6}{11,6}\n",
+                    "0000", item.bankCode, item.branchCode, item.accountNo.PadLeft(12, '0'), item.name.Trim(), amount.PadLeft(21, '0'), _comp_BankCode, _comp_Branch_Code, _comp_Account_No.PadLeft(12, '0'), _comp_Account_Name, date, "000000");
+                }
+
+                byte[] array = Encoding.UTF8.GetBytes(formattedString);
+                using var memoryStream = new MemoryStream(array);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
                 IEnumerable<Sys_Properties> email_configurations = _context.Sys_Properties.Where(o => o.groupName == "Email" || o.groupName == "Email_Config").ToList();
 
                 EmailSender email = new EmailSender();
-                bool status = await email.SendEmail(email_configurations);
+                bool status = await email.SendEmail(email_configurations, memoryStream.ToArray(), period + "-CPSTL", "txt");
 
                 if (status)
                 {

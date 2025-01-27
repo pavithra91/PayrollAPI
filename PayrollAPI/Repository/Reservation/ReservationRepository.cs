@@ -594,7 +594,9 @@ namespace PayrollAPI.Repository.Reservation
                                     .Include(r => r.bungalow_Reservation)
                                     .ThenInclude(e => e.employee)
                                     .Include(r=>r.bungalow_Reservation)
-                                    .ThenInclude(b=>b.bungalow).ToList();
+                                    .ThenInclude(b=>b.bungalow)
+                                    .OrderBy(x=>x.rank)
+                                    .ToList();
 
             return await Task.FromResult(raffleDrawList);
         }
