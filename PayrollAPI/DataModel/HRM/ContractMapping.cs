@@ -631,6 +631,34 @@ namespace PayrollAPI.DataModel.HRM
         #endregion
 
 
+        #region RaffleDraw Details
+        public static RaffleDrawDetailsResponse MapToResponse(this RaffleDraw raffleDraw)
+        {
+            return new RaffleDrawDetailsResponse
+            {
+                id = raffleDraw.id,
+                epf = raffleDraw.bungalow_Reservation.employee.epf,
+                companyCode = raffleDraw.bungalow_Reservation.employee.companyCode,
+                empName = raffleDraw.bungalow_Reservation.employee.empName,
+                rank = raffleDraw.rank,
+                bungalowName = raffleDraw.bungalow_Reservation.bungalow.bungalowName,
+                contactNumber = raffleDraw.bungalow_Reservation.contactNumber_1,
+                noOfPax = raffleDraw.bungalow_Reservation.totalPax,
+                checkInDate = raffleDraw.bungalow_Reservation.checkInDate,
+                checkOutDate = raffleDraw.bungalow_Reservation.checkOutDate,
+                cost = raffleDraw.bungalow_Reservation.reservationCost,
+            };
+        }
+
+        public static RaffleDrawDetailsResponses MapToResponse(this IEnumerable<RaffleDraw> raffleDraws)
+        {
+            return new RaffleDrawDetailsResponses
+            {
+                Items = raffleDraws.Select(MapToResponse)
+            };
+        }
+        #endregion
+
         #region Voucher Payments
         public static PaymentResponse MapToResponse(this OtherPayment payment)
         {

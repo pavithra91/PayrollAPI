@@ -1143,11 +1143,20 @@ namespace PayrollAPI.Repository.Payroll
 
                 if (_payRun?.payrunStatus == "Unrec File Created")
                 {
+                    _payRun.payrunStatus = "Session Started";
+                    _context.SaveChanges();
+
                     var workItem = new PaysheetBGParams { companyCode = approvalDto.companyCode, period = approvalDto.period, approvedBy = approvalDto.approvedBy };
                     _taskQueue.BackgroundServiceQueue(workItem);
 
                     _msg.MsgCode = 'S';
                     _msg.Message = "Success";
+                    return _msg;
+                }
+                else if(_payRun?.payrunStatus == "Session Started")
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = "Backgroud job is already running for this period";
                     return _msg;
                 }
                 else

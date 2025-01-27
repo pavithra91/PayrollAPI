@@ -588,9 +588,13 @@ namespace PayrollAPI.Repository.Reservation
 
         public async Task<List<RaffleDraw>> GetRaffleDrawDetails(DateTime createdDate)
         {
-            List<RaffleDraw> raffleDrawList = _context.RaffleDraw.Where(x => x.createdDate == createdDate)
+            DateTime reportDate = createdDate.AddDays(1);
+
+            List<RaffleDraw> raffleDrawList = _context.RaffleDraw.Where(x => x.createdDate == reportDate.Date)
                                     .Include(r => r.bungalow_Reservation)
-                                    .ThenInclude(e => e.employee).ToList();
+                                    .ThenInclude(e => e.employee)
+                                    .Include(r=>r.bungalow_Reservation)
+                                    .ThenInclude(b=>b.bungalow).ToList();
 
             return await Task.FromResult(raffleDrawList);
         }

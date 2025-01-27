@@ -52,8 +52,6 @@ namespace PayrollAPI.Services
 
             PaysheetPrint paysheet = new PaysheetPrint(dbConnect);
 
-
-
             paysheet.PrintPaySheets(workItem.companyCode, workItem.period, workItem.approvedBy);
 
             return Task.CompletedTask;
