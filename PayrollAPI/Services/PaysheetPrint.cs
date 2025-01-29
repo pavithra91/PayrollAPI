@@ -10,6 +10,8 @@ using PayrollAPI.Data;
 using PayrollAPI.Models.Payroll;
 using System.Text;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Org.BouncyCastle.Ocsp;
+using System.Linq;
 
 namespace PayrollAPI.Services
 {
@@ -214,6 +216,69 @@ namespace PayrollAPI.Services
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> ResendPaySheets(int companyCode, int period, string approvedBy)
+        {
+            MsgDto _msg = new MsgDto();
+            Common com = new Common();
+
+            Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == companyCode && o.period == period).FirstOrDefault();
+
+            if (_payRun.payrunStatus != "Bank TR Compelete") {
+                _msg.MsgCode = 'E';
+                _msg.Message = "Payrun status not in Bank TR Compelete";
+                return _msg;
+            }
+            else
+            {
+                BackgroudJobs bj = new BackgroudJobs
+                {
+                    companyCode = companyCode,
+                    period = period,
+                    createdBy = approvedBy,
+                    createdDate = com.GetTimeZone().Date,
+                    createdTime = com.GetTimeZone(),
+                    backgroudJobStatus = "Paysheet Resend Backgroud Job Started"
+                };
+
+                Sys_Properties sys_Properties = _context.Sys_Properties.Where(o => o.variable_name == "Send_SMS_PaySheet_View").FirstOrDefault();
+                IEnumerable<Sys_Properties> sms_configurations = _context.Sys_Properties.Where(o => o.groupName == "SMS").ToList();
+                IEnumerable<Sys_Properties> companyBankDetails = _context.Sys_Properties.Where(o => o.groupName == "Company_Bank_Details").ToList();
+                Sys_Properties smsBody = _context.Sys_Properties.Where(o => o.variable_name == "SMS_Body").FirstOrDefault();
+
+                IEnumerable<PaySheet_Log> resendList = _context.PaySheet_Log.Where(x => x.isSMSSend == false && x.message == null).ToList();
+
+                foreach (var paySheet_Log in resendList)
+                {
+                    var employee_Data = _context.Employee_Data.Where(x => x.epf == paySheet_Log.epf).FirstOrDefault();
+
+                    if(employee_Data != null)
+                    {
+
+                        string _endPoint = "https://cpstl-poc-main-s3.s3.ap-southeast-1.amazonaws.com/public/" + period + "/" + paySheet_Log.paysheetID;
+
+                        if (employee_Data.phoneNo != null)
+                        {
+                            SMSSender sms = new SMSSender(employee_Data.phoneNo, string.Format(smsBody.variable_value.Replace("{break}", "\n"), period, _endPoint));
+                            bool respose = await sms.sendSMS(sms);
+                            //Thread.Sleep(300);
+                            paySheet_Log.isSMSSend = respose;
+                        }
+                    }
+                }
+
+                bj.backgroudJobStatus = "Task Completed";
+                bj.finishedTime = com.GetTimeZone();
+
+                _context.BackgroudJobs.Add(bj);
+
+                _context.SaveChanges();
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Success";
                 return _msg;
             }
         }

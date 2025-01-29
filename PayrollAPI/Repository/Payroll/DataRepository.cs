@@ -89,8 +89,8 @@ namespace PayrollAPI.Repository.Payroll
                         paytype = string.IsNullOrEmpty(_dataRow["paytype"].ToString()) ? ' ' : _dataRow["paytype"].ToString()[0],
                         amount = Convert.ToDecimal(_dataRow["amount"].ToString()),
                         balanceamount = Convert.ToDecimal(_dataRow["balanceamount"].ToString()),
-                        epfConRate = Convert.ToInt32(_dataRow["epfConRate"]),
-                        taxConRate = Convert.ToInt32(_dataRow["taxConRate"]),
+                        epfConRate = Convert.ToDouble(_dataRow["epfConRate"]),
+                        taxConRate = Convert.ToDouble(_dataRow["taxConRate"]),
                         createdDate = DateTime.Now,
                     });
                 }
@@ -506,7 +506,7 @@ namespace PayrollAPI.Repository.Payroll
                 return _msg;
             }
         }
-                public ICollection<Temp_Employee> GetTempEmployeeList(int companyCode, int period)
+        public ICollection<Temp_Employee> GetTempEmployeeList(int companyCode, int period)
         {
             ICollection<Temp_Employee> _tempEmpList = _context.Temp_Employee.Where(o => o.companyCode == companyCode && o.period == period).ToList();
             return _tempEmpList;

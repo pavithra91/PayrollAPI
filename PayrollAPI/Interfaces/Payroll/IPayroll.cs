@@ -22,6 +22,10 @@ namespace PayrollAPI.Interfaces.Payroll
 
         public Task<MsgDto> Writeback(int period, int companyCode);
 
+        public Task<MsgDto> GetEmployeePaySheet(ApprovalDto approvalDto);
+
+        public Task<MsgDto> ResendPaySheets(ApprovalDto approvalDto);
+
         public Task<MsgDto> CreateBankFile(ApprovalDto approvalDto);
         public IDbTransaction BeginTransaction();
 

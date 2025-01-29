@@ -8,8 +8,8 @@ namespace PayrollAPI.Controllers.Payroll
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
-    [ServiceFilter(typeof(ApiKeyAuthFilter))]
+    //[Authorize]
+    //[ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class PayrollController : ControllerBase
     {
         private readonly IPayroll _payroll;
@@ -192,6 +192,38 @@ namespace PayrollAPI.Controllers.Payroll
         public async Task<ActionResult> CreateBankFile([FromBody] ApprovalDto approvalDto)
         {
             MsgDto _msg = await _payroll.CreateBankFile(approvalDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("get-emp-paysheet")]
+        [HttpPost]
+        public async Task<ActionResult> GetEmployeePaySheet([FromBody] ApprovalDto approvalDto)
+        {
+            MsgDto _msg = await _payroll.GetEmployeePaySheet(approvalDto);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("resend-paysheets")]
+        [HttpPost]
+        public async Task<ActionResult> ResendPaySheets([FromBody] ApprovalDto approvalDto)
+        {
+            MsgDto _msg = await _payroll.ResendPaySheets(approvalDto);
 
             if (_msg.MsgCode == 'S')
             {
