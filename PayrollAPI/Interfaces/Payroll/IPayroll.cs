@@ -26,6 +26,7 @@ namespace PayrollAPI.Interfaces.Payroll
 
         public Task<MsgDto> ResendPaySheets(ApprovalDto approvalDto);
 
+        public Task<MsgDto> StopSalary(StopSalDto approvalDto); 
         public Task<MsgDto> CreateBankFile(ApprovalDto approvalDto);
         public IDbTransaction BeginTransaction();
 

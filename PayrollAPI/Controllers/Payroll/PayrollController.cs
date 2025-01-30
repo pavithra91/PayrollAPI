@@ -87,7 +87,7 @@ namespace PayrollAPI.Controllers.Payroll
             }
             else
             {
-                return BadRequest(_msg);
+                return Ok(_msg);
             }
         }
 
@@ -176,6 +176,22 @@ namespace PayrollAPI.Controllers.Payroll
         public async Task<ActionResult> Writeback(int period, int companyCode)
         {
             MsgDto _msg = await _payroll.Writeback(period, companyCode);
+
+            if (_msg.MsgCode == 'S')
+            {
+                return Ok(_msg);
+            }
+            else
+            {
+                return BadRequest(_msg);
+            }
+        }
+
+        [Route("stop-salary")]
+        [HttpPost]
+        public async Task<ActionResult> StopSalary([FromBody] StopSalDto stopSalDto)
+        {
+            MsgDto _msg = await _payroll.StopSalary(stopSalDto);
 
             if (_msg.MsgCode == 'S')
             {

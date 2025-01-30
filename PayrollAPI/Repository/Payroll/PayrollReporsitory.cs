@@ -508,6 +508,7 @@ namespace PayrollAPI.Repository.Payroll
             MsgDto _msg = new MsgDto();
             var ePF_ETFs = await _context.EPF_ETF.Where(o => o.period == period && o.companyCode == companyCode).OrderBy(o => o.epf).Select(o => new
             {
+                o.id,
                 o.companyCode,
                 o.location,
                 o.period,
@@ -526,6 +527,7 @@ namespace PayrollAPI.Repository.Payroll
             if (ePF_ETFs.Count > 0)
             {
                 _msg.Data = JsonConvert.SerializeObject(ePF_ETFs);
+                _msg.total = ePF_ETFs.Count;
                 _msg.MsgCode = 'S';
                 _msg.Message = "Payroll Summary Available";
                 return _msg;
@@ -1129,6 +1131,49 @@ namespace PayrollAPI.Repository.Payroll
             {
                 _logger.LogError($"Writeback : {ex.Message}");
                 _logger.LogError($"Writeback : {ex.InnerException}");
+                _msg.MsgCode = 'E';
+                _msg.Message = "Error : " + ex.Message;
+                _msg.Description = "Inner Expection : " + ex.InnerException;
+                return _msg;
+            }
+        }
+
+        public async Task<MsgDto> StopSalary(StopSalDto stopSalDto)
+        {
+            MsgDto _msg = new MsgDto();
+            using var transaction = BeginTransaction();
+            try
+            {
+                Payrun? _payRun = _context.Payrun.Where(o => o.companyCode == stopSalDto.companyCode && o.period == stopSalDto.period).FirstOrDefault();
+                if (_payRun?.payrunStatus == "Unrec File Created")
+                {
+                    List<EPF_ETF> ePF_ETFs = _context.EPF_ETF.Where(x => stopSalDto.id.Contains(x.id)).ToList();
+
+                    List<string> epfNumbers = ePF_ETFs.Select(x => x.epf).ToList();
+
+
+                    List<Employee_Data> employees = _context.Employee_Data
+                                          .Where(x => epfNumbers.Contains(x.epf) && x.companyCode == stopSalDto.companyCode && x.period == stopSalDto.period)
+                                          .ToList();
+
+                    foreach (var item in employees)
+                    {
+                        item.status = false;
+                    }
+
+                    _context.SaveChanges();
+                    transaction.Commit();
+                }
+
+                _msg.MsgCode = 'S';
+                _msg.Message = "Success";
+                return _msg;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _logger.LogError($"CreateBankFile : {ex.Message}");
+                _logger.LogError($"CreateBankFile : {ex.InnerException}");
                 _msg.MsgCode = 'E';
                 _msg.Message = "Error : " + ex.Message;
                 _msg.Description = "Inner Expection : " + ex.InnerException;

@@ -54,7 +54,7 @@ namespace PayrollAPI.Services
                     OrderBy(o => o.epf).ToList();
 
                 ICollection<Employee_Data> _empData = _context.Employee_Data.
-                    Where(o => o.period == period && o.companyCode == companyCode).
+                    Where(o => o.period == period && o.companyCode == companyCode && o.status == true).
                     OrderBy(o => o.epf).ToList();
 
                 ICollection<EPF_ETF> _epfData = _context.EPF_ETF.
@@ -152,6 +152,7 @@ namespace PayrollAPI.Services
 
                 var itemList = from epf_etf in _epfData
                                join empData in _empData on epf_etf.epf equals empData.epf
+                               where empData.status == true
                                orderby epf_etf.epf
                                select new
                                {
