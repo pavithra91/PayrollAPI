@@ -145,6 +145,15 @@ namespace PayrollAPI.Repository.Payroll
             {
                 using var transaction = BeginTransaction();
 
+                User existingUser = _context.User.Where(x => x.epf == user.epf).FirstOrDefault();
+
+                if (existingUser != null) 
+                {
+                    _msg.MsgCode = 'E';
+                    _msg.Message = $"User {existingUser.epf} already exists";
+                    return _msg;
+                }
+
                 string pwdHash = passwordHasher.Hash(user.password, user.epf.ToString());
                 var _user = new User
                 {
